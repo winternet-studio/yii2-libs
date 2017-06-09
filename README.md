@@ -2,7 +2,7 @@ JsHelper
 ========
 Different [Yii2](http://www.yiiframework.com/) libraries for helping you to write less code and organize it better.
 
-*JsHelper* is for simplified handling of common tasks with AJAX, modals, and display of messages from Javascript code.
+*JsHelper* is for simplified handling of common tasks with AJAX, modals, and display of messages from Javascript code. See the source code for understanding the purpose of this library.
 
 Installation
 ------------
@@ -79,3 +79,5 @@ appJS.showModal({
 	}
 });
 ```
+
+See the source code to understand how and why to use these libraries.
