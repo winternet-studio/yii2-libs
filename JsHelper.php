@@ -11,13 +11,13 @@ class JsHelper extends Component {
 	public static $defaultButtonNo = false;
 	public static $defaultButtonYes = false;
 
-	public static function initAjax() {
-		JsHelperAsset::register($this);  // ensure the AJAX section is available
+	public static function initAjax($view) {
+		JsHelperAsset::register($view);  // ensure the AJAX section is available
 
-		return self::initModal();
+		return self::initModal($view);
 	}
 
-	public static function initModal() {
+	public static function initModal($view) {
 		/*
 		DESCRIPTION:
 		- call initModal() before call the Javascript function
@@ -59,7 +59,7 @@ class JsHelper extends Component {
 			return '';
 		}
 
-		JsHelperAsset::register($this);  // ensure the Modal section is available
+		JsHelperAsset::register($view);  // ensure the Modal section is available
 
 		self::$initModalDone = true;
 		return self::standardModal();
@@ -225,7 +225,7 @@ class JsHelper extends Component {
 		return ob_get_clean();
 	}
 
-	public static function systemMsgInit() {
-		JsHelperAsset::register($this);  // ensure the Javascript messaging section is available
+	public static function systemMsgInit($view) {
+		JsHelperAsset::register($view);  // ensure the Javascript messaging section is available
 	}
 }

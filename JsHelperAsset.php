@@ -5,7 +5,7 @@ use yii\web\AssetBundle;
 
 class JsHelperAsset extends AssetBundle {
 
-	public $sourcePath = '@vendor/winternet/yii2-jshelper/assets';
+	public $sourcePath = '@vendor/winternet-studio/yii2-jshelper/assets';
 	public $basePath = '@webroot/assets';
 	// public $css = ['nothingyet.css'];
 	public $js = ['jshelper.js?v=1'];
