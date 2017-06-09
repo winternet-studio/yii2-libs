@@ -212,13 +212,14 @@ appJS.formatStdResult = function(arrResult, okMessageHtml, errorMessageHtml, opt
 appJS.systemMsg = {
 	maxMsgs: 3,
 	counter: 0,
-	removeAfter: <?= ($options['removeAfter'] ? $options['removeAfter'] : '0') ?>,
+	selector: '.system-msg',
+	removeAfter: 0,
 	add: function(msg, options) {
 		var effRemAfter;
 		appJS.systemMsg.counter++;
 		var time = JSON.stringify(new Date()).substr(12).replace('"', '').replace('Z', '');
 		console.info(''+ appJS.systemMsg.counter +'. '+ time +' '+ msg);
-		var $msg = $('<?= ($options['selector'] ? $options['selector'] : '.system-msg') ?>');
+		var $msg = $(appJS.systemMsg.selector);
 		var $div = $('<div class="msg" style="color:#a9730e"><span style="font-size:80%;background-color:#a9730e;color:white;border-radius:2px">&nbsp;'+ appJS.systemMsg.counter +'&nbsp;</span> <span style="text-align:left;font-family: monospace">'+ time +'</span> &nbsp;'+ msg +'</div>');
 		$msg.append($div);
 		if ($msg.find('.msg').length > appJS.systemMsg.maxMsgs) {

@@ -225,7 +225,18 @@ class JsHelper extends Component {
 		return ob_get_clean();
 	}
 
-	public static function systemMsgInit($view) {
+	public static function systemMsgInit($view, $options = []) {
 		JsHelperAsset::register($view);  // ensure the Javascript messaging section is available
+
+		$js = [];
+		if ($options['removeAfter']) {
+			$js[] = 'appJS.systemMsg.removeAfter = '. (int) $options['removeAfter'] .';';
+		}
+		if ($options['selector']) {
+			$js[] = 'appJS.systemMsg.selector = '. json_encode($options['selector']) .';';
+		}
+		if (!empty($js)) {
+			$view->registerJs(implode('', $js));
+		}
 	}
 }
