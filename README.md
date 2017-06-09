@@ -1,6 +1,8 @@
 JsHelper
 ========
-Helper for simplified handling of common tasks with AJAX, modals, and display of messages from Javascript code
+Different [Yii2](http://www.yiiframework.com/) libraries for helping you to write less code and organize it better.
+
+*JsHelper* is for simplified handling of common tasks with AJAX, modals, and display of messages from Javascript code.
 
 Installation
 ------------
@@ -10,13 +12,13 @@ The preferred way to install this extension is through [composer](http://getcomp
 Either run
 
 ```
-php composer.phar require --prefer-dist winternet-studio/yii2-jshelper "*"
+php composer.phar require --prefer-dist winternet-studio/yii2-libraries "*"
 ```
 
 or add
 
 ```
-"winternet-studio/yii2-jshelper": "*"
+"winternet-studio/yii2-libraries": "*"
 ```
 
 to the require section of your `composer.json` file.
@@ -30,7 +32,7 @@ Once the extension is installed, simply use it in your code by  :
 
 ```php
 <?php
-use winternet\jshelper\JsHelper;
+use winternet\yii2\JsHelper;
 
 echo JsHelper::initAjax();  //call within <body>
 echo JsHelper::standardModal(['id' => 'StandardModal2']);

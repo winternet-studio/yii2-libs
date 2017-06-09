@@ -1,5 +1,5 @@
 <?php
-namespace winternet\jshelper;
+namespace winternet\yii2;
 
 use yii\base\Component;
 
