@@ -56,7 +56,7 @@ appJS.cancelClickHandler = function(e) {
 };
 appJS.disableSubmit = function(selector) {
 	appJS.disableSubmitSelector = selector;
-	appJS.disableSubmitElemens = [];
+	appJS.disableSubmitElements = [];
 	$(appJS.disableSubmitSelector).each(function() {
 		var $this = $(this);
 		// $(this).html($(this).html() +' X');  //debug code
@@ -66,12 +66,14 @@ appJS.disableSubmit = function(selector) {
 		}
 		// Cancel out normal clicks
 		$this.on('click', appJS.cancelClickHandler).addClass('click-disabled');
-		appJS.disableSubmitElemens.push($this);
+		appJS.disableSubmitElements.push($this);
 	});
 };
 appJS.enableSubmit = function() {
-	for (var i = 0; i < appJS.disableSubmitElemens.length; i++) {
-		var $elem = appJS.disableSubmitElemens[i];
+	if (typeof appJS.disableSubmitElements == 'undefined') return;
+
+	for (var i = 0; i < appJS.disableSubmitElements.length; i++) {
+		var $elem = appJS.disableSubmitElements[i];
 		// $elem.html($elem.html() +'-');  //debug code
 		// Remove cancellation event
 		$elem.off('click', appJS.cancelClickHandler).removeClass('click-disabled');
@@ -80,8 +82,8 @@ appJS.enableSubmit = function() {
 			$elem.attr('onclick', $elem.data('onclickValue'));
 		}
 	}
-	console.info('Click has been re-enabled for '+ appJS.disableSubmitElemens.length +' elements');
-	appJS.disableSubmitElemens = [];
+	console.info('Click has been re-enabled for '+ appJS.disableSubmitElements.length +' elements');
+	appJS.disableSubmitElements = [];
 };
 
 
