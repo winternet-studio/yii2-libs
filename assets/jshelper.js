@@ -1,5 +1,5 @@
 if (typeof appJS != 'undefined') {
-	alert('CONFLICT ERROR! The variable appJS already exists in the global namespace of Javascript. winternet/yii2-jshelper library will overwrite the variable.');
+	alert('CONFLICT ERROR! The variable appJS already exists in the global namespace of Javascript. winternet/yii2/JsHelper library will overwrite the variable.');
 }
 
 appJS = {};
