@@ -31,48 +31,64 @@ class JobQueue extends Component {
 	}
 
 
-	public function run($params = []) {
+	public function runJob($jobID) {
+		$job = \Yii::$app->{$this->db}->createCommand("SELECT * FROM ". ($this->db_name ? '`'. $this->db_name .'`.' : '') ."system_job_queue WHERE jobiD = :id AND job_time_started IS NULL", ['id' => $jobID])->queryOne();
+
+		if (empty($job)) return false;
+
+		if ($job['job_queueID'] != $this->queueID) return false;  //skip jobs not in this queue
+
+		if ($job['job_postpone_time'] && $job['job_postpone_time'] > (new DateTime())->getTimestamp() ) return false;  //skip jobs that have been postponed for later
+
+		$this->startJob($job['jobID']);
+
+		$command = json_decode($job['job_command']);
+
+		if ($command->route) {
+			$cmdargs = [];
+			foreach ($command->params as $key => $value) {
+				$cmdargs[] = '--'. $key .'="'. $value .'"';
+			}
+
+			$cmd = 'php yii '. $command->route;
+			if ($cmdargs) {
+				$cmd .= ' '. implode(' ', $cmdargs);
+			}
+		} else {
+			if (!$this->$sanitize_callback || !is_callable($this->$sanitize_callback)) {
+				// DON'T ALLOW UNSANITIZED COMMANDS FOR SECURITY REASONS. If someone gained access to the database and script runs in sudo (though is most cases that shouldn't be necessary) they would be able to run any command!
+				throw new \yii\base\UserException('Missing function for sanitizing command from JobQueue.');
+			} else {
+				$cmd = $this->$sanitize_callback($command);
+			}
+		}
+
+		$output = []; $exitcode = 0;
+		$this->consoleLog('Command: '. $cmd);
+		exec($cmd, $output, $exitcode);
+
+		$this->finishJob($job['jobID'], $exitcode);
+
+		return true;
+	}
+
+	public function runAll($params = []) {
 		// Execute all pending jobs
 		$jobs = \Yii::$app->{$this->db}->createCommand("SELECT * FROM ". ($this->db_name ? '`'. $this->db_name .'`.' : '') ."system_job_queue WHERE job_time_started IS NULL ORDER BY job_priority DESC")->queryAll();
 
 		chdir(\Yii::getAlias('@app/'));
 		$jobs_done = 0;
 		$this->consoleLog('Started batch');
+
 		foreach ($jobs as $job) {
-			if ($job['job_queueID'] != $this->queueID) continue;  //skip jobs not in this queue
 
-			if ($job['job_postpone_time'] && $job['job_postpone_time'] > (new DateTime())->getTimestamp() ) continue;  //skip jobs that have been postponed for later
+			$was_run = $this->runJob($job['jobID']);
 
-			$this->startJob($job['jobID']);
-
-			$command = json_decode($job['job_command']);
-
-			if ($command->route) {
-				$cmdargs = [];
-				foreach ($command->params as $key => $value) {
-					$cmdargs[] = '--'. $key .'="'. $value .'"';
-				}
-
-				$cmd = 'php yii '. $command->route;
-				if ($cmdargs) {
-					$cmd .= ' '. implode(' ', $cmdargs);
-				}
-			} else {
-				if (!$this->$sanitize_callback || !is_callable($this->$sanitize_callback)) {
-					// DON'T ALLOW UNSANITIZED COMMANDS FOR SECURITY REASONS. If someone gained access to the database and script runs in sudo they would be able to run any command!
-					throw new \yii\base\UserException('Missing function for sanitizing command from JobQueue.');
-				} else {
-					$cmd = $this->$sanitize_callback($command);
-				}
+			if ($was_run) {
+				$jobs_done++;
 			}
-
-			$output = []; $exitcode = 0;
-			$this->consoleLog('Command: '. $cmd);
-			exec($cmd, $output, $exitcode);
-
-			$this->finishJob($job['jobID'], $exitcode);
-			$jobs_done++;
 		}
+
 		$this->consoleLog('Ended batch ('. $jobs_done .' '. ($jobs_done == 1 ? 'job' : 'jobs') .' executed)');
 	}
 
