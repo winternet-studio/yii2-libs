@@ -5,17 +5,17 @@ use yii\base\Component;
 
 class JobQueue extends Component {
 	private $db = 'db';
-	private $db_name = null;
+	private $dbName = null;
 	private $queueID = null;
-	private $sanitize_callback = null;
+	private $sanitizeCallback = null;
 
 
 	public function __construct($params = []) {
 		if ($params['db']) {
 			$this->db = $params['db'];
 		}
-		if ($params['db_name']) {
-			$this->db_name = $params['db_name'];
+		if ($params['dbName']) {
+			$this->dbName = $params['dbName'];
 		}
 		if ($params['queueID']) {
 			$this->queueID = $params['queueID'];
@@ -23,22 +23,24 @@ class JobQueue extends Component {
 	}
 
 	public function startJob($jobID) {
-		\Yii::$app->{$this->db}->createCommand("UPDATE ". ($this->db_name ? '`'. $this->db_name .'`.' : '') ."system_job_queue SET job_time_started = UTC_TIMESTAMP(), job_replaceID = NULL WHERE jobID = :id", ['id' => $jobID])->execute();
+		\Yii::$app->{$this->db}->createCommand("UPDATE ". ($this->dbName ? '`'. $this->dbName .'`.' : '') ."system_job_queue SET job_time_started = UTC_TIMESTAMP(), job_replaceID = NULL WHERE jobID = :id", ['id' => $jobID])->execute();
 	}
 
 	public function finishJob($jobID, $exit_status = 0) {
-		\Yii::$app->{$this->db}->createCommand("UPDATE ". ($this->db_name ? '`'. $this->db_name .'`.' : '') ."system_job_queue SET job_time_completed = UTC_TIMESTAMP(), job_exit_status = :status WHERE jobID = :id", ['id' => $jobID, 'status' => $exit_status])->execute();
+		\Yii::$app->{$this->db}->createCommand("UPDATE ". ($this->dbName ? '`'. $this->dbName .'`.' : '') ."system_job_queue SET job_time_completed = UTC_TIMESTAMP(), job_exit_status = :status WHERE jobID = :id", ['id' => $jobID, 'status' => $exit_status])->execute();
 	}
 
 
 	public function runJob($jobID) {
-		$job = \Yii::$app->{$this->db}->createCommand("SELECT * FROM ". ($this->db_name ? '`'. $this->db_name .'`.' : '') ."system_job_queue WHERE jobiD = :id AND job_time_started IS NULL", ['id' => $jobID])->queryOne();
+		$job = \Yii::$app->{$this->db}->createCommand("SELECT * FROM ". ($this->dbName ? '`'. $this->dbName .'`.' : '') ."system_job_queue WHERE jobiD = :id AND job_time_started IS NULL", ['id' => $jobID])->queryOne();
 
 		if (empty($job)) return false;
 
 		if ($job['job_queueID'] != $this->queueID) return false;  //skip jobs not in this queue
 
-		if ($job['job_postpone_time'] && $job['job_postpone_time'] > (new DateTime())->getTimestamp() ) return false;  //skip jobs that have been postponed for later
+		if ($job['job_postpone_time'] && $job['job_postpone_time'] > (new \DateTime())->getTimestamp() ) return false;  //skip jobs that have been postponed for later
+
+		$this->consoleLog('Executing job #'. $jobID .'...');
 
 		$this->startJob($job['jobID']);
 
@@ -55,26 +57,26 @@ class JobQueue extends Component {
 				$cmd .= ' '. implode(' ', $cmdargs);
 			}
 		} else {
-			if (!$this->$sanitize_callback || !is_callable($this->$sanitize_callback)) {
+			if (!$this->$sanitizeCallback || !is_callable($this->$sanitizeCallback)) {
 				// DON'T ALLOW UNSANITIZED COMMANDS FOR SECURITY REASONS. If someone gained access to the database and script runs in sudo (though is most cases that shouldn't be necessary) they would be able to run any command!
 				throw new \yii\base\UserException('Missing function for sanitizing command from JobQueue.');
 			} else {
-				$cmd = $this->$sanitize_callback($command);
+				$cmd = $this->$sanitizeCallback($command);
 			}
 		}
 
 		$output = []; $exitcode = 0;
-		$this->consoleLog('Command: '. $cmd);
-		exec($cmd, $output, $exitcode);
+		// $this->consoleLog('Command: '. $cmd);
+		exec($cmd .' 2>&1', $output, $exitcode);
 
-		$this->finishJob($job['jobID'], $exitcode);
+		$this->finishJob($job['jobID'], substr($exitcode . implode('', $output), 0, 50));
 
 		return true;
 	}
 
 	public function runAll($params = []) {
 		// Execute all pending jobs
-		$jobs = \Yii::$app->{$this->db}->createCommand("SELECT * FROM ". ($this->db_name ? '`'. $this->db_name .'`.' : '') ."system_job_queue WHERE job_time_started IS NULL ORDER BY job_priority DESC")->queryAll();
+		$jobs = \Yii::$app->{$this->db}->createCommand("SELECT * FROM ". ($this->dbName ? '`'. $this->dbName .'`.' : '') ."system_job_queue WHERE job_time_started IS NULL ORDER BY job_priority DESC")->queryAll();
 
 		chdir(\Yii::getAlias('@app/'));
 		$jobs_done = 0;
@@ -128,7 +130,20 @@ class JobQueue extends Component {
 			- 'replaceID' (opt.) : ID of the job which will cause a later job with the same ID to replace this job if it hasn't started yet
 				(therefore once a job is started this ID is removed)
 			- 'priority' (opt.) : set a custom priority, from -128 to 127 (default is 0)
-			- 'delay_secs' (opt.) : number of seconds to delay the job (otherwise executed at next loop of the service)
+			- 'delaySecs' (opt.) : number of seconds to delay the job (otherwise executed at next loop of the service)
+			- 'atCommand' (opt.) : the command for the Linux `at` command to execute to get this job done
+				- use placeholder {{jobID}} to have the ID of the created job inserted into the command
+				- single-quotes (') not allowed in the command and will be removed (no escaping is currently done)
+				- www-data must be allowed to use `at` command:
+					http://www.digitalwhores.net/linux/you-do-not-have-permission-to-use-at/
+						- remove www-data from /etc/at.deny
+					https://serverfault.com/questions/556332/why-is-www-data-ubuntu-apache-user-listed-in-the-etc-at-deny-file
+			- 'niceness' (number) (opt.) : add a `nice` value (process priority) to the job executed by `at`
+				- values can range from -20 to 19 (higher means lower priority (= nicer to the system resources))
+				- root privileges is required to use values below 0.
+				- default is 0
+			- 'noConcurrentAt' (opt.) : set to true to not set up multiple concurrent `at` jobs
+				- can be used to reduce the number of commands run, but then each command must execute all pending jobs in the queue
 		OUTPUT:
 		- nothing
 		*/
@@ -152,15 +167,59 @@ class JobQueue extends Component {
 			$bindings['priority'] = 10;
 		}
 
-		if (is_numeric($params['delay'])) {
-			$bindings['delay'] = time() + $params['delay'];
+		if (is_numeric($params['delaySecs'])) {
+			$bindings['delay'] = time() + $params['delaySecs'];
 		} else {
 			$bindings['delay'] = null;
 		}
 
 		$bindings['queue'] = $this->queueID;
 
-		$rowsaffected = \Yii::$app->{$this->db}->createCommand("REPLACE INTO ". ($this->db_name ? '`'. $this->db_name .'`.' : '') ."system_job_queue SET job_queueID = :queue, job_replaceID = :replace, job_command = :command, job_priority = :priority, job_postpone_time = :delay, job_time_added = UTC_TIMESTAMP()", $bindings)->execute();
-		// return \Yii::$app->{$this->db}->getLastInsertID();
+		$rowsaffected = \Yii::$app->{$this->db}->createCommand("REPLACE INTO ". ($this->dbName ? '`'. $this->dbName .'`.' : '') ."system_job_queue SET job_queueID = :queue, job_replaceID = :replace, job_command = :command, job_priority = :priority, job_postpone_time = :delay, job_time_added = UTC_TIMESTAMP()", $bindings)->execute();
+		$jobID = \Yii::$app->{$this->db}->getLastInsertID();
+
+		if ($params['atCommand'] && stripos(PHP_OS, 'Linux') !== false) {
+			$skip_at = false;
+
+			$cmd = str_replace('{{jobID}}', $jobID, $params['atCommand']);
+
+			if ($params['niceness']) {
+				$cmd = 'nice -'. $params['niceness'] .' '. $cmd;
+			}
+
+			if ($params['noConcurrentAt']) {
+				$indic_file = \Yii::getAlias('@app/runtime/WS-JobQueue-at-inprogress.tmp');
+
+				// Cancel setting at command if one is already pending
+				if (file_exists($indic_file)) {
+					$skip_at = true;
+				} else {
+					// Create the file
+					touch($indic_file);
+
+					// Have it removed just before the command runs
+					$cmd = 'rm -f '. str_replace(' ', "\\ ", $indic_file) .' && '. $cmd;
+				}
+			}
+
+			if (!$skip_at) {
+				$whole_minutes = $remaining_seconds = null;
+				if (is_numeric($params['delaySecs'])) {
+					if ($params['delaySecs'] >= 60) {
+						$whole_minutes = floor($params['delaySecs'] / 60) + 1;  //have to add 1 minute because if current time is 14:05:43 and we say "now + 1 min" it will execute at 14:06:00 (because the current "minute" we are in is included). Without adding one the job will be executed SOONER than one 1 minute and then job_postpone_time might still be in the future and won't be run when the job executes!
+						$remaining_seconds = $params['delaySecs'] - ($whole_minutes * 60);
+					} else {
+						$remaining_seconds = $params['delaySecs'];
+					}
+					if ($remaining_seconds > 0) {
+						$cmd = 'sleep '. $remaining_seconds .' && '. $cmd;
+					}
+				}
+				$cmd = "echo '". str_replace("'", '', $cmd) ."' | at now". ($whole_minutes && $params['delaySecs'] >= 60 ? ' + '. $whole_minutes .' min' : '');
+
+				$output = []; $exitcode = 0;
+				exec($cmd, $output, $exitcode);
+			}
+		}
 	}
 }
