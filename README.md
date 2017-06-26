@@ -4,6 +4,8 @@ Different [Yii2](http://www.yiiframework.com/) libraries for helping you to writ
 
 *JsHelper* is for simplified handling of common tasks with AJAX, modals, and display of messages from Javascript code. See the source code for understanding the purpose of this library.
 
+**Please note** that this library is primarily for my own use and might be lacking proper documentation and overall explanation of things, even though I try to document everything in the way I code and write comments. Also be aware that features might change without proper notice even though *I try* to always make code backwards compatible.
+
 Installation
 ------------
 
