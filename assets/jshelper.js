@@ -92,13 +92,31 @@ appJS.enableSubmit = function() {
 /* ------------- Modal section ------------- */
 
 appJS.showModal = function(parms) {
+	/*
+	DESCRIPTION:
+	- show a Bootstrap modal
+	INPUT:
+	- parms : string with HTML or object with these possible keys:
+		- 'title' : title/headling for the modal
+		- 'skipTitleHtml' : set to true to skip setting a title for the modal (to not override an existing title)
+		- 'html' : HTML to show as content of the modal
+		- 'customModalSelector' : selector for a custom modal to use as base for the modal (eg. #NumOfPagesToAddModal)
+		- 'preventClose' : set to true to prevent closing the modal with keyboard or by clicking outside the modal
+		- 'modalOptions' : extra options to pass on to the Bootstrap modal
+		- 'openCallback'
+		- 'openedCallback'
+		- 'closeCallback'
+		- 'closedCallback'
+	OUTPUT:
+	- nothing
+	*/
 	var modalOpts, modalSelector = '#JsHelperModal';
 	if (typeof parms == 'string') parms = {html: parms};
 	if (typeof parms.customModalSelector != 'undefined') modalSelector = parms.customModalSelector;
 	if (typeof parms.modalOptions != 'undefined') modalOpts = $.extend({keyboard: true}, parms.modalOptions);  //keyboard:true = enable Esc keypress to close the modal
 	if (typeof parms.preventClose != 'undefined') modalOpts = $.extend(modalOpts, {keyboard: false, backdrop: 'static'});  //source: http://www.tutorialrepublic.com/faq/how-to-prevent-bootstrap-modal-from-closing-when-clicking-outside.php
 
-	if ($(modalSelector).is(':visible') && parms.allow_additional == true) {
+	if ($(modalSelector).is(':visible') && parms.allowAdditional == true) {
 		// TODO: clone the modal so we can lay it on top of the existing one
 		// Code for cloning: $div.clone().prop('id', 'klon'+num );
 		// Keep a variable with number of currently shown modals and number of created modals
