@@ -142,7 +142,6 @@ appJS.showModal = function(parms) {
 				}
 			}
 		});
-		console.log(originalButtonOptions);
 	}
 
 	var openCb = function() {
