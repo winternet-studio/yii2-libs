@@ -102,6 +102,10 @@ appJS.showModal = function(parms) {
 		- 'html' : HTML to show as content of the modal
 		- 'customModalSelector' : selector for a custom modal to use as base for the modal (eg. #NumOfPagesToAddModal)
 		- 'preventClose' : set to true to prevent closing the modal with keyboard or by clicking outside the modal
+		- 'buttonOptions' : options for the buttons. Numeric object for each button, eg. for first button and second button: {0: {text: 'No, I do not agree'}, 1: {text: 'Yes, I agree'}}
+			- available keys:
+				- 'text' : set the label of the button
+				- 'classes' : add one or more classes to the button (comma-sep.)
 		- 'modalOptions' : extra options to pass on to the Bootstrap modal
 		- 'openCallback'
 		- 'openedCallback'
@@ -121,6 +125,24 @@ appJS.showModal = function(parms) {
 		// Code for cloning: $div.clone().prop('id', 'klon'+num );
 		// Keep a variable with number of currently shown modals and number of created modals
 		// When adding modal check that the HTML for it has been created before trying to set it
+	}
+
+	if (typeof parms.buttonOptions != 'undefined') {
+		var originalButtonOptions = {};
+		$(modalSelector).find('.modal-footer').find('button').each(function(indx, elem) {
+			originalButtonOptions[indx] = {
+				text: $(this).html()
+			};
+			if (typeof parms.buttonOptions[indx] != 'undefined') {
+				if (parms.buttonOptions[indx].text) {
+					$(this).html(parms.buttonOptions[indx].text);
+				}
+				if (parms.buttonOptions[indx].classes) {
+					$(this).addClass(parms.buttonOptions[indx].classes);
+				}
+			}
+		});
+		console.log(originalButtonOptions);
 	}
 
 	var openCb = function() {
@@ -157,7 +179,13 @@ appJS.showModal = function(parms) {
 			$firstInput.focus().select();
 			$firstInput.on('keyup', function(ev) {
 				if (ev.keyCode == 13) {
-					$(modalSelector).find('.btn-yes').trigger('click');
+					var $btn = $(modalSelector).find('.btn-yes');
+					if ($btn.length > 0) {
+						$btn.trigger('click');
+					} else {
+						// for modals without a Yes button (just the default Close button)
+						$(modalSelector).modal('hide');
+					}
 				}
 			});
 		}
@@ -179,6 +207,19 @@ appJS.showModal = function(parms) {
 		}
 		//remove all events handlers on buttons
 		$(modalSelector).find('button').off('click');
+
+		if (typeof originalButtonOptions != 'undefined') {
+			$(modalSelector).find('.modal-footer').find('button').each(function(indx, elem) {
+				if (typeof originalButtonOptions[indx] != 'undefined') {
+					if (originalButtonOptions[indx].text) {
+						$(this).html(originalButtonOptions[indx].text);
+					}
+					if (parms.buttonOptions[indx].classes) {
+						$(this).removeClass(parms.buttonOptions[indx].classes);
+					}
+				}
+			});
+		}
 	};
 	$(modalSelector).on('hidden.bs.modal', closedCb);
 
