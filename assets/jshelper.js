@@ -153,18 +153,17 @@ appJS.showModal = function(parms) {
 		if (typeof parms.preventClose != 'undefined') {
 			$(this).find('button.close').hide();
 		}
-		if (1 /*try to always enable this and see if it will work out*/ || parms.stackable) {
-			console.info('Enable modal stacking for '+ modalSelector);
-			// Source: http://stackoverflow.com/a/24914782/2404541
-			var zIndex = 1040 + (10 * $('.modal:visible').length);
-			// var zIndex = Math.max.apply(null, Array.prototype.map.call(document.querySelectorAll('*'), function(el) {
-			// 	return +el.style.zIndex;
-			// })) + 10;
-			$(this).css('z-index', zIndex);
-			setTimeout(function() {
-				$('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
-			}, 0);
-		}
+
+		// Enable modal stacking
+		// Source: http://stackoverflow.com/a/24914782/2404541
+		var zIndex = 1040 + (10 * $('.modal:visible').length);
+		// var zIndex = Math.max.apply(null, Array.prototype.map.call(document.querySelectorAll('*'), function(el) {
+		// 	return +el.style.zIndex;
+		// })) + 10;
+		$(this).css('z-index', zIndex);
+		setTimeout(function() {
+			$('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+		}, 0);
 	};
 	$(modalSelector).on('show.bs.modal', openCb);
 
@@ -221,13 +220,12 @@ appJS.showModal = function(parms) {
 			});
 		}
 
-		if (1 /*try to always enable this and see if it will work out*/ || parms.stackable) {
-			// Reduce z-index for the backdrop so it falls behind any underlying modal of the one we are closing now
-			var $backDrop = $('.modal-backdrop.modal-stack');
-			if ($backDrop.length > 0) {
-				var currModalZindex = $('.modal:visible:last').css('z-index');
-				$backDrop.css('z-index', currModalZindex - 1);
-			}
+		// Cleanup from modal stacking
+		//   Reduce z-index for the backdrop so it falls behind any underlying modal of the one we are closing now
+		var $backDrop = $('.modal-backdrop.modal-stack');
+		if ($backDrop.length > 0) {
+			var currModalZindex = $('.modal:visible:last').css('z-index');
+			$backDrop.css('z-index', currModalZindex - 1);
 		}
 	};
 	$(modalSelector).on('hidden.bs.modal', closedCb);
