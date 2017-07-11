@@ -102,6 +102,7 @@ appJS.showModal = function(parms) {
 		- 'html' : HTML to show as content of the modal
 		- 'customModalSelector' : selector for a custom modal to use as base for the modal (eg. #NumOfPagesToAddModal)
 		- 'preventClose' : set to true to prevent closing the modal with keyboard or by clicking outside the modal
+		- 'skipCloseOnInputEnter' : set to true to prevent closing the modal when pressing Enter in the first input field
 		- 'buttonOptions' : options for the buttons. Numeric object for each button, eg. for first button and second button: {0: {text: 'No, I do not agree'}, 1: {text: 'Yes, I agree'}}
 			- available keys:
 				- 'text' : set the label of the button
@@ -174,7 +175,7 @@ appJS.showModal = function(parms) {
 		}
 		//put focus in first form field, if any
 		var $firstInput = $(modalSelector).find(':input:not(button):not(textarea):first');
-		if ($firstInput.length > 0) {
+		if ($firstInput.length > 0 && parms.skipCloseOnInputEnter !== true) {
 			$firstInput.focus().select();
 			$firstInput.on('keyup', function(ev) {
 				if (ev.keyCode == 13) {
