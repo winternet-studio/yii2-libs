@@ -220,6 +220,15 @@ appJS.showModal = function(parms) {
 				}
 			});
 		}
+
+		if (1 /*try to always enable this and see if it will work out*/ || parms.stackable) {
+			// Reduce z-index for the backdrop so it falls behind any underlying modal of the one we are closing now
+			var $backDrop = $('.modal-backdrop.modal-stack');
+			if ($backDrop.length > 0) {
+				var currModalZindex = $('.modal:visible:last').css('z-index');
+				$backDrop.css('z-index', currModalZindex - 1);
+			}
+		}
 	};
 	$(modalSelector).on('hidden.bs.modal', closedCb);
 
