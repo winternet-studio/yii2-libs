@@ -29,6 +29,25 @@ class ModelHelper extends Component {
 		return $required;
 	}
 
+	public static function requiredAttributesCss($model, $options = []) {
+		$defaults = [
+			'selector' => 'label',
+			'properties' => 'content: " ?"; color: #e10000; position: relative; top: -3px',
+		];
+		$options = array_merge($defaults, $options);
+
+		$required_attributes = self::requiredAttributes($model);
+		$class_name = get_class($model);
+		$class_name = strtolower(substr($class_name, strrpos($class_name, "\\")+1));
+
+		$css = '';
+		foreach ($required_attributes as $attr) {
+			$css .= '.field-'. $class_name .'-'. strtolower($attr) .' '. $options['selector'] .':after, ';
+		};
+		$css = substr($css, 0, strlen($css)-2) .' {'. $options['properties'] .'}';
+		return $css;
+	}
+
 	public static function filterAttributes($all_attributes, $attributes_to_keep) {
 		/*
 		DESCRIPTION:
