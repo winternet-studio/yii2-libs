@@ -31,8 +31,8 @@ class ModelHelper extends Component {
 
 	public static function requiredAttributesCss($model, $options = []) {
 		$defaults = [
-			'selector' => 'label',
-			'properties' => 'content: " ?"; color: #e10000; position: relative; top: -3px',
+			'selector' => 'label:after',
+			'properties' => 'content: " •"; color: #e10000; position: relative; top: -3px',
 		];
 		$options = array_merge($defaults, $options);
 
@@ -42,7 +42,7 @@ class ModelHelper extends Component {
 
 		$css = '';
 		foreach ($required_attributes as $attr) {
-			$css .= '.field-'. $class_name .'-'. strtolower($attr) .' '. $options['selector'] .':after, ';
+			$css .= '.field-'. $class_name .'-'. strtolower($attr) .' '. $options['selector'] .', ';
 		};
 		$css = substr($css, 0, strlen($css)-2) .' {'. $options['properties'] .'}';
 		return $css;
