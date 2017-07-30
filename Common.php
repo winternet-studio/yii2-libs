@@ -112,4 +112,41 @@ if (typeof rsp.err_msg_ext != 'undefined') {
 
 		return $result;
 	}
+
+	public static function parseMultiLang($str) {
+		/*
+		DESCRIPTION:
+		- parses a string with multiple translations of a piece of text
+		- uses the session language but can be overridden by $GLOBALS['_override_current_language']
+		INPUT:
+		- $str : string in the format: EN=Text in English ,,, ES=Text in Spanish
+			- unlimited number of translations
+			- upper case of language identifier is optional
+			- spaces are allowed around both identifiers and texts (will be trimmed)
+		OUTPUT:
+		- string
+		- if no matches found, the raw string is returned
+		- if language is not found, the first language is returned
+		*/
+		$str = (string) $str;
+		if (!$str) {
+			return $str;
+		} else {
+			if (preg_match('/,,,\\s*[a-zA-Z]{2}\\s*=/'._RXU, $str)) {
+				$str = explode(',,,', $str);
+				foreach ($str as &$a) {
+					if (preg_match('|^\\s*([a-zA-Z]{2})\\s*=\\s*(.*?)\\s*$|s'._RXU, $a, $match)) {
+						$clang = strtolower($match[1]);
+						if ($_SESSION['runtime']['currlang'] == $clang || ($GLOBALS['_override_current_language'] && $GLOBALS['_override_current_language'] == $clang) ) {
+							return $match[2];
+						}
+					}
+				}
+				$b = explode('=', $str[0]);  //fallback to first language
+				return trim($b[1]);
+			} else {
+				return $str;
+			}
+		}
+	}
 }
