@@ -10,24 +10,30 @@ use winternet\yii2\Common;
  * Multi-language input for being able to enter a text in multiplate languages and store as one string (so it's easy to store in a single database field)
  *
  * With model & with ActiveForm:
+ * ```php
  * echo $form->field($model, 'payment_terms')->widget(MultiLanguageInput::classname(), [
  * 	'activeLanguages' => ['en', 'nb', 'da', 'de'],
  * ]);
+ * ```
  * 
  * With model & without ActiveForm:
+ * ```php
  * echo '<label class="control-label">Payment Terms</label>';
  * echo MultiLanguageInput::widget([
  * 	'model' => $model,
  * 	'attribute' => 'payment_terms',
  * 	'activeLanguages' => ['en', 'nb', 'da', 'de'],
  * ]);
+ * ```
  * 
  * Without model:
+ * ```php
  * echo MultiLanguageInput::widget([
  * 	'name' => 'inputname',
  * 	'value' => 'EN=No refunding after June 27.,,,DA=Ingen refundering efter 27. juni.',
  * 	'activeLanguages' => ['en', 'nb', 'da', 'de'],
  * ]);
+ * ```
  *
  * @author Allan Jensen, WinterNet Studio (www.winternet.no)
  **/
