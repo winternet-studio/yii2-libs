@@ -26,7 +26,7 @@ class ArrayAttributesBehavior extends Behavior {
 
 	public function toArrays($event) {
 		foreach ($this->attributes as $attribute) {
-			if ($this->owner->$attribute) {
+			if (is_string($this->owner->$attribute)) {
 				$this->owner->$attribute = explode($this->separator, $this->owner->$attribute);
 			} else {
 				$this->owner->$attribute = [];
