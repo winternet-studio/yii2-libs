@@ -4,19 +4,18 @@ namespace winternet\yii2;
 use Yii;
 
 class Common {
+	/**
+	 * Generate Javascript code for handling response of an Ajax request that produces standard result/output JSON object with 'status', 'result_msg', and 'err_msg' keys in an array
+	 *
+	 * @param array $options Associative array with any of these keys:
+	 * - 'form' : ActiveForm object
+	 * - 'on_error' : name of callback function when submission caused some errors
+	 * - 'on_success' : name of callback function when submission succeeded
+	 * - 'on_complete' : name of callback function that will always be called
+	 * 
+	 * @return JsExpression Javascript code
+	 **/
 	public static function processAjaxSubmit($options = []) {
-		/*
-		DESCRIPTION:
-		- generate Javascript code for handling response of an Ajax request that produces standard result/output JSON object with 'status', 'result_msg', and 'err_msg' keys in an array
-		INPUT:
-		- $options : associative array with any of these keys:
-			- 'form' : ActiveForm object
-			- 'on_error' : name of callback function when submission caused some errors
-			- 'on_success' : name of callback function when submission succeeded
-			- 'on_complete' : name of callback function that will always be called
-		OUTPUT:
-		- Javascript expression
-		*/
 		$js = "function(rsp) {";
 		if ($options['form']) {
 			// Apply the server-side generated errors to the form fields
