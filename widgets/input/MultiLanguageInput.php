@@ -36,6 +36,7 @@ class MultiLanguageInput extends InputWidget {
 
 	public $inputType = 'input';  //input or textarea
 	public $inputOptions = [];
+	public $disabled = false;
 
 
 	public $containerOptions = [];
@@ -146,11 +147,19 @@ class MultiLanguageInput extends InputWidget {
 		Html::addCssClass($this->inputOptions, 'form-control');
 		Html::addCssClass($this->inputOptions, $this->containerOptions['id'] .'-lang-input');
 
-		$this->registerJs();
+		if (!$this->disabled) {
+			$this->registerJs();
+		}
 	}
 
 	public function run() {
 		$content = [];
+
+
+		if ($this->disabled) {
+			$this->plainInputOptions['disabled'] = true;
+			$this->inputOptions['disabled'] = true;
+		}
 
 
 		Html::addCssClass($this->options, $this->containerOptions['id'] .'-compiled-input');
@@ -188,8 +197,14 @@ class MultiLanguageInput extends InputWidget {
 			$languageName = $this->languages[$currLang];
 			if (!$languageName) $languageName = strtoupper($currLang);
 
-			$tmp  = '<div class="lang-input input-group" data-lang="'. Html::encode($currLang) .'"'. (!is_array($parsed) || $parsed[$currLang] === null ? ' style="display: none"' : '') .'>
-				<span class="input-group-addon '. $this->addonSizeClass .'"><a href="#" onclick="return false;" title="'. Html::encode($this->textTooltipMoveTop) .'" style="width: '. $this->addonWidth .'px; display: inline-block">'. Html::encode($languageName) .'</a></span>';
+			$tmp  = '<div class="lang-input input-group" data-lang="'. Html::encode($currLang) .'"'. (!is_array($parsed) || $parsed[$currLang] === null ? ' style="display: none"' : '') .'>';
+			$tmp .= '<span class="input-group-addon '. $this->addonSizeClass .'">';
+			if ($this->disabled) {
+				$tmp .= Html::encode($languageName);
+			} else {
+				$tmp .= '<a href="#" onclick="return false;" title="'. Html::encode($this->textTooltipMoveTop) .'" style="width: '. $this->addonWidth .'px; display: inline-block">'. Html::encode($languageName) .'</a>';
+			}
+			$tmp .= '</span>';
 			if ($this->inputType == 'textarea') {
 				$tmp .= Html::textarea( $this->containerOptions['id'] .'_input['. $currLang .']', (is_array($parsed) ? $parsed[$currLang] : null), $this->inputOptions);
 			} else {
@@ -211,15 +226,17 @@ class MultiLanguageInput extends InputWidget {
 		Html::addCssClass($this->addButtonOptions, 'btn btn-success');
 		Html::addCssStyle($this->addButtonOptions, 'width: auto; display: inline-block');
 
-		$content[] = '<div class="controls" style="text-align: right">';
-		$content[] = '<a href="#" onclick="return false;" class="disable-ml" '. (!$useMultiLangMode ? ' style="display: none"' : '') .'>'. Html::encode($this->textDisable) .'</a>';
-		$content[] = '<a href="#" onclick="return false;" class="enable-ml" ' . ( $useMultiLangMode ? ' style="display: none"' : '') .'>'. Html::encode($this->textEnable) .'</a>';
-		$content[] = '<span class="language-handler">&nbsp;';
-		$content[] = Html::dropDownList($this->containerOptions['id'] .'_more_langs', null, $this->getLanguageList(), $this->selectorOptions);
-		$content[] = '&nbsp;';
-		$content[] = Html::button('Add', $this->addButtonOptions);
-		$content[] = '</span>';
-		$content[] = '</div>';
+		if (!$this->disabled) {
+			$content[] = '<div class="controls" style="text-align: right">';
+			$content[] =  '<a href="#" onclick="return false;" class="disable-ml" '. (!$useMultiLangMode ? ' style="display: none"' : '') .'>'. Html::encode($this->textDisable) .'</a>';
+			$content[] =  '<a href="#" onclick="return false;" class="enable-ml" ' . ( $useMultiLangMode ? ' style="display: none"' : '') .'>'. Html::encode($this->textEnable) .'</a>';
+			$content[] =  '<span class="language-handler">&nbsp;';
+			$content[] =  Html::dropDownList($this->containerOptions['id'] .'_more_langs', null, $this->getLanguageList(), $this->selectorOptions);
+			$content[] =  '&nbsp;';
+			$content[] =  Html::button('Add', $this->addButtonOptions);
+			$content[] =  '</span>';
+			$content[] = '</div>';
+		}
 
 
 		$content[] = Html::endTag('div');
