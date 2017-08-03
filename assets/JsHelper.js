@@ -91,6 +91,55 @@ appJS.enableSubmit = function() {
 
 /* ------------- Modal section ------------- */
 
+appJS.showProgressBar = function(options) {
+	options = $.extend({
+		indicatorWidth: 150,  //pixels
+		indicatorHeight: 3,  //pixels
+		indicatorColor: '#00AEFF',
+		moveBy: 10,  //pixels to move indicator at each interval
+		moveInterval: 10,  //interval in ms between moves
+		autoHide: null,  //ms after which the indicator should automatically hide
+		indicatorZindex: 9999,  //z-index of indicator
+	}, options);
+
+	var addHtml = '<div class="wsyii-busy-indicator" style="position: fixed; top: 0; left: -'+ options.indicatorWidth +'px; width: '+ options.indicatorWidth +'px; height: '+ options.indicatorHeight +'px; background-color: '+ options.indicatorColor +'; z-index: '+ options.indicatorZindex +'"></div>';
+	$('body').append(addHtml);
+
+	if (options.autoHide) {
+		setTimeout(function() {
+			appJS.hideProgressBar();
+		}, options.autoHide);
+	}
+
+	var screenWidth = $(window).width();
+
+	var moveIt = function() {
+		var $div = $('.wsyii-busy-indicator');
+		if ($div.length > 0) {
+			var currX = parseInt($div.css('left'), 10);
+			if (currX > screenWidth) {
+				$div.css('left', '-'+ options.indicatorWidth +'px');
+			} else {
+				$div.css('left', ''+ (currX + options.moveBy) +'px');
+			}
+			setTimeout(moveIt, options.moveInterval);
+		}
+	};
+
+	moveIt();
+};
+
+appJS.hideProgressBar = function(options) {
+	$('.wsyii-busy-indicator').fadeOut('slow', function() {
+		$('.wsyii-busy-indicator').remove();
+	});
+};
+
+
+
+
+/* ------------- Modal section ------------- */
+
 appJS.showModal = function(parms) {
 	/*
 	DESCRIPTION:
