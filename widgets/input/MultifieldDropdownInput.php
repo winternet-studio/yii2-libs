@@ -15,21 +15,21 @@ use yii\helpers\Html;
  * ```php
  * echo $form->field($model, 'show_fields')->widget(MultifieldDropdownInput::classname(), [
  * 	'items' =>
- *		['name' => 'address', 'label' => 'Address', 'list' => 
+ *		['name' => 'address', 'label' => 'Address', 'default' => 'opt', list' => 
  *			[
  *				'req' => 'Required',
  *				'opt' => 'Optional',
  *				'hide' => 'Not shown',
  *			]
  *		],
- *		['name' => 'country', 'label' => 'Country', 'list' => 
+ *		['name' => 'country', 'label' => 'Country', 'default' => 'opt', 'list' => 
  *			[
  *				'req' => 'Required',
  *				'opt' => 'Optional',
  *				'hide' => 'Not shown',
  *			]
  *		],
- *		['name' => 'phone', 'label' => 'Phone', 'list' => 
+ *		['name' => 'phone', 'label' => 'Phone', 'default' => 'opt', 'list' => 
  *			[
  *				'req' => 'Required',
  *				'opt' => 'Optional',
@@ -64,10 +64,14 @@ use yii\helpers\Html;
 class MultifieldDropdownInput extends InputWidget {
 
 	public $items = [];
+
 	public $disabled = false;
 
+
 	public $inputOptions = [];
+
 	public $containerOptions = [];
+
 	public $tableOptions = [];
 
 
@@ -109,7 +113,7 @@ class MultifieldDropdownInput extends InputWidget {
 		foreach ($this->items as $item) {
 			$content[] = '<tr>';
 			$content[] = '<td>'. Html::encode($item['label']) .'&nbsp;</td>';
-			$content[] = '<td>'. Html::dropDownList($basename .'['. $item['name'] .']', $value[$item['name']], $item['list'], $this->inputOptions) .'</td>';
+			$content[] = '<td>'. Html::dropDownList($basename .'['. $item['name'] .']', ($value[$item['name']] ? $value[$item['name']] : $item['default']), $item['list'], $this->inputOptions) .'</td>';
 			$content[] = '</tr>';
 		}
 		$content[] = Html::endTag('table');
