@@ -9,7 +9,7 @@ class MultiLanguageInputAsset extends AssetBundle {
 	 */
 	public $sourcePath = __DIR__ .'/../../assets';
 
-	public $publishOptions = ['forceCopy' => true];
+	// public $publishOptions = ['forceCopy' => true];
 
 	/**
 	 * @var array

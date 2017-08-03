@@ -3,7 +3,7 @@ namespace winternet\yii2;
 
 use yii\web\AssetBundle;
 
-class JsHelperAsset extends AssetBundle {
+class FormHelperAsset extends AssetBundle {
 
 	public $sourcePath = '@vendor/winternet-studio/yii2-libs/assets';
 
@@ -13,7 +13,7 @@ class JsHelperAsset extends AssetBundle {
 
 	// public $css = ['nothingyet.css'];
 
-	public $js = ['JsHelper.js?v=1'];
+	public $js = ['FormHelper.js?v=1'];
 
 	public $depends = ['yii\web\JqueryAsset'];
 

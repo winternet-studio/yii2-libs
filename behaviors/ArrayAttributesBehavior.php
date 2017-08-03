@@ -18,6 +18,7 @@ class ArrayAttributesBehavior extends Behavior {
 	public function events() {
 		return [
 			ActiveRecord::EVENT_AFTER_FIND => 'toArrays',
+			ActiveRecord::EVENT_AFTER_REFRESH => 'toArrays',
 			ActiveRecord::EVENT_BEFORE_VALIDATE => 'toArrays',
 			ActiveRecord::EVENT_BEFORE_INSERT => 'toStrings',
 			ActiveRecord::EVENT_BEFORE_UPDATE => 'toStrings',
@@ -28,8 +29,6 @@ class ArrayAttributesBehavior extends Behavior {
 		foreach ($this->attributes as $attribute) {
 			if (is_string($this->owner->$attribute)) {
 				$this->owner->$attribute = explode($this->separator, $this->owner->$attribute);
-			} else {
-				$this->owner->$attribute = [];
 			}
 		}
 

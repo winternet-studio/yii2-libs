@@ -127,7 +127,7 @@ class MultiLanguageInput extends InputWidget {
 		'zh' => 'Chinese',
 	];
 
-	public $textOnlyOneTranslation = 'Please leave only one remaining text.';
+	public $textOnlyOneTranslation = 'Please remove text from all fields except one.';
 	public $textModalTitle = 'Information';
 	public $textModalOKButton = 'OK';
 	public $textEnable = 'Enable translations';
@@ -193,9 +193,9 @@ class MultiLanguageInput extends InputWidget {
 		Html::addCssClass($this->plainInputOptions, 'form-control');
 		$this->plainInputOptions['id'] = $this->containerOptions['id'] .'-plain';
 		if ($this->inputType == 'textarea') {
-			$content[] = Html::textarea( $this->containerOptions['id'] .'_plain', $value, $this->plainInputOptions);
+			$content[] = Html::textarea( $this->containerOptions['id'] .'_plain', $value, array_merge($this->inputOptions, $this->plainInputOptions));
 		} else {
-			$content[] = Html::textInput($this->containerOptions['id'] .'_plain', $value, $this->plainInputOptions);
+			$content[] = Html::textInput($this->containerOptions['id'] .'_plain', $value, array_merge($this->inputOptions, $this->plainInputOptions));
 		}
 
 		$content[] = Html::beginTag('div', ['class' => 'language-inputs', 'style' => ($useMultiLangMode ? '' : 'display: none') ]);
@@ -236,7 +236,7 @@ class MultiLanguageInput extends InputWidget {
 			$content[] = '<div class="controls" style="text-align: right">';
 			$content[] =  '<a href="#" onclick="return false;" class="disable-ml" '. (!$useMultiLangMode ? ' style="display: none"' : '') .'>'. Html::encode($this->textDisable) .'</a>';
 			$content[] =  '<a href="#" onclick="return false;" class="enable-ml" ' . ( $useMultiLangMode ? ' style="display: none"' : '') .'>'. Html::encode($this->textEnable) .'</a>';
-			$content[] =  '<span class="language-handler">&nbsp;';
+			$content[] =  '<span class="language-handler"'. ($useMultiLangMode ? '' : 'style="display: none"') .'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
 			$content[] =  Html::dropDownList($this->containerOptions['id'] .'_more_langs', null, $this->getLanguageList(), $this->selectorOptions);
 			$content[] =  '&nbsp;';
 			$content[] =  Html::button('Add', $this->addButtonOptions);
