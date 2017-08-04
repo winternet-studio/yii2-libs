@@ -11,6 +11,7 @@ class FormHelper extends Component {
 	 *
 	 * @param array $options Associative array with any of these keys:
 	 * - 'form' : ActiveForm object
+	 * - 'view' : View object. Required for automatic handling of form using Bootstrap Tabs
 	 * - 'on_error' : name of callback function when submission caused some errors
 	 * - 'on_success' : name of callback function when submission succeeded
 	 * - 'on_successJS' : Javascript code to execute on success. Available variables are: rsp, form, errorCount
@@ -30,7 +31,10 @@ if (typeof rsp.err_msg_ext != 'undefined') {
 	a = rsp.err_msg_ext;
 }form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be determined before form.yiiActiveForm() because it modifies rsp.err_msg_ext! NOTE: updateMessages should always be called so that in case there are no error any previously set errors are cleared.
 
-			$js .= "wsYii2.FormHelper.HighlightTabbedFormErrors.checkForErrors('#". $options['form']->options['id'] ."');";  //always check if we are on a tabbed form and need to show the right tab
+			if ($options['view']) {
+				FormHelperAsset::register($options['view']);  //required for wsYii2 to be available
+				$js .= "wsYii2.FormHelper.HighlightTabbedFormErrors.checkForErrors('#". $options['form']->options['id'] ."');";  //always check if we are on a tabbed form and need to show the right tab
+			}
 		} else {
 			$js .= "var form, errorCount;";
 			$js .= "if (rsp.err_msg) errorCount = rsp.err_msg.length;";
