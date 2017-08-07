@@ -77,6 +77,15 @@ class ModelHelper extends Component {
 			} elseif (is_array($value)) {
 				if ($value['attribute']) {
 					$name = $value['attribute'];
+
+					if (preg_match("/.\\../", $name)) {
+						// this attribute is an attribute in a related table => try to get the original attribute from the dropdown input field in the 'filter' param
+						if ($value['filter']) {
+							if (preg_match("/name=\".*\\[(.*)]\"/U", $value['filter'], $match)) {
+								$name = $match[1];
+							}
+						}
+					}
 				} elseif ($value['class']) {
 					// always leave special entries intact (eg. class=yii\grid\ActionColumn)
 					$output[] = $value;
