@@ -89,6 +89,330 @@ appJS.enableSubmit = function() {
 
 
 
+/* ------------- Standard AJAX call ------------- */
+
+appJS.doAjax = function(url, params, responseFormat, postActions, options, passInfo) {
+	/*
+	DESCRIPTION:
+	- make a standard webservice call
+	INPUT:
+	- url : URL of the webservice
+	- params : object with parameters to send to the webservice
+	- responseFormat : how to interpret the data being returned from the webservice. Available options:
+		- 'nothing' : don't do any postprocessing as nothing is being returned, or the returned should only be processed by post-processing function
+		- 'resultError'       : the following fields are returned in an array: 'status' (with 'ok' or 'error'), 'err_msg' (array), 'result_msg' (array)
+		- 'resultErrorQuiet' : same as above but status will only be given if there are specific messages to go along with it
+		- 'resultOnly' : like 'resultError' but use the 'errorCallback:' in postActions to handle ALL aspects of dealing with errors (= error msgs not automatically shown)
+		- 'resultOnlyQuiet' : like 'resultOnly' but with the difference described in 'resultErrorQuiet'
+		- 'boolean'       : webservice returns true or false which respectively means succeeded or failed, and the user will be told so
+		- 'booleanQuiet' : same as above but user will only be notified if operation failed
+		- object with these keys for removing all existing entries in a dropdown box and fill with the items in the returned multi-dimensional associative array:
+			{
+				fillDropDown: true,
+				selectSelector: 'selector for the select input field',
+				valueColumn: 'name of key in the returned associative array that should be the value for the dropdown option',
+				labelColumn: 'name of key in the returned associative array that should be the label for the dropdown option'
+			}
+			- note that if an item is currently selected it will retain that selection if one of the new items have the same value
+	- postActions : array of actions to be done after the webservice has completed. An action is an object with one following keys:
+		- 'successMessage' : set value with a message to the user if operation succeeds, eg. "Thank you for contacting us."
+		- 'errorMessage' : set value with a message to the user if operation fails, eg. "Sorry, you message could not be sent."
+		- 'reloadPage' : set to true to reload the page if operation succeeds (must be the last action to perform)
+		- 'previousPage' : set to true to go back to the previous page in the browser history (must be the last action to perform)
+		- 'redirectUrl' : set value to a URL to redirect to if operation succeeds (must be the last action to perform)
+		- 'setHtml' : set to true to set the HTML (innerHtml property) for an element on the page if operation succeeds. Additional required keys:
+			- 'selector' : selector for the element to set HTML for
+			- 'html' : HTML to be set
+		- 'successCallback' : set value to a string with function name or an anonymous function to call if operation succeeds. One argument is passed which will be an object with the following properties:
+			- data : response from server
+			- format : format of response data
+			- inputParams : parameters sent to server
+		- 'errorCallback' : set value to a string with function name or an anonymous function to call if operation fails. One argument is passed which will be an object with the following properties:
+			- data : response from server
+			- format : format of response data
+			- inputParams : parameters sent to server
+		- instead of one of the above you can also pass a function name in a string or write an anonymous function directly to be executed. One argument is passed which will be an object with the following properties:
+			- data : response from server
+			- success : boolean true or false based on response from server
+			- format : format of response data
+			- inputParams : parameters sent to server
+	- options : object with nay of these options:
+		- 'confirmMessage' : set a string with message to have the user confirm before executing the AJAX call
+		- 'skipShowProcess' : set to true to not dim the page and show process status
+		- 'requireSsl' : set to true to require SSL for transmitting this request to the server
+		- 'ajaxOptions' : extra options for the jQuery ajax() call
+		- 'textSuccess' : set custom message
+		- 'textErrorBecause' : set custom message
+		- 'textError' : set custom message
+		- 'textPleaseNote' : set custom message
+		- 'textSelectionCleared' : set custom message
+	OUTPUT:
+	- nothing (as everything is handled within the call itself)
+	*/
+	if (!$.isPlainObject(params)) params = {};
+	if (!$.isPlainObject(options)) options = {};
+	if (!$.isPlainObject(options.ajaxOptions)) options.ajaxOptions = {};
+
+	options = $.extend({  //defaults
+		confirmMessage: null,
+		textSuccess: 'Operation completed successfully.',
+		textErrorBecause: 'Sorry, operation could not be completed because:',
+		textError: 'Sorry, the operation failed.',
+		textPleaseNote: 'Please note',
+		textSelectionCleared: 'Please note that current selection ({value}) in dropdown box was not re-selected after changing its options.',
+	}, options);
+
+	if (options.confirmMessage !== null) {
+		this.initBaseConfirmModal();
+		this.showModal({
+			customModalSelector: '#JsHelperBaseConfirmModal',
+			title: (options.confirmTitle ? options.confirmTitle : 'Confirm'),
+			html: (options.confirmMessage === true ? 'Are you sure you want to do this?' : options.confirmMessage),
+			openedCallback: function(modalRef) {
+				$(modalRef).find('.btn-yes').on('click', function() {
+					options.confirmMessage = null;
+					appJS.doAjax(url, params, responseFormat, postActions, options, passInfo);
+				});
+			}
+		});
+		return;
+	}
+
+	if (!options.skipShowProcess) {
+		appJS.showProgressBar();
+	}
+
+	if (options.requireSsl) {
+		if (url.substr(0, 4) == 'http') {
+			if (url.substr(0, 5) != 'https') {
+				appJS.showModal('This data may only be sent over a secure connection. Please contact website developer.');
+			}
+		} else if (document.location.protocol != 'https:') {
+			appJS.showModal('This data may only be sent over a secure connection. Please contact website developer.');
+		}
+	}
+
+	var parms = {
+		url: url,
+		type: ($.isEmptyObject(options) ? 'GET' : 'POST'),
+		data: params,
+		success: function(rsp, jqXHR, textStatus) {
+			var i, args, functionName;
+			var f = responseFormat;
+			var success = true;
+			var postModalActionsActivated = false;
+
+			if (!f) f = '';
+			postActions = (typeof postActions == 'string' ? [postActions] : postActions);  //if string was provided, convert it to an array
+
+			// Postpone some post actions until after modal has been closed
+			var postModalActions = function(allActions) {
+				var postModalActions = [];
+				for (var act in allActions) {
+					if (!allActions.hasOwnProperty(act)) continue; //real keys will always be numeric
+
+					if (typeof allActions[act].reloadPage !== 'undefined' || typeof allActions[act].redirectUrl !== 'undefined' || typeof allActions[act].previousPage !== 'undefined') {
+						postModalActions.push(allActions[act]);
+
+						// Remove it from the main array so it's not done immediately
+						allActions.splice(act, 1);
+					}
+				}
+				return postModalActions;
+			};
+
+			var modalClosedCallback = function(actions, isSuccess) {
+				for (var i in actions) {
+					if (actions.hasOwnProperty(i)) {
+						var c = actions[i];
+						if (isSuccess && typeof c.redirectUrl != 'undefined') {
+							window.location.href = c.redirectUrl;
+						} else if (isSuccess && typeof c.reloadPage != 'undefined') {
+							window.location.reload();
+						} else if (isSuccess && typeof c.previousPage != 'undefined') {
+							history.back();
+						}
+					}
+				}
+			};
+
+			if (f == 'resultError' || f == 'resultErrorQuiet' || f == 'resultOnly' || f == 'resultOnlyQuiet') {
+				var isQuiet = (f == 'resultErrorQuiet' || f == 'resultOnlyQuiet' ? true : false);
+				if (rsp.status == 'ok') {
+					var msgCount = rsp.result_msg.length;
+					if (msgCount == 0) {  //check if it's an object with properties (= text keys) instead of an array (= numeric keys)
+						msgCount = Object.keys(rsp.result_msg).length;
+					}
+					if (!isQuiet || msgCount > 0) {
+						var resultMsg = '<span class="result-text success-text">'+ options.textSuccess;
+						if (msgCount > 0) {
+							resultMsg += ' '+ options.textPleaseNote +':</span><br><br><span class="messages result-messages"><ul>';
+							for (i in rsp.result_msg) {
+								if (rsp.result_msg.hasOwnProperty(i)) {
+									resultMsg += '<li>'+ rsp.result_msg[i] +'</li>';
+								}
+							}
+							resultMsg += '</ul></span>';
+						} else {
+							resultMsg += '</span>';
+						}
+
+						var effActions = postModalActions(postActions);
+						appJS.showModal({
+							html: '<div class="ws-ajax-result">'+ resultMsg +'</div>',
+							closedCallback: function() {
+								modalClosedCallback(effActions, success);
+							}
+						});
+					}
+				} else {
+					success = false;
+					if (f != 'resultOnly' && f != 'resultOnlyQuiet') {
+						var errMsg = '<span class="result-text error-text">'+ options.textErrorBecause +'</span><br><br><span class="messages error-messages"><ul>';
+						for (i in rsp.err_msg) {
+							if (rsp.err_msg.hasOwnProperty(i)) {
+								errMsg += '<li>'+ rsp.err_msg[i] +'</li>';
+							}
+						}
+						errMsg += '</ul></span>';
+
+						var effActions = postModalActions(postActions);
+						appJS.showModal({
+							html: '<div class="ws-ajax-result">'+ errMsg +'</div>',
+							closedCallback: function() {
+								modalClosedCallback(effActions, success);
+							}
+						});
+					}
+				}
+			} else if (f == 'boolean' || f == 'booleanQuiet') {
+				if (rsp && f != 'booleanQuiet') {
+					var effActions = postModalActions(postActions);
+					appJS.showModal({
+						html: '<div class="ws-ajax-result">'+ options.textSuccess +'</div>',
+						closedCallback: function() {
+							modalClosedCallback(effActions, success);
+						}
+					});
+				} else if (!rsp) {
+					success = false;
+
+					var effActions = postModalActions(postActions);
+					appJS.showModal({
+						html: '<div class="ws-ajax-result">'+ options.textError +'</div>',
+						closedCallback: function() {
+							modalClosedCallback(effActions, success);
+						}
+					});
+				}
+			} else if (typeof f == 'object' && typeof f.fillDropDown != 'undefined') {
+				var obj = $(f.selectSelector)[0];
+				// Some code below here is copied from dropdown_clear_options(JS) and dropdown_add(JS)
+				var s,cVal,cLbl,cSel,cSet=false;
+				if (obj.options.length == 0) {
+					cVal = cLbl = '';
+				} else {
+					s=obj.options[obj.selectedIndex];
+					cVal=s.value;
+					cLbl=s.text;
+				}
+				obj.options.length = 0;
+				if (rsp.length > 0) {
+					obj.options[0] = new Option('', '');  //add blank option in top
+					var nextIndex;
+					for (i in rsp) {
+						nextIndex = obj.options.length;
+						if (cVal.length>0 && cVal==rsp[i][f.valueColumn]) {
+							cSel=true;
+							cSet=true;
+						} else {
+							cSel=false;
+						}
+						obj.options[nextIndex] = new Option(rsp[i][f.labelColumn],rsp[i][f.valueColumn],cSel,cSel);
+					}
+				}
+				if (cVal.length>0 && cSet==false) {
+					var effActions = postModalActions(postActions);
+					appJS.showModal({
+						html: options.textSelectionCleared.replace('{value}', cLbl),
+						closedCallback: function() {
+							modalClosedCallback(effActions, success);
+						}
+					});
+				}
+			} else if (f == 'nothing') {
+				//do nothing
+			}
+
+			// Post actions
+			if (typeof postActions == 'function') {
+				args = {
+					data: rsp,
+					success: success,
+					format: format,
+					inputParams: inputParams,
+				}
+				postActions(args);
+			} else {
+				var c;
+				for (var act in postActions) {
+					if (!postActions.hasOwnProperty(act)) continue; //real keys will always be numeric
+					c = postActions[act];
+					if (success && typeof c.successMessage != 'undefined') {
+						appJS.showModal(c.successMessage);
+					} else if (!success && typeof c.errorMessage != 'undefined') {
+						appJS.showModal(c.errorMessage);
+					} else if (success && typeof c.setHtml != 'undefined') {
+						$(c.selector).html(c.html);
+					} else if (success && typeof c.successCallback != 'undefined') {
+						if (typeof c.successCallback == 'string') {
+							functionName = c.successCallback;
+							window[functionName](rsp, format, inputParams);  //calling function in global scope
+						} else {
+							c.successCallback(rsp, format, inputParams);
+						}
+					} else if (!success && typeof c.errorCallback != 'undefined') {
+						if (typeof c.errorCallback == 'string') {
+							functionName = c.substr(21);
+							window[functionName](rsp, format, inputParams);  //calling function in global scope
+						} else {
+							c.errorCallback(rsp, format, inputParams);
+						}
+					} else if (success && typeof c.redirectUrl != 'undefined') {
+						window.location.href = c.redirectUrl;
+					} else if (success && typeof c.reloadPage != 'undefined') {
+						window.location.reload();
+					} else if (success && typeof c.previousPage != 'undefined') {
+						history.back();
+					}
+				}
+			}
+
+		}
+	};
+
+	$.extend(parms, options.ajaxOptions);
+
+	if (!options.skipShowProcess) {
+		if (typeof parms.complete != 'undefined') {
+			var parmsCopy = jQuery.extend({}, parms);
+			parms.complete = function(jqXHR, textStatus) {
+				appJS.hideProgressBar();
+				parmsCopy.complete(jqXHR, textStatus);
+			}
+		} else {
+			parms.complete = function(jqXHR, textStatus) {
+				appJS.hideProgressBar();
+			}
+		}
+	}
+
+	appJS.ajax(parms);
+};
+
+
+
+
 /* ------------- Modal section ------------- */
 
 appJS.showProgressBar = function(options) {
@@ -166,7 +490,14 @@ appJS.showModal = function(parms) {
 	*/
 	var modalOpts, modalSelector = '#JsHelperModal';
 	if (typeof parms == 'string') parms = {html: parms};
-	if (typeof parms.customModalSelector != 'undefined') modalSelector = parms.customModalSelector;
+	if (typeof parms.customModalSelector != 'undefined') {
+		modalSelector = parms.customModalSelector;
+	} else {
+		if ($(modalSelector).length == 0) {
+			this.initBaseAlertModal();
+			modalSelector = '#JsHelperBaseAlertModal';
+		}
+	}
 	if (typeof parms.modalOptions != 'undefined') modalOpts = $.extend({keyboard: true}, parms.modalOptions);  //keyboard:true = enable Esc keypress to close the modal
 	if (typeof parms.preventClose != 'undefined') modalOpts = $.extend(modalOpts, {keyboard: false, backdrop: 'static'});  //source: http://www.tutorialrepublic.com/faq/how-to-prevent-bootstrap-modal-from-closing-when-clicking-outside.php
 
@@ -281,10 +612,9 @@ appJS.showModal = function(parms) {
 
 	if (Boolean(parms.skipTitleHtml) == false) {
 		if (typeof parms.title == 'undefined') parms.title = 'Information';
-		$(modalSelector)
-			.find('.modal-title').html(parms.title).end()
-			.find('.modal-body').html(parms.html);
+		$(modalSelector).find('.modal-title').html(parms.title);
 	}
+	$(modalSelector).find('.modal-body').html(parms.html);
 	$(modalSelector).modal(modalOpts);
 };
 appJS.formatStdResult = function(arrResult, okMessageHtml, errorMessageHtml, options) {
@@ -320,6 +650,49 @@ appJS.formatStdResult = function(arrResult, okMessageHtml, errorMessageHtml, opt
 	}
 	return html;
 };
+
+appJS.initBaseAlertModal = function(msg, options) {
+	if ($('#JsHelperBaseAlertModal').length == 0) {
+		var popupTemplate =
+			'<div id="JsHelperBaseAlertModal" class="modal fade">'+
+			'  <div class="modal-dialog">'+
+			'    <div class="modal-content">'+
+			'      <div class="modal-header">'+
+			'        <button type="button" class="close" data-dismiss="modal">&times;</button>'+
+			'        <h4 class="modal-title">Information</h4>'+
+			'      </div>'+
+			'      <div class="modal-body">Oh no! We have a message for you but unfortunately we lost it on the way :(</div>'+
+			'      <div class="modal-footer">'+
+			'        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>'+
+			'      </div>'+
+			'    </div>'+
+			'  </div>'+
+			'</div>';
+		$('body').append(popupTemplate);
+	}
+}
+
+appJS.initBaseConfirmModal = function(msg, options) {
+	if ($('#JsHelperBaseConfirmModal').length == 0) {
+		var popupTemplate =
+			'<div id="JsHelperBaseConfirmModal" class="modal fade">'+
+			'  <div class="modal-dialog">'+
+			'    <div class="modal-content">'+
+			'      <div class="modal-header">'+
+			'        <button type="button" class="close" data-dismiss="modal">&times;</button>'+
+			'        <h4 class="modal-title">Confirm</h4>'+
+			'      </div>'+
+			'      <div class="modal-body">Are you sure you want to do this?</div>'+
+			'      <div class="modal-footer">'+
+			'        <button type="button" class="btn btn-default btn-no" data-dismiss="modal">No</button>'+
+			'        <button type="button" class="btn btn-primary btn-yes" data-dismiss="modal">Yes</button>'+
+			'      </div>'+
+			'    </div>'+
+			'  </div>'+
+			'</div>';
+		$('body').append(popupTemplate);
+	}
+}
 
 
 

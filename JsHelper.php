@@ -1,7 +1,10 @@
 <?php
 namespace winternet\yii2;
 
+use Yii;
 use yii\base\Component;
+use yii\helpers\Html;
+use yii\helpers\Json;
 
 class JsHelper extends Component {
 	public static $initModalDone = false;
@@ -11,13 +14,46 @@ class JsHelper extends Component {
 	public static $defaultButtonNo = false;
 	public static $defaultButtonYes = false;
 
-	public static function initAjax($view) {
+	public static function initAjax($view = null) {
+		if (!$view) {
+			$view = Yii::$app->controller->getView();
+		}
+
 		JsHelperAsset::register($view);  // ensure the AJAX section is available
 
 		return self::initModal($view);
 	}
 
-	public static function initModal($view) {
+
+	/**
+	 * Generate Javascript code for making a standard AJAX call that produces standard result/output JSON object with 'status', 'result_msg', and 'err_msg' keys in an array
+	 *
+	 * @return JsExpression Javascript code
+	 **/
+	public static function ajaxLink($label, $url, $params = [], $options = []) {
+		$defaults = [
+			'linkOptions' => [],
+			'responseFormat' => 'resultErrorQuiet',
+			'postActions' => [ ['reloadPage' => true] ],
+			'callOptions' => [],
+			'confirmMessage' => null,
+		];
+
+		$options = array_merge($defaults, $options);
+
+		if ($options['confirmMessage']) {
+			$options['callOptions']['confirmMessage'] = $options['confirmMessage'];
+		}
+
+		self::initAjax();
+
+		$options['linkOptions']['onclick'] = "appJS.doAjax(". json_encode($url) .", ". json_encode($params) .", ". json_encode($options['responseFormat']) .", ". Json::encode($options['postActions']) .", ". Json::encode($options['callOptions']) .");return false;";
+
+		return Html::a($label, '#', $options['linkOptions']);
+	}
+
+
+	public static function initModal($view = null) {
 		/*
 		DESCRIPTION:
 		- call initModal() before call the Javascript function
@@ -33,10 +69,13 @@ class JsHelper extends Component {
 				- 'allow_additional' (opt.)
 				- 'customModalSelector' (opt.) : selector for the HTML code for a custom modal that you want to use instead of #myModal
 		INPUT:
-		- 
+		- $view (opt.) : view to use if not the default
 		OUTPUT:
-		- 
+		- string with HTML
 		*/
+		if (!$view) {
+			$view = \Yii::$app->controller->getView();
+		}
 
 		/*
 
@@ -78,7 +117,7 @@ class JsHelper extends Component {
 			- 'buttonClose' : custom text for the close button. Default: Close
 			- 'hideButtons' : set to true to not show any buttons
 		OUTPUT:
-		- 
+		-
 		*/
 		ob_start();
 
@@ -96,7 +135,7 @@ class JsHelper extends Component {
 ?>
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal"><?= (self::$defaultCloseHtml ? self::$defaultCloseHtml : '&times;') ?></button>
-				<h4 class="modal-title"><?= ($options['title'] ? $options['title'] : 'Title') ?></h4>
+				<h4 class="modal-title"><?= ($options['title'] ? $options['title'] : 'Information') ?></h4>
 			</div>
 <?php
 		}
@@ -108,7 +147,7 @@ class JsHelper extends Component {
 			if (!$options['hideButtons']) {
 ?>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal"><?= ($options['buttonClose'] ? $options['buttonClose'] : (self::$defaultButtonClose ? self::$defaultButtonClose : 'Close')) ?></button>
+				<button type="button" class="btn btn-default" data-dismiss="modal"><?= ($options['buttonClose'] ? $options['buttonClose'] : (self::$defaultButtonClose ? self::$defaultButtonClose : 'OK')) ?></button>
 			</div>
 <?php
 			}
@@ -133,7 +172,7 @@ class JsHelper extends Component {
 			- 'buttonNo' : custom text for decline button. Default: No
 			- 'buttonYes' : custom text for accept button. Default: Yes
 		OUTPUT:
-		- 
+		-
 		*/
 		ob_start();
 
@@ -184,7 +223,7 @@ class JsHelper extends Component {
 			- 'buttonClose' : custom text for the close button. Default: Close
 			- 'hideButtons' : set to true to not show any buttons
 		OUTPUT:
-		- 
+		-
 		*/
 		ob_start();
 
@@ -213,7 +252,7 @@ class JsHelper extends Component {
 			if (!$options['hideButtons']) {
 ?>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal"><?= ($options['buttonClose'] ? $options['buttonClose'] : (self::$defaultButtonClose ? self::$defaultButtonClose : 'Close')) ?></button>
+				<button type="button" class="btn btn-default" data-dismiss="modal"><?= ($options['buttonClose'] ? $options['buttonClose'] : (self::$defaultButtonClose ? self::$defaultButtonClose : 'OK')) ?></button>
 			</div>
 <?php
 			}
@@ -225,8 +264,12 @@ class JsHelper extends Component {
 		return ob_get_clean();
 	}
 
-	public static function systemMsgInit($view, $options = []) {
-		JsHelperAsset::register($view);  // ensure the Javascript messaging section is available
+	public static function systemMsgInit($options = []) {
+		if (!$options['view']) {
+			$options['view'] = \Yii::$app->controller->getView();
+		}
+
+		JsHelperAsset::register($options['view']);  // ensure the Javascript messaging section is available
 
 		$js = [];
 		if ($options['removeAfter']) {
@@ -236,7 +279,7 @@ class JsHelper extends Component {
 			$js[] = 'appJS.systemMsg.selector = '. json_encode($options['selector']) .';';
 		}
 		if (!empty($js)) {
-			$view->registerJs(implode('', $js));
+			$options['view']->registerJs(implode('', $js));
 		}
 	}
 }
