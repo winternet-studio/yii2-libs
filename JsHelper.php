@@ -5,6 +5,7 @@ use Yii;
 use yii\base\Component;
 use yii\helpers\Html;
 use yii\helpers\Json;
+use yii\helpers\Url;
 
 class JsHelper extends Component {
 	public static $initModalDone = false;
@@ -26,8 +27,15 @@ class JsHelper extends Component {
 
 
 	/**
-	 * Generate Javascript code for making a standard AJAX call that produces standard result/output JSON object with 'status', 'result_msg', and 'err_msg' keys in an array
+	 * Generate Javascript code for making a standard AJAX call
 	 *
+	 * The AJAX call should produce standard result/output JSON object with `status`, `result_msg`, and `err_msg` keys in an array
+	 *
+	 * @param string $label
+	 * @param string $url URL to call, or string with only letters a-z and hyphen to use the action of that name on current controller. In this case the $params will be sent as query string
+	 * instead of POST variables.
+	 * @param array|\yii\db\ActiveRecord $params An array or a Yii model. If Yii model: array is sent with key='id' and value=primary key of the model
+	 * @param array $options
 	 * @return JsExpression Javascript code
 	 **/
 	public static function ajaxLink($label, $url, $params = [], $options = []) {
@@ -41,6 +49,16 @@ class JsHelper extends Component {
 
 		$options = array_merge($defaults, $options);
 
+		if ($params instanceof \yii\db\ActiveRecord) {
+			// $params is a Yii model
+			$params = ['id' => $params->primaryKey];
+		}
+
+		if (preg_match("/^[a-z\\-]+$/", $url)) {
+			$url = Url::to(  array_merge([Yii::$app->controller->id .'/'. $url], $params)  );
+			$params = [];
+		}
+
 		if ($options['confirmMessage']) {
 			$options['callOptions']['confirmMessage'] = $options['confirmMessage'];
 		}
@@ -52,46 +70,45 @@ class JsHelper extends Component {
 		return Html::a($label, '#', $options['linkOptions']);
 	}
 
-
+	/**
+	 * Initialize modals
+	 *
+	 * Call `initModal()` before call the Javascript function
+	 *
+	 * Parameters for appJS.showModal():
+	 *
+	 *	- string with HTML message
+	 *		- OR
+	 *	- object with keys:
+	 *		- `title` (opt.)
+	 *		- `html`
+	 *		- `openCallback` (opt.) : before completing the UI
+	 *		- `openedCallback` (opt.) : after completing the UI
+	 *		- `closedCallback` (opt.) : after completing the UI
+	 *		- `allow_additional` (opt.)
+	 *		- `customModalSelector` (opt.) : selector for the HTML code for a custom modal that you want to use instead of #myModal
+	 *
+	 *	Example with buttons:
+	 *
+	 *	```
+	 *	appJS.showModal({
+	 *		html: 'Are you sure you want to remove the image?',
+	 *		customModalSelector: '#JsHelperModalConfirm',
+	 *		openedCallback: function(modalRef) {
+	 *			$(modalRef).('.btn-yes').on('click', function() {
+	 *				// do something...
+	 *			});
+	 *		}
+	 *	});
+	 *	```
+	 *
+	 * @param string $view View to use if not the default (optional)
+	 * @return string HTML
+	 **/
 	public static function initModal($view = null) {
-		/*
-		DESCRIPTION:
-		- call initModal() before call the Javascript function
-		- parameters for appJS.showModal():
-			- string with HTML message
-				OR
-			- object with keys:
-				- 'title' (opt.)
-				- 'html'
-				- 'openCallback' (opt.) : before completing the UI
-				- 'openedCallback' (opt.) : after completing the UI
-				- 'closedCallback' (opt.) : after completing the UI
-				- 'allow_additional' (opt.)
-				- 'customModalSelector' (opt.) : selector for the HTML code for a custom modal that you want to use instead of #myModal
-		INPUT:
-		- $view (opt.) : view to use if not the default
-		OUTPUT:
-		- string with HTML
-		*/
 		if (!$view) {
 			$view = \Yii::$app->controller->getView();
 		}
-
-		/*
-
-		Example with buttons:
-
-			appJS.showModal({
-				html: 'Are you sure you want to remove the image?',
-				customModalSelector: '#JsHelperModalConfirm',
-				openedCallback: function(modalRef) {
-					$(modalRef).('.btn-yes').on('click', function() {
-						// do something...
-					});
-				}
-			});
-
-		*/
 
 		// Don't return anything if already done in a previous call
 		if (self::$initModalDone) {
@@ -104,21 +121,18 @@ class JsHelper extends Component {
 		return self::standardModal();
 	}
 
+	/**
+	 * Generate HTML code for a default modal with a Close button
+	 *
+	 * @param array $options Associative array with any of these keys:
+	 * - `id` : id to use for the modal. Default: JsHelperModal
+	 * - `html` : custom message to show
+	 * - `title` : custom title. Default: Are you sure?
+	 * - `hideTitle` : set to true to not show the title bar
+	 * - `buttonClose` : custom text for the close button. Default: Close
+	 * - `hideButtons` : set to true to not show any buttons
+	 **/
 	public static function standardModal($options = [] ) {
-		/*
-		DESCRIPTION:
-		- generate HTML code for a default modal with a Close button
-		INPUT:
-		- $options : associative array with any of these keys:
-			- 'id' : id to use for the modal. Default: JsHelperModal
-			- 'html' : custom message to show
-			- 'title' : custom title. Default: Are you sure?
-			- 'hideTitle' : set to true to not show the title bar
-			- 'buttonClose' : custom text for the close button. Default: Close
-			- 'hideButtons' : set to true to not show any buttons
-		OUTPUT:
-		-
-		*/
 		ob_start();
 
 		if (!array_key_exists('hideTitle', $options) && self::$defaultHideTitle) {
@@ -159,21 +173,20 @@ class JsHelper extends Component {
 		return ob_get_clean();
 	}
 
+	/**
+	 * Generate HTML code for a default confirmation modal (Yes/No type of thing)
+	 *
+	 * @param array $options Associative array with any of these keys:
+	 *	- `id` : id to use for the modal. Default: JsHelperModalConfirm
+	 *	- `html` : custom message to show
+	 *	- `title` : custom title. Default: Are you sure?
+	 *	- `hideTitle` : set to true to hide the title bar
+	 *	- `buttonNo` : custom text for decline button. Default: No
+	 *	- `buttonYes` : custom text for accept button. Default: Yes
+	 *
+	 * @return string HTML
+	 **/
 	public static function confirmationModal($options = [] ) {
-		/*
-		DESCRIPTION:
-		- generate HTML code for a default confirmation modal (Yes/No type of thing)
-		INPUT:
-		- $options : associative array with any of these keys:
-			- 'id' : id to use for the modal. Default: JsHelperModalConfirm
-			- 'html' : custom message to show
-			- 'title' : custom title. Default: Are you sure?
-			- 'hideTitle' : set to true to hide the title bar
-			- 'buttonNo' : custom text for decline button. Default: No
-			- 'buttonYes' : custom text for accept button. Default: Yes
-		OUTPUT:
-		-
-		*/
 		ob_start();
 
 		if (!array_key_exists('hideTitle', $options) && self::$defaultHideTitle) {
@@ -210,21 +223,20 @@ class JsHelper extends Component {
 		return ob_get_clean();
 	}
 
+	/**
+	 * Generate HTML code for a default almost-fullscreen modal
+	 *
+	 * @param array $options Associative array with any of these keys:
+	 *	- `id` : id to use for the modal. Default: JsHelperModalFullscreen
+	 *	- `html` : custom message to show
+	 *	- `title` : custom title. Default: Are you sure?
+	 *	- `hideTitle` : set to true to hide the title bar
+	 *	- `buttonClose` : custom text for the close button. Default: Close
+	 *	- `hideButtons` : set to true to not show any buttons
+	 *
+	 * @return string HTML
+	 **/
 	public static function fullscreenModal($options = [] ) {
-		/*
-		DESCRIPTION:
-		- generate HTML code for a default almost-fullscreen modal
-		INPUT:
-		- $options : associative array with any of these keys:
-			- 'id' : id to use for the modal. Default: JsHelperModalFullscreen
-			- 'html' : custom message to show
-			- 'title' : custom title. Default: Are you sure?
-			- 'hideTitle' : set to true to hide the title bar
-			- 'buttonClose' : custom text for the close button. Default: Close
-			- 'hideButtons' : set to true to not show any buttons
-		OUTPUT:
-		-
-		*/
 		ob_start();
 
 		if (!array_key_exists('hideTitle', $options) && self::$defaultHideTitle) {
