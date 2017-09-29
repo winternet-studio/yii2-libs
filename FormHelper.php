@@ -179,4 +179,55 @@ if (typeof rsp.err_msg_ext != 'undefined') {
 
 		$view->registerJs("wsYii2.FormHelper.WarnLeavingUnsaved.init('#". $activeForm->options['id'] ."');");
 	}
+
+	/**
+	 * Set timezone to use for timestamps in a form and ensure conversion back to UTC before saving in database,
+	 * assuming that all timestamps are stored in UTC.
+	 *
+	 * Call this method in the controller, before calling the load() and save() methods.
+	 * The timestamps coming back from the form must be of a format that is correctly parsed by the PHP DateTime() constructor.
+	 *
+	 * Note that unless the option `modifyModel = true` the timestamp on the model is not modified (because the widget usually 
+	 * automatically handles the conversion), only the POSTed value is modified by this function.
+	 *
+	 * @param string $user_timezone Time zone of the end-user
+	 * @param array $models Model to convert timestamp attributes for
+	 * @param string $options Available options: 'format' (string), 'modifyModel' (boolean)
+	 * @return void
+	 **/
+	public static function useTimeZone($user_timezone, $model, $options = []) {
+		$defaults = [
+			'format' => 'Y-m-d H:i:s',
+			'modifyModel' => false,
+			// NOT YET IMPLEMENTED. 'onlyAttributes' => [],
+			// NOT YET IMPLEMENTED. 'exclAttributes' => [],
+		];
+		$options = array_merge($defaults, $options);
+
+		date_default_timezone_set($user_timezone);
+
+		foreach ($model->getTableSchema()->columns as $attribute => $column) {
+			if ($column->type == 'datetime' || $column->type == 'timestamp') {
+				if ($options['modifyModel']) {
+					$t = new \DateTime($model->$attribute, new \DateTimeZone('UTC'));
+					$t->setTimezone(new \DateTimeZone($user_timezone));
+					$model->$attribute = $t->format($options['format']);
+				}
+
+				if ($_POST[ $model->formName() ][$attribute]) {
+					$timestamp = new \DateTime($_POST[ $model->formName() ][$attribute], new \DateTimeZone($user_timezone));
+					$timestamp->setTimezone(new \DateTimeZone('UTC'));
+
+					// Set standard $_POST variable
+					$_POST[ $model->formName() ][$attribute] = $timestamp->format($options['format']);
+
+					// Set Yii's bodyParams so that ->request->post() works
+					$post = \Yii::$app->request->getBodyParams();
+					$post[ $model->formName() ][$attribute] = $timestamp->format($options['format']);
+					\Yii::$app->request->setBodyParams($post);
+				}
+			}
+		}
+	}
+
 }
