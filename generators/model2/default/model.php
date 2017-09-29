@@ -174,7 +174,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 
 	// 	if ($id) {
 	// 		//return one
-	// 		$query->andWhere(['eventID' => $id]);
+	// 		$query->andWhere(['<?= array_keys($labels)[0];  //assume first field is primary key ?>' => $id]);
 	// 		$model = $query->one();
 
 	// 		if ($model && $options['setScenario'] === true) {
