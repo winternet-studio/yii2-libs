@@ -50,7 +50,7 @@ AjaxSubmitButton::begin([
 		'success' => \winternet\yii2\FormHelper::processAjaxSubmit([
 				'form' => $form,
 				'view' => $this,
-				'on_successJS' => "wsYii2.FormHelper.WarnLeavingUnsaved.markSaved('{currentForm}'); location.href = '/';  //TODO: set location",
+				'on_successJS' => "wsYii2.FormHelper.WarnLeavingUnsaved.markSaved('{currentForm}'); location.href = '/'; /* TODO: set location */",
 				'on_completeJS' => "appJS.hideProgressBar();",
 			]),
 		'error' => \winternet\yii2\FormHelper::processAjaxSubmitError(),
