@@ -38,6 +38,7 @@ FormHelper::WarnLeavingUnsaved($this, $form);
 
 $editAttribs = $model->activeAttributes();
 $viewAttribs = $model->viewable();
+$hints = $model->attributeHints();
 $this->registerCss(ModelHelper::requiredAttributesCss($model));
 
 
@@ -73,7 +74,8 @@ foreach ($generator->getColumnNames() as $attribute) {
 
 		echo "\n";
 		echo "if (in_array('". $attribute ."', \$viewAttribs)) {\n";
-		echo "	echo " . $activeField . ";\n";
+		echo "	echo " . $activeField . "";   //";\n";
+		echo "		->hint(\$hints['". $attribute ."']); " . $activeField . "";   //";\n";
 		echo "}\n";
 	}
 } ?>
