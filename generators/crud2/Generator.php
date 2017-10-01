@@ -35,7 +35,7 @@ class Generator extends \yii\gii\generators\crud\Generator {
 	 * @inheritdoc
 	 */
     public function generateActiveField($attribute) {
-    	$beforeFieldType = "\n\t\t\t  ";
+    	$beforeFieldType = "\n\t\t";
 
         $tableSchema = $this->getTableSchema();
         if ($tableSchema === false || !isset($tableSchema->columns[$attribute])) {

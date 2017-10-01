@@ -13,7 +13,7 @@ use yii\helpers\Html;
  *
  * With model & with ActiveForm:
  * ```php
- * echo $form->field($model, 'show_fields')->widget(MultifieldDropdownInput::classname(), [
+ * echo $form->field($model, 'show_fields')->widget(MultifieldDropdownInput::className(), [
  * 	'items' =>
  *		['name' => 'address', 'label' => 'Address', 'default' => 'opt', list' => 
  *			[
