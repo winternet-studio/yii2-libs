@@ -3,7 +3,7 @@ namespace winternet\yii2\widgets\input;
 
 use Yii;
 use yii\widgets\InputWidget;
-use yii\helpers\Html;
+use yii\bootstrap\Html;
 use winternet\yii2\Common;
 
 /**
