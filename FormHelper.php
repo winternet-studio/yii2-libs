@@ -24,12 +24,34 @@ class FormHelper extends Component {
 		$js = "function(rsp) {";
 		if ($options['form']) {
 			// Apply the server-side generated errors to the form fields
+			// NOTE: the lonelyErrors are errors that have IDs that do not match anything in Yii's ActiveForm, so show those errors in a modal instead
+			// TODO: move most of this JS code into FormHelper.js
 			$js .= "var form = $(_clickedButton).parents('form');
 var errorCount = 0, a = [];
 if (typeof rsp.err_msg_ext != 'undefined') {
-	for (var x in rsp.err_msg_ext) {if (rsp.err_msg_ext.hasOwnProperty(x)){errorCount++;}}
+	var lonelyErrrors = [];
+	for (var x in rsp.err_msg_ext) {
+		if (rsp.err_msg_ext.hasOwnProperty(x)){
+			errorCount++;
+			if (typeof form.yiiActiveForm('find', x) == 'undefined') {
+				lonelyErrrors.push([x, rsp.err_msg_ext[x][0]]);
+			}
+		}
+	}
+	if (lonelyErrrors.length > 0) {
+		var html = [];
+		for (var i = 0; i < lonelyErrrors.length; i++) {
+			html.push('<li>'+ lonelyErrrors[i][0].replace(/^[a-z]+\\-/, '') +': '+ lonelyErrrors[i][1] + '</li>');
+		}
+		if (typeof appJS.showModal != 'undefined') {
+			appJS.showModal({title: 'Errors', html: '<ul>'+ html.join('<br>') +'</ul>' });
+		} else {
+			alert('Errors:\\n\\n'+ html.join('\\n').replace(/<li>/g, '- ').replace(/<\\/li>/, ''));
+		}
+	}
 	a = rsp.err_msg_ext;
-}form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be determined before form.yiiActiveForm() because it modifies rsp.err_msg_ext! NOTE: updateMessages should always be called so that in case there are no error any previously set errors are cleared.
+}
+form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be determined before form.yiiActiveForm() because it modifies rsp.err_msg_ext! NOTE: updateMessages should always be called so that in case there are no error any previously set errors are cleared.
 
 			if ($options['view']) {
 				FormHelperAsset::register($options['view']);  //required for wsYii2 to be available
