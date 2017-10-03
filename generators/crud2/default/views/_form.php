@@ -17,7 +17,7 @@ echo "<?php\n";
 ?>
 use yii\helpers\Html;
 use yii\helpers\Url;
-use yii\widgets\ActiveForm;
+use yii\bootstrap\ActiveForm;
 use winternet\yii2\ModelHelper;
 use winternet\yii2\FormHelper;
 use demogorgorn\ajax\AjaxSubmitButton;
@@ -74,8 +74,8 @@ foreach ($generator->getColumnNames() as $attribute) {
 
 		echo "\n";
 		echo "if (in_array('". $attribute ."', \$viewAttribs)) {\n";
-		echo "	echo " . $activeField . "";   //";\n";
-		echo "		->hint(\$hints['". $attribute ."']); " . $activeField . "";   //";\n";
+		echo "	echo " . $activeField . "\n";   //";\n";
+		echo "		->hint(\$hints['". $attribute ."']);\n";
 		echo "}\n";
 	}
 } ?>
