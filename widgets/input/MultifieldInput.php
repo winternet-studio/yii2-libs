@@ -106,7 +106,8 @@ class MultifieldInput extends InputWidget {
 		parent::init();
 
 		if (!isset($this->containerOptions['id'])) {
-			$this->containerOptions['id'] = $this->getId();
+			$this->containerOptions['id'] = Html::getInputId($this->model, $this->attribute);  //see comment below where we generated the tag for why we need this
+			$this->containerOptions['data-widget-id'] = $this->getId();  //eg. w8
 		}
 
 		if ($this->hasModel()) {
@@ -136,19 +137,25 @@ class MultifieldInput extends InputWidget {
 
 		$basename = Html::getInputName($this->model, ($this->hasModel() ? $this->attribute : $this->name));
 
+		$content[] = Html::beginTag('div', $this->containerOptions);  //required because it has the ID of the input (and it seems like it must be a div according to findInput() in yii.activeForm.js - otherwise error message don't show)
 		$content[] = Html::beginTag('table', $this->tableOptions);
+
+		$counter = -1;
 		foreach ($this->items as $item) {
+			$counter++;
+			$inputID = $this->containerOptions['id'] .'-'. $counter;
+
 			$fieldName = $basename .'['. $item['name'] .']';
 			$fieldValue = ($value[$item['name']] ? $value[$item['name']] : $item['default']);
 
 			$content[] = '<tr>';
 			$content[] = '<td class="mfi-label">'. ($this->encodeLabel ? Html::encode($item['label']) : $item['label']) .'&nbsp;</td>';
 			if (is_callable($item['type'])) {
-				$content[] = '<td class="mfi-input custom-type">'. call_user_func($item['type'], $fieldName, $fieldValue, $this->inputOptions) .'</td>';
+				$content[] = '<td class="mfi-input custom-type">'. call_user_func($item['type'], $fieldName, $fieldValue, array_merge($this->inputOptions, ['id' => $inputID])) .'</td>';
 			} elseif ($item['type'] == 'dropDownList') {
-				$content[] = '<td class="mfi-input dropdown-type">'. Html::dropDownList($fieldName, $fieldValue, $item['list'], $this->inputOptions) .'</td>';
+				$content[] = '<td class="mfi-input dropdown-type">'. Html::dropDownList($fieldName, $fieldValue, $item['list'], array_merge($this->inputOptions, ['id' => $inputID])) .'</td>';
 			} else {
-				$content[] = '<td class="mfi-input text-type">'. Html::textInput($fieldName, $fieldValue, $this->inputOptions) .'</td>';
+				$content[] = '<td class="mfi-input text-type">'. Html::textInput($fieldName, $fieldValue, array_merge($this->inputOptions, ['id' => $inputID])) .'</td>';
 			}
 			if ($item['suffix']) {
 				$content[] = '<td class="mfi-suffix">'. ($this->encodeSuffix ? Html::encode($item['suffix']) : $item['suffix']) .'</td>';
@@ -156,6 +163,7 @@ class MultifieldInput extends InputWidget {
 			$content[] = '</tr>';
 		}
 		$content[] = Html::endTag('table');
+		$content[] = Html::endTag('div');
 
 		return implode('', $content);
 	}
