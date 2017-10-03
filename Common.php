@@ -85,4 +85,24 @@ class Common extends Component {
 			}
 		}
 	}
+
+	public static function buildMultiLang($array) {
+		/*
+		DESCRIPTION:
+		- builds a string with multiple translations of a piece of text
+		INPUT:
+		- $array : array output from parseMultiLang() with $lang='ALL' as argument
+		OUTPUT:
+		- string
+		*/
+		if (is_string($array)) {
+			return $array;
+		} else {
+			$output = [];
+			foreach ($array as $lang => $string) {
+				$output[] = strtoupper($lang) .'='. $string;
+			}
+			return implode(',,,', $output);
+		}
+	}
 }
