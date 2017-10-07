@@ -113,10 +113,10 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 
 		// Form submission
 		if (Yii::$app->request->isAjax) {
+			Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 			$model->load(Yii::$app->request->post());
 			if (!$_POST['ajax']) $model->save();  //don't save when AJAX validation is done due to enableAjaxValidation=true
 			$result = \winternet\yii2\FormHelper::addResultErrors(null, $model);
-			Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 			return $result;
 		}
 

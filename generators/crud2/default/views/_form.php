@@ -49,12 +49,12 @@ AjaxSubmitButton::begin([
 		'url' => Url::current(),
 		'beforeSend' => new \yii\web\JsExpression("function() { appJS.showProgressBar(); }"),
 		'success' => \winternet\yii2\FormHelper::processAjaxSubmit([
-				'form' => $form,
-				'view' => $this,
-				'on_successJS' => "wsYii2.FormHelper.WarnLeavingUnsaved.markSaved('{currentForm}'); location.href = '/'; /* TODO: set location */",
-				'on_completeJS' => "appJS.hideProgressBar();",
-			]),
-		'error' => \winternet\yii2\FormHelper::processAjaxSubmitError(),
+			'form' => $form,
+			'view' => $this,
+			'on_successJS' => "wsYii2.FormHelper.WarnLeavingUnsaved.markSaved('{currentForm}'); location.href = '/'; /* TODO: set location */",
+			'on_completeJS' => "appJS.hideProgressBar();",
+		]),
+		'error' => \winternet\yii2\FormHelper::processAjaxSubmitError(['jsBefore' => "appJS.hideProgressBar();"]),
 	],
 	'options' => ['class' => 'btn btn-primary', 'type' => 'submit'],
 ]);

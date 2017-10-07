@@ -89,20 +89,34 @@ form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be de
 		INPUT:
 		- $options : associative array with any of these keys:
 			- 'minimal' : set to true to generate very minimal code
+			- 'jsBefore' : extra Javascript code to execute before doing our normal stuff
+			- 'jsAfter'  : extra Javascript code to execute after doing our normal stuff
 		OUTPUT:
 		- Javascript expression
 		*/
 		if ($options['minimal']) {
 			$js = "function(r,t,e) {";
+			if ($options['jsBefore']) {
+				$js .= $options['jsBefore'];
+			}
 			$js .= "alert(e+\"\\n\\n\"+\$('<div/>').html(r.responseJSON.message).text());";
+			if ($options['jsAfter']) {
+				$js .= $options['jsAfter'];
+			}
 			$js .= "}";
 		} else {
 			$js = "function(xhr, textStatus, errorThrown) {";
+			if ($options['jsBefore']) {
+				$js .= $options['jsBefore'];
+			}
 			$js .= "var \$bg = \$('<div/>').addClass('jfw-yii2-ajax-error-bg').css({position: 'fixed', top: '0px', left: '0px', width: '100%', backgroundColor: '#595959'}).height(\$(window).height());";
 			$js .= "var \$modal = \$('<div/>').addClass('msg').css({position: 'fixed', top: '100px', left: '50%', transform: 'translateX(-50%)', width: '70%', marginLeft: 'auto', marginRight: 'auto', backgroundColor: '#EEEEEE', padding: '30px', boxShadow: '0px 0px 28px 5px #232323'});";
-			$js .= "\$modal.html('<h3>'+ errorThrown +'</h3>'+ xhr.responseJSON.message +'<div><button class=\"btn btn-primary\" onclick=\"\$(this).parent().parent().parent().remove();\">OK</button></div>');";
+			$js .= "\$modal.html('<h3>'+ errorThrown +' (Status '+ xhr.status +')</h3>'+ (xhr.responseJSON ? (xhr.responseJSON.name && xhr.responseJSON.name != errorThrown ? '<h4>'+ xhr.responseJSON.name +'</h4>' : '') + (xhr.responseJSON.message ? xhr.responseJSON.message : '') : xhr.responseText) +'<div><button class=\"btn btn-primary\" onclick=\"\$(this).parent().parent().parent().remove();\">OK</button></div>');";
 			$js .= "\$bg.append(\$modal);";
 			$js .= "\$('body').append(\$bg);";
+			if ($options['jsAfter']) {
+				$js .= $options['jsAfter'];
+			}
 			$js .= "}";
 		}
 		return new \yii\web\JsExpression($js);
