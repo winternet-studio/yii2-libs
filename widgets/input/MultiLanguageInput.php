@@ -144,6 +144,9 @@ class MultiLanguageInput extends InputWidget {
 		if (!isset($this->containerOptions['id'])) {
 			$this->containerOptions['id'] = $this->getId();
 		}
+		if ($this->options['id'] && $this->options['id'] == $this->containerOptions['id']) {
+			$this->containerOptions['id'] = $this->containerOptions['id'] .'-noconflict';  //ensure we don't have conflicting IDs
+		}
 
 		if ($this->hasModel()) {
 			$this->value = $this->model->{$this->attribute};
