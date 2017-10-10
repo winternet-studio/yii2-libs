@@ -2,7 +2,6 @@
 namespace winternet\yii2;
 
 use Yii;
-use yii\base\UserException;
 use yii\helpers\VarDumper;
 use yii\helpers\Html;
 use yii\web\Response;
@@ -28,6 +27,7 @@ class UserException extends \yii\base\UserException {
 		$terminate = true;
 		$severe = 'ERROR';
 		$expire = false;
+		$httpCode = 500;
 		//  get those that have been set at location of the error
 		if (is_array($directives)) {
 			if (array_key_exists('severe', $directives)) $directives['severe'] = strtoupper( (string) $directives['severe']);
@@ -39,6 +39,7 @@ class UserException extends \yii\base\UserException {
 			if (array_key_exists('terminate', $directives)) $terminate = $directives['terminate'];
 			if ($directives['severe'] == 'WARNING' || $directives['severe'] == 'ERROR' || $directives['severe'] == 'CRITICAL ERROR') $severe = $directives['severe'];
 			if (array_key_exists('expire', $directives)) $expire = $directives['expire'];
+			if (array_key_exists('httpCode', $directives) && is_numeric($directives['httpCode'])) $httpCode = $directives['httpCode'];
 		}
 
 
@@ -141,7 +142,7 @@ class UserException extends \yii\base\UserException {
 		file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/exceptions.log', $filemsg, FILE_APPEND);
 
 		if ($terminate) {
-			throw new UserException($showmsg . $extramsg);  //this gives HTTP 200 (using ErrorException would give HTTP 500)
+			throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg, $this->errorCode);
 		}
 	}
 }
