@@ -30,15 +30,15 @@ class UserException extends \yii\base\UserException {
 		$expire = false;
 		//  get those that have been set at location of the error
 		if (is_array($directives)) {
-			if (array_key_exists('xsevere', $directives)) $directives['xsevere'] = strtoupper( (string) $directives['xsevere']);
-			if ($directives['xnotify'] == true) $directives['xnotify'] = 'developer';  //this ONLY happens if one mistakenly set notify to true instead of one of the values! This is a safety against that.
+			if (array_key_exists('severe', $directives)) $directives['severe'] = strtoupper( (string) $directives['severe']);
+			if ($directives['notify'] == true) $directives['notify'] = 'developer';  //this ONLY happens if one mistakenly set notify to true instead of one of the values! This is a safety against that.
 
-			if (array_key_exists('xsilent', $directives)) $silent = $directives['xsilent'];
-			if (array_key_exists('xregister', $directives)) $register = $directives['xregister'];
-			if (array_key_exists('xnotify', $directives) && ($directives['xnotify'] == 'developer' || $directives['xnotify'] == 'sysadmin' || $directives['xnotify'] === false)) $notify = $directives['xnotify'];
-			if (array_key_exists('xterminate', $directives)) $terminate = $directives['xterminate'];
-			if ($directives['xsevere'] == 'WARNING' || $directives['xsevere'] == 'ERROR' || $directives['xsevere'] == 'CRITICAL ERROR') $severe = $directives['xsevere'];
-			if (array_key_exists('xexpire', $directives)) $expire = $directives['xexpire'];
+			if (array_key_exists('silent', $directives)) $silent = $directives['silent'];
+			if (array_key_exists('register', $directives)) $register = $directives['register'];
+			if (array_key_exists('notify', $directives) && ($directives['notify'] == 'developer' || $directives['notify'] == 'sysadmin' || $directives['notify'] === false)) $notify = $directives['notify'];
+			if (array_key_exists('terminate', $directives)) $terminate = $directives['terminate'];
+			if ($directives['severe'] == 'WARNING' || $directives['severe'] == 'ERROR' || $directives['severe'] == 'CRITICAL ERROR') $severe = $directives['severe'];
+			if (array_key_exists('expire', $directives)) $expire = $directives['expire'];
 		}
 
 
@@ -55,7 +55,7 @@ class UserException extends \yii\base\UserException {
 				if ($backtraces_count == 1) {  //if only 1 entry the reference is always the same file as in URL
 					//just write the line number
 					$errordata .= 'Line: '. $backtrace[0]['line'] ."\r\n";
-				} else {  //more txxhan one entry
+				} else {  //more than one entry
 					//write the different files, lines, and functions and their arguments that were used
 					foreach ($backtrace as $key => $b) {
 						$errordata .= 'Level '. ($key+1) .': '. ltrim(str_replace(\Yii::$app->basePath, '', $b['file']), '\\') .'::'. $b['line'];
