@@ -480,6 +480,7 @@ appJS.showModal = function(parms) {
 			- available keys:
 				- 'text' : set the label of the button
 				- 'classes' : add one or more classes to the button (comma-sep.)
+		- 'hideButtons' : set to true to show no buttons in the footer
 		- 'modalOptions' : extra options to pass on to the Bootstrap modal
 		- 'openCallback'
 		- 'openedCallback'
@@ -508,7 +509,9 @@ appJS.showModal = function(parms) {
 		// When adding modal check that the HTML for it has been created before trying to set it
 	}
 
-	if (typeof parms.buttonOptions != 'undefined') {
+	if (parms.hideButtons === true) {
+		$(modalSelector).find('.modal-footer').find('button').hide();
+	} else if (typeof parms.buttonOptions != 'undefined') {
 		var originalButtonOptions = {};
 		$(modalSelector).find('.modal-footer').find('button').each(function(indx, elem) {
 			originalButtonOptions[indx] = {
@@ -587,7 +590,9 @@ appJS.showModal = function(parms) {
 		//remove all events handlers on buttons
 		$(modalSelector).find('button').off('click');
 
-		if (typeof originalButtonOptions != 'undefined') {
+		if (parms.hideButtons === true) {
+			$(modalSelector).find('.modal-footer').find('button').show();
+		} else if (typeof originalButtonOptions != 'undefined') {
 			$(modalSelector).find('.modal-footer').find('button').each(function(indx, elem) {
 				if (typeof originalButtonOptions[indx] != 'undefined') {
 					if (originalButtonOptions[indx].text) {
