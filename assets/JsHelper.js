@@ -487,7 +487,7 @@ appJS.showModal = function(parms) {
 		- 'closeCallback'
 		- 'closedCallback'
 	OUTPUT:
-	- jQuery reference to the modal
+	- object with a jQuery reference to the modal in property `jqModal`
 	*/
 	var modalOpts, modalSelector = '#JsHelperModal';
 	if (typeof parms == 'string') parms = {html: parms};
@@ -622,7 +622,12 @@ appJS.showModal = function(parms) {
 	$(modalSelector).find('.modal-body').html(parms.html);
 	$(modalSelector).modal(modalOpts);
 
-	return $(modalSelector);
+	return {
+		jqModal: $(modalSelector),
+		showButtons: function() {
+			$(modalSelector).find('.modal-footer').find('button').show();
+		}
+	};
 };
 appJS.formatStdResult = function(arrResult, okMessageHtml, errorMessageHtml, options) {
 	/*
