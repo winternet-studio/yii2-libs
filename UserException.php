@@ -141,6 +141,31 @@ class UserException extends \yii\base\UserException {
 		$filemsg .= "\r\n";
 		file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/exceptions.log', $filemsg, FILE_APPEND);
 
+		// Notify us
+		if ($notify) {
+			try {
+				// Defaults
+				$sender_address = 'info@'. Yii::$app->request->getHostName();
+				$recipient_address = $sender_address;
+
+				if (Yii::$app->params && Yii::$app->params['defaultEmailSenderAddress']) {
+					$sender_address = Yii::$app->params['defaultEmailSenderAddress'];
+				}
+				if (Yii::$app->params && Yii::$app->params['adminEmail']) {
+					$recipient_address = Yii::$app->params['adminEmail'];
+				}
+
+				Yii::$app->mailer->compose()
+					->setFrom($sender_address)
+					->setTo($recipient_address)
+					->setSubject($severe .' in '. $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] .' (instant-notif)')
+					->setTextBody($filemsg)
+					->send();
+			} catch (\Exception $e) {
+				@file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/failed_email.log', $e->getMessage() . PHP_EOL . PHP_EOL . $filemsg, FILE_APPEND);
+			}
+		}
+
 		if ($terminate) {
 			throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg, $this->errorCode);
 		}
