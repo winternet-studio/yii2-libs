@@ -13,7 +13,7 @@ if ($allConfigs) {
 	$allConfigs = [];
 	$allConfigs['_about'] = 'This file belongs to the Gii generator at '. $generator->className() .' (https://github.com/winternet-studio/yii2-libs)';
 }
-if (!empty($allConfigs)) {
+if (!empty($allConfigs) && is_array($allConfigs['configs']['crud2'])) {
 	// UI for selecting config to load
 	echo '<div class="alert alert-info">';
 	echo '<div style="margin-bottom: 10px">Load a previous configuration:</div>';
