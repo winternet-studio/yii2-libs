@@ -125,7 +125,6 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 <?php endforeach; ?>
 		];
 	}
-<?php foreach ($relations as $name => $relation): ?>
 
 	/**
 	 * @return array
@@ -142,6 +141,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// ...
 
 	// Relationships
+<?php foreach ($relations as $name => $relation): ?>
 
 	/**
 	 * @return \yii\db\ActiveQuery
