@@ -20,17 +20,7 @@ namespace <?= $generator->ns ?>;
 use Yii;
 
 /**
- * This is the model class for table "<?= $generator->generateTableName($tableName) ?>".
- *
-<?php foreach ($tableSchema->columns as $column): ?>
- * @property <?= "{$column->phpType} \${$column->name}\n" ?>
-<?php endforeach; ?>
-<?php if (!empty($relations)): ?>
- *
-<?php foreach ($relations as $name => $relation): ?>
- * @property <?= $relation[1] . ($relation[2] ? '[]' : '') . ' $' . lcfirst($name) . "\n" ?>
-<?php endforeach; ?>
-<?php endif; ?>
+ * This is the model class for table "<?= $generator->generateTableName($tableName) ?>"
  */
 class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?> {
 	/**
@@ -55,7 +45,20 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	public function rules() {
 		// $options = self::allowedValues();
 
-		return [<?= "\n            " . implode(",\n            ", $rules) . ",\n        " ?>];
+		return [<?= "\n			" . implode(",\n			", $rules) . ",\n        " ?>];
+	}
+
+	// ...afterSave() etc goes here...
+
+	/**
+	 * @inheritdoc
+	 */
+	public function behaviors() {
+		return [
+			[
+				'class' => \winternet\yii2\behaviors\CleanupBehavior::className(),
+			],
+		];
 	}
 
 	/**
@@ -92,15 +95,75 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// }
 
 	/**
-	 * @inheritdoc
+	 * Return an array with records that belong to the current user
+	 *
+	 * @return array
 	 */
-	public function behaviors() {
-		return [
-			[
-				'class' => \winternet\yii2\behaviors\CleanupBehavior::className(),
-			],
-		];
-	}
+	// public static function findUsers<?= $className ?>s($id = false, $options = []) {
+	// 	if (Yii::$app->user->isGuest) {
+	// 		return [];
+	// 	}
+
+	// 	$query = self::find();
+	// 	self::applyUserConditions($query);
+
+	// 	if ($id) {
+	// 		//return one
+	// 		$query->andWhere(['<?= array_keys($labels)[0];  //assume first field is primary key ?>' => $id]);
+	// 		$model = $query->one();
+
+	// 		if ($model && $options['setScenario'] === true) {
+	// 			$model->applyUserScenario();
+	// 		}
+
+	// 		return $model;
+	// 	} else {
+	// 		//return all
+	// 		$query->indexBy('<?= array_keys($labels)[0];  //assume first field is primary key ?>');
+
+	// 		$models = $query->all();
+
+	// 		return $models;
+	// 	}
+	// }
+
+	/**
+	 * Apply the current user's scenario to the model
+	 */
+	// public function applyUserScenario($options = []) {
+	// 	if (0) {
+	// 		$this->setScenario(self::SCENARIO_DEFAULT);
+	// 	} else {
+	// 		new \app\components\Error('Do not know how to set user scenario.', ['User' => Yii::$app->user->identity->userID]);
+	// 	}
+	// 	return $this;
+	// }
+
+	/**
+	 * Apply conditions to an active query to only return records for the current user
+	 */
+	// public static function applyUserConditions(&$query) {
+	// 	if (Yii::$app->user->isGuest) {
+	// 		$query->where('0=1');
+	// 	} else {
+
+	// 		if ($accessLevelOne) {
+	// 			$query->andWhere(['in', '<?= array_keys($labels)[0] ?>', [1, 2, 3] ]);
+	// 		} elseif ($accessLevelTwo) {
+	// 			$query->andWhere(['in', '<?= array_keys($labels)[0] ?>', [6, 7, 8] ]);
+	// 		} else {
+	// 			$query->andWhere(['<?= array_keys($labels)[0] ?>' => -9999]);
+	// 		}
+
+	// 	}
+	// }
+
+
+	// Custom setters/getters
+	// ...
+
+
+	// Labels, hints, etc
 
 	/**
 	 * Return allowed values for given attributes
@@ -137,8 +200,6 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 		];
 	}
 
-	// Custom setters/getters
-	// ...
 
 	// Relationships
 <?php foreach ($relations as $name => $relation): ?>
@@ -164,59 +225,11 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	}
 <?php endif; ?>
 
-	// public static function findUsers<?= $className ?>s($id = false, $options = []) {
-	// 	if (Yii::$app->user->isGuest) {
-	// 		return [];
-	// 	}
 
-	// 	$query = self::find();
-	// 	self::applyUserConditions($query);
+	// Other non-static functions
+	// ...
 
-	// 	if ($id) {
-	// 		//return one
-	// 		$query->andWhere(['<?= array_keys($labels)[0];  //assume first field is primary key ?>' => $id]);
-	// 		$model = $query->one();
 
-	// 		if ($model && $options['setScenario'] === true) {
-	// 			$model->applyUserScenario();
-	// 		}
-
-	// 		return $model;
-	// 	} else {
-	// 		//return all
-	// 		$query->indexBy('<?= array_keys($labels)[0];  //assume first field is primary key ?>');
-
-	// 		$models = $query->all();
-
-	// 		return $models;
-	// 	}
-	// }
-
-	// public function applyUserScenario($options = []) {
-	// 	if (0) {
-	// 		$this->setScenario(self::SCENARIO_DEFAULT);
-	// 	} else {
-	// 		new \app\components\Error('Do not know how to set user scenario.', ['User' => Yii::$app->user->identity->userID]);
-	// 	}
-	// 	return $this;
-	// }
-
-	// public static function applyUserConditions(&$query) {
-	// 	if (Yii::$app->user->isGuest) {
-	// 		$query->where('0=1');
-	// 	} else {
-
-	// 		if ($accessLevelOne) {
-	// 			$query->andWhere(['in', '<?= array_keys($labels)[0] ?>', [1, 2, 3] ]);
-	// 		} elseif ($accessLevelTwo) {
-	// 			$query->andWhere(['in', '<?= array_keys($labels)[0] ?>', [6, 7, 8] ]);
-	// 		} else {
-	// 			$query->andWhere(['<?= array_keys($labels)[0] ?>' => -9999]);
-	// 		}
-
-	// 	}
-	// }
-
-	// Other functions
+	// Other static functions
 	// ...
 }
