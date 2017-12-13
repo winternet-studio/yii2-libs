@@ -59,7 +59,7 @@ class JobQueue extends Component {
 		} else {
 			if (!$this->$sanitizeCallback || !is_callable($this->$sanitizeCallback)) {
 				// DON'T ALLOW UNSANITIZED COMMANDS FOR SECURITY REASONS. If someone gained access to the database and script runs in sudo (though is most cases that shouldn't be necessary) they would be able to run any command!
-				throw new \yii\base\UserException('Missing function for sanitizing command from JobQueue.');
+				new \winternet\yii2\UserException('Missing function for sanitizing command from JobQueue.');
 			} else {
 				$cmd = $this->$sanitizeCallback($command);
 			}
@@ -148,7 +148,7 @@ class JobQueue extends Component {
 		- nothing
 		*/
 		if (!$params['command']) {
-			throw new \yii\base\UserException('Command for adding JobQueue is not specified.');
+			new \winternet\yii2\UserException('Command for adding JobQueue is not specified.');
 		}
 
 		$bindings = [];

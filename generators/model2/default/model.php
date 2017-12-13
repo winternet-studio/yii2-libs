@@ -134,7 +134,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// 	if (0) {
 	// 		$this->setScenario(self::SCENARIO_DEFAULT);
 	// 	} else {
-	// 		new \app\components\Error('Do not know how to set user scenario.', ['User' => Yii::$app->user->identity->userID]);
+	// 		\Yii::$app->system->error('Do not know how to set user scenario.', ['User' => Yii::$app->user->identity->userID]);
 	// 	}
 	// 	return $this;
 	// }

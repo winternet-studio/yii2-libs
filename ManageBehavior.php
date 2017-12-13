@@ -30,7 +30,7 @@ class ManageBehavior extends Component {
 				}
 			}
 		} else {
-			new \app\components\Error('Cannot resume Behavior as it has not been suspended.', ['ClassName' => $className]);
+			new \winternet\yii2\UserException('Cannot resume Behavior as it has not been suspended.', ['ClassName' => $className]);
 		}
 	}
 

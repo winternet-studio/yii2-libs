@@ -40,10 +40,10 @@ class SystemError extends Component {
 	 */
 	public function error($message, $internalInfo = [], $options = []) {
 		if (!is_array($options)) {
-			throw new UserException('CONFIGURATION ERROR. Options parameter is not an array.', ['Message' => $message, 'InternalInfo' => $internalInfo, 'Options' => $options], ['notify' => 'developer']);
+			new \winternet\yii2\UserException('CONFIGURATION ERROR. Options parameter is not an array.', ['Message' => $message, 'InternalInfo' => $internalInfo, 'Options' => $options], ['notify' => 'developer']);
 		}
 
-		throw new UserException($message, $internalInfo, $this->mergeOptions($options));
+		new \winternet\yii2\UserException($message, $internalInfo, $this->mergeOptions($options));
 	}
 
 	/**
@@ -56,7 +56,7 @@ class SystemError extends Component {
 	 */
 	public function noAccess($message, $internalInfo = [], $options = []) {
 		if (!is_array($options)) {
-			throw new UserException('CONFIGURATION ERROR. Options parameter is not an array.', ['Message' => $message, 'InternalInfo' => $internalInfo, 'Options' => $options], ['notify' => 'developer']);
+			new \winternet\yii2\UserException('CONFIGURATION ERROR. Options parameter is not an array.', ['Message' => $message, 'InternalInfo' => $internalInfo, 'Options' => $options], ['notify' => 'developer']);
 		}
 
 		if (Yii::$app->getComponents()['user'] && Yii::$app->user->isGuest) {
@@ -65,7 +65,7 @@ class SystemError extends Component {
 			Yii::$app->end();
 		} else {
 			// User is already logged in, just throw exception
-			throw new UserException($message, $internalInfo, $this->mergeOptions($options));
+			new \winternet\yii2\UserException($message, $internalInfo, $this->mergeOptions($options));
 		}
 	}
 

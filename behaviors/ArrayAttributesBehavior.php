@@ -40,7 +40,7 @@ class ArrayAttributesBehavior extends Behavior {
 						// invalid JSON data => raise a normal validation rule error
 						$this->owner->addError($attribute, 'Attribute is a string but an array is required.');
 					} else {
-						throw new \winternet\yii2\UserException('Failed to convert JSON string to variable.', ['Input' => $this->owner->$attribute, 'Error' => json_last_error_msg()]);
+						new \winternet\yii2\UserException('Failed to convert JSON string to variable.', ['Input' => $this->owner->$attribute, 'Error' => json_last_error_msg()]);
 					}
 				} else {
 					$this->owner->$attribute = $array;
@@ -61,7 +61,7 @@ class ArrayAttributesBehavior extends Behavior {
 				$string = json_encode($this->owner->$attribute);
 				if ($string === null && json_last_error() !== JSON_ERROR_NONE) {
 					// invalid input data, failed to generate JSON string
-					throw new \winternet\yii2\UserException('Failed to convert variable to string.', ['Input' => $this->owner->$attribute, 'Error' => json_last_error_msg()]);
+					new \winternet\yii2\UserException('Failed to convert variable to string.', ['Input' => $this->owner->$attribute, 'Error' => json_last_error_msg()]);
 				} else {
 					$this->owner->$attribute = $string;
 				}

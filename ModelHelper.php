@@ -59,10 +59,10 @@ class ModelHelper extends Component {
 		- array of attributes
 		*/
 		if (!is_array($all_attributes)) {
-			new \app\components\Error('Invalid list of attributes to filtering.', ['Attributes' => $all_attributes]);
+			new \winternet\yii2\UserException('Invalid list of attributes to filtering.', ['Attributes' => $all_attributes]);
 		}
 		if (!is_array($attributes_to_keep)) {
-			new \app\components\Error('Invalid list of attributes to keep when filtering attributes.', ['Attributes' => $attributes_to_keep]);
+			new \winternet\yii2\UserException('Invalid list of attributes to keep when filtering attributes.', ['Attributes' => $attributes_to_keep]);
 		}
 
 		$output = [];
@@ -91,10 +91,10 @@ class ModelHelper extends Component {
 					$output[] = $value;
 					continue;
 				} else {
-					new \app\components\Error('Attributes name not found when filtering attributes.', ['Attributes' => $all_attributes]);
+					new \winternet\yii2\UserException('Attributes name not found when filtering attributes.', ['Attributes' => $all_attributes]);
 				}
 			} else {
-				new \app\components\Error('Invalid value for filtering attributes.', ['Attributes' => $all_attributes]);
+				new \winternet\yii2\UserException('Invalid value for filtering attributes.', ['Attributes' => $all_attributes]);
 			}
 
 			if (in_array($name, $attributes_to_keep)) {
