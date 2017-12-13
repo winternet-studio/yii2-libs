@@ -9,17 +9,25 @@ use yii\web\Response;
 class UserException extends \yii\base\UserException {
 	public $errorCode;
 
-	function __construct($msg, $arr_internal_info = [], $directives = 'AUTO') {
-		/*
-		DESCRIPTION:
-		- raise an error, with option to continue or not, plus other options
-		INPUT:
-		- $msg (string)
-		- $arr_internal_info (assoc. array)
-		- $directives (assoc. array)
-		*/
-
-		// Handle directives
+	/**
+	 * Raise an error, with option to continue or not, plus many other options
+	 *
+	 * @param string $msg
+	 * @param array $arr_internal_info : Associative array with any extra information you want to log together with this error. This info is NOT shown to the end user.
+	 * @param array $options : Associative array with any of these options:
+	 *   - `silent` : Default: false
+	 *   - `register` : Default: true
+	 *   - `notify` : Default: false
+	 *   - `terminate` : Default: true
+	 *   - `severe` : Default: `ERROR`
+	 *   - `expire` : Default: false
+	 *   - `httpCode` : HTTP code for the response. Default: 500
+	 *   - `senderEmail` : String `sample@email.com` or array `['sample@email.com' => 'John Doe']`. Default: none
+	 *   - `adminEmail` : String `sample@email.com` or array `['sample@email.com' => 'John Doe']`. Default: none
+	 *   - `developerEmail` : String `sample@email.com` or array `['sample@email.com' => 'John Doe']`. Default: none
+	 */
+	function __construct($msg, $arr_internal_info = [], $options = []) {
+		// Handle options
 		//  set default
 		$silent = false;
 		$register = true;
@@ -28,18 +36,24 @@ class UserException extends \yii\base\UserException {
 		$severe = 'ERROR';
 		$expire = false;
 		$httpCode = 500;
+		$senderEmail = null;
+		$adminEmail = null;
+		$developerEmail = null;
 		//  get those that have been set at location of the error
-		if (is_array($directives)) {
-			if (array_key_exists('severe', $directives)) $directives['severe'] = strtoupper( (string) $directives['severe']);
-			if ($directives['notify'] == true) $directives['notify'] = 'developer';  //this ONLY happens if one mistakenly set notify to true instead of one of the values! This is a safety against that.
+		if (is_array($options)) {
+			if (array_key_exists('severe', $options)) $options['severe'] = strtoupper( (string) $options['severe']);
+			if (isset($options['notify']) && $options['notify'] === true) $options['notify'] = 'developer';  //this ONLY happens if one mistakenly set notify to true instead of one of the values! This is a safety against that.
 
-			if (array_key_exists('silent', $directives)) $silent = $directives['silent'];
-			if (array_key_exists('register', $directives)) $register = $directives['register'];
-			if (array_key_exists('notify', $directives) && ($directives['notify'] == 'developer' || $directives['notify'] == 'sysadmin' || $directives['notify'] === false)) $notify = $directives['notify'];
-			if (array_key_exists('terminate', $directives)) $terminate = $directives['terminate'];
-			if ($directives['severe'] == 'WARNING' || $directives['severe'] == 'ERROR' || $directives['severe'] == 'CRITICAL ERROR') $severe = $directives['severe'];
-			if (array_key_exists('expire', $directives)) $expire = $directives['expire'];
-			if (array_key_exists('httpCode', $directives) && is_numeric($directives['httpCode'])) $httpCode = $directives['httpCode'];
+			if (array_key_exists('silent', $options)) $silent = $options['silent'];
+			if (array_key_exists('register', $options)) $register = $options['register'];
+			if (array_key_exists('notify', $options) && ($options['notify'] == 'developer' || $options['notify'] == 'sysadmin' || $options['notify'] === false)) $notify = $options['notify'];
+			if (array_key_exists('terminate', $options)) $terminate = $options['terminate'];
+			if (isset($options['severe']) && $options['severe'] == 'WARNING' || $options['severe'] == 'ERROR' || $options['severe'] == 'CRITICAL ERROR') $severe = $options['severe'];
+			if (array_key_exists('expire', $options)) $expire = $options['expire'];
+			if (array_key_exists('httpCode', $options) && is_numeric($options['httpCode'])) $httpCode = $options['httpCode'];
+			if (array_key_exists('senderEmail', $options) && $options['senderEmail']) $senderEmail = $options['senderEmail'];
+			if (array_key_exists('developerEmail', $options) && $options['developerEmail']) $developerEmail = $options['developerEmail'];
+			if (array_key_exists('adminEmail', $options) && $options['adminEmail']) $adminEmail = $options['adminEmail'];
 		}
 
 
@@ -66,7 +80,18 @@ class UserException extends \yii\base\UserException {
 								$arr_args = array();
 								foreach ($b['args'] as $xarg) {
 									if (is_array($xarg) || is_object($xarg)) {
-										$arr_args[] = json_encode($xarg);
+										try {
+											$vartmp = var_export($xarg, true);
+											$vartmp = str_replace('array (', ' array(', $vartmp);
+										} catch (\Exception $e) {
+											// use print_r instead when variable has circular references (which var_export does not handle)
+											$vartmp = print_r($xarg, true);
+										}
+										// for very large variables (like objects) only dump the first and last part of the variable
+										if (strlen($vartmp) > 2000) {
+											$vartmp = rtrim(substr($vartmp, 0, 2000)) . PHP_EOL . PHP_EOL .'...[LONG DUMP TRIMMED]...'. PHP_EOL . PHP_EOL . rtrim(substr($vartmp, -2000)) . PHP_EOL .'---------------------------------------------------------------------------------'. PHP_EOL . PHP_EOL . PHP_EOL;
+										}
+										$arr_args[] = $vartmp;
 									} else {
 										$arr_args[] = var_export($xarg, true);
 									}
@@ -145,14 +170,29 @@ class UserException extends \yii\base\UserException {
 		if ($notify) {
 			try {
 				// Defaults
-				$sender_address = 'info@'. Yii::$app->request->getHostName();
-				$recipient_address = $sender_address;
-
-				if (Yii::$app->params && Yii::$app->params['defaultEmailSenderAddress']) {
+				if ($senderEmail) {
+					$sender_address = $senderEmail;
+				} elseif (Yii::$app->params && Yii::$app->params['defaultEmailSenderAddress']) {
 					$sender_address = Yii::$app->params['defaultEmailSenderAddress'];
+				} else {
+					$sender_address = 'info@'. Yii::$app->request->getHostName();  //resort to just a guess as the last option!
+					if (Yii::$app->getComponents()['mailer'] && Yii::$app->mailer->transport && Yii::$app->mailer->transport->getUsername()) {
+						$smptUsername = Yii::$app->mailer->transport->getUsername();
+						if ($smptUsername && filter_var($smptUsername, FILTER_VALIDATE_EMAIL)) {
+							$sender_address = $smptUsername;
+						}
+					}
 				}
-				if (Yii::$app->params && Yii::$app->params['adminEmail']) {
-					$recipient_address = Yii::$app->params['adminEmail'];
+				if ($notify == 'developer' && $developerEmail) {
+					$recipient_address = $developerEmail;
+				} else {
+					if ($adminEmail) {
+						$recipient_address = $adminEmail;
+					} elseif (Yii::$app->params && Yii::$app->params['adminEmail']) {
+						$recipient_address = Yii::$app->params['adminEmail'];
+					} else {
+						$recipient_address = $sender_address;
+					}
 				}
 
 				Yii::$app->mailer->compose()
