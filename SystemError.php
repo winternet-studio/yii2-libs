@@ -2,6 +2,7 @@
 namespace winternet\yii2;
 
 use Yii;
+use yii\helpers\Url;
 use yii\base\Component;
 
 /**
