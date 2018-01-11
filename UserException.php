@@ -148,23 +148,25 @@ class UserException extends \yii\base\UserException {
 
 		// Store in file
 		// (this has better error stack information that Yii's own app.log - more argument values are shown)
-		$filemsg = "----------------------------------------------------------------------------- ". $err_timestamp_read ." -----------------------------------------------------------------------------\r\n\r\n";
-		$filemsg .= $msg_string ."\r\n";
-		$filemsg .= "\r\nError Code: ". $this->errorCode;
-		$filemsg .= "\r\nURL: ". $_SERVER['REQUEST_METHOD'] ." ". $_SERVER['REQUEST_SCHEME'] ."://". $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-		$filemsg .= "\r\nReferer: ". $_SERVER['HTTP_REFERER'];
-		$filemsg .= "\r\nIP: ". $_SERVER['REMOTE_ADDR'] . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
-		if (!empty($_POST)) {
-			$filemsg .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT);
+		if ($register) {
+			$filemsg = "----------------------------------------------------------------------------- ". $err_timestamp_read ." -----------------------------------------------------------------------------\r\n\r\n";
+			$filemsg .= $msg_string ."\r\n";
+			$filemsg .= "\r\nError Code: ". $this->errorCode;
+			$filemsg .= "\r\nURL: ". $_SERVER['REQUEST_METHOD'] ." ". $_SERVER['REQUEST_SCHEME'] ."://". $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+			$filemsg .= "\r\nReferer: ". $_SERVER['HTTP_REFERER'];
+			$filemsg .= "\r\nIP: ". $_SERVER['REMOTE_ADDR'] . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
+			if (!empty($_POST)) {
+				$filemsg .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT);
+			}
+			if (!empty($arr_internal_info)) {
+				$filemsg .= "\r\n\r\nInternal Error Details: ". json_encode($arr_internal_info, JSON_PRETTY_PRINT);
+			}
+			if ($errordata) {
+				$filemsg .= "\r\n\r\nStack Trace:\r\n". $errordata;
+			}
+			$filemsg .= "\r\n";
+			file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/exceptions.log', $filemsg, FILE_APPEND);
 		}
-		if (!empty($arr_internal_info)) {
-			$filemsg .= "\r\n\r\nInternal Error Details: ". json_encode($arr_internal_info, JSON_PRETTY_PRINT);
-		}
-		if ($errordata) {
-			$filemsg .= "\r\n\r\nStack Trace:\r\n". $errordata;
-		}
-		$filemsg .= "\r\n";
-		file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/exceptions.log', $filemsg, FILE_APPEND);
 
 		// Notify us
 		if ($notify) {
@@ -207,7 +209,17 @@ class UserException extends \yii\base\UserException {
 		}
 
 		if ($terminate) {
+			if (!$register) {
+				Yii::$app->log->targets = [];  //don't log it anywhere
+			}
 			throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg, $this->errorCode);
+		} else {
+			if (!$silent) {
+				// TODO: show error
+			}
+			if ($register) {
+				// TODO: log error if $register=true - well, currently we log it above in a file...! But that should probably be changed to a database and then ALWAYS disable Yii's own logging by setting targets to empty array!
+			}
 		}
 	}
 }
