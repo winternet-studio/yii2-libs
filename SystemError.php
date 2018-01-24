@@ -16,6 +16,7 @@ class SystemError extends Component {
 	public $senderEmail = null;
 	public $developerEmail = null;
 	public $adminEmail = null;
+	public $databaseTable = null;
 
 
 	// For noAccess() method:
@@ -79,6 +80,9 @@ class SystemError extends Component {
 		}
 		if (!array_key_exists('adminEmail', $options) && $this->adminEmail) {
 			$options['adminEmail'] = $this->adminEmail;
+		}
+		if (!array_key_exists('databaseTable', $options) && $this->databaseTable) {
+			$options['databaseTable'] = $this->databaseTable;
 		}
 
 		return $options;

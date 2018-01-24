@@ -25,6 +25,24 @@ class UserException extends \yii\base\UserException {
 	 *   - `senderEmail` : String `sample@email.com` or array `['sample@email.com' => 'John Doe']`. Default: none
 	 *   - `adminEmail` : String `sample@email.com` or array `['sample@email.com' => 'John Doe']`. Default: none
 	 *   - `developerEmail` : String `sample@email.com` or array `['sample@email.com' => 'John Doe']`. Default: none
+	 *   - `databaseTable` : String with name of database table to log errors in (only if register=true). Default: none
+	 *                       Table must already exist and have the following columns:
+	 * ```
+	 * 	CREATE TABLE `system_errors_detailed` (
+	 * 		`errorID` INT(10) UNSIGNED NOT NULL AUTO_INCREMENT,
+	 * 		`err_timestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	 * 		`err_msg` TEXT NULL,
+	 * 		`err_details` MEDIUMBLOB NULL COMMENT 'Information, usually misc variables in JSON format, to help with debugging',
+	 * 		`err_url` TEXT NULL,
+	 * 		`err_user_name` VARCHAR(255) NULL DEFAULT NULL,
+	 * 		`err_stack` MEDIUMBLOB NULL,
+	 * 		`err_request` MEDIUMTEXT NULL COMMENT 'Other information about the request',
+	 * 		`err_code` VARCHAR(50) NULL DEFAULT NULL COMMENT 'User is shown this error code and can provide it to us for exact identification of the error in this table',
+	 * 		`err_userID` INT(10) UNSIGNED NULL DEFAULT NULL,
+	 * 		`err_expire_days` SMALLINT(5) UNSIGNED NULL DEFAULT NULL COMMENT 'Number of days after this error expires and can be purged',
+	 * 		PRIMARY KEY (`errorID`)
+	 * 	);
+	 * ```
 	 */
 	function __construct($msg, $arr_internal_info = [], $options = []) {
 		// Handle options
@@ -39,6 +57,7 @@ class UserException extends \yii\base\UserException {
 		$senderEmail = null;
 		$adminEmail = null;
 		$developerEmail = null;
+		$databaseTable = null;
 		//  get those that have been set at location of the error
 		if (is_array($options)) {
 			if (array_key_exists('severe', $options)) $options['severe'] = strtoupper( (string) $options['severe']);
@@ -54,12 +73,13 @@ class UserException extends \yii\base\UserException {
 			if (array_key_exists('senderEmail', $options) && $options['senderEmail']) $senderEmail = $options['senderEmail'];
 			if (array_key_exists('developerEmail', $options) && $options['developerEmail']) $developerEmail = $options['developerEmail'];
 			if (array_key_exists('adminEmail', $options) && $options['adminEmail']) $adminEmail = $options['adminEmail'];
+			if (array_key_exists('databaseTable', $options) && $options['databaseTable']) $databaseTable = $options['databaseTable'];
 		}
 
 
 		$err_timestamp = time();
 		$this->errorCode = $err_timestamp;
-		$err_timestamp_read = gmdate('Y-m-d H:i:s') .' UTC';
+		$err_timestamp_read = gmdate('Y-m-d H:i:s', $err_timestamp) .' UTC';
 
 		$errordata = '';
 
@@ -73,6 +93,9 @@ class UserException extends \yii\base\UserException {
 				} else {  //more than one entry
 					//write the different files, lines, and functions and their arguments that were used
 					foreach ($backtrace as $key => $b) {
+						if ($key > 0) {
+							$errordata .= '* * * * * * *'. PHP_EOL;
+						}
 						$errordata .= 'Level '. ($key+1) .': '. ltrim(str_replace(\Yii::$app->basePath, '', $b['file']), '\\') .'::'. $b['line'];
 						if ($key != 0) {  //the first entry will always reference to this function (system_error) so skip that
 							$errordata .= ' / '. $b['function'] .'(';
@@ -89,7 +112,7 @@ class UserException extends \yii\base\UserException {
 										}
 										// for very large variables (like objects) only dump the first and last part of the variable
 										if (strlen($vartmp) > 2000) {
-											$vartmp = rtrim(substr($vartmp, 0, 2000)) . PHP_EOL . PHP_EOL .'...[LONG DUMP TRIMMED]...'. PHP_EOL . PHP_EOL . rtrim(substr($vartmp, -2000)) . PHP_EOL .'---------------------------------------------------------------------------------'. PHP_EOL . PHP_EOL . PHP_EOL;
+											$vartmp = rtrim(substr($vartmp, 0, 2000)) . PHP_EOL . PHP_EOL .'...[LONG DUMP TRIMMED]...'. PHP_EOL . PHP_EOL . rtrim(substr($vartmp, -2000)) . PHP_EOL;
 										}
 										$arr_args[] = $vartmp;
 									} else {
@@ -149,23 +172,62 @@ class UserException extends \yii\base\UserException {
 		// Store in file
 		// (this has better error stack information that Yii's own app.log - more argument values are shown)
 		if ($register) {
-			$filemsg = "----------------------------------------------------------------------------- ". $err_timestamp_read ." -----------------------------------------------------------------------------\r\n\r\n";
-			$filemsg .= $msg_string ."\r\n";
-			$filemsg .= "\r\nError Code: ". $this->errorCode;
-			$filemsg .= "\r\nURL: ". $_SERVER['REQUEST_METHOD'] ." ". $_SERVER['REQUEST_SCHEME'] ."://". $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-			$filemsg .= "\r\nReferer: ". $_SERVER['HTTP_REFERER'];
-			$filemsg .= "\r\nIP: ". $_SERVER['REMOTE_ADDR'] . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
-			if (!empty($_POST)) {
-				$filemsg .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT);
+			$url = $_SERVER['REQUEST_URI'];
+
+			if (!Yii::$app->user->isGuest) {
+				// Automatically detect the name of the user!
+				$userinfo = Yii::$app->user->identity->toArray();
+				$username = '';
+				foreach ($userinfo as $fieldname => $fieldvalue) {
+					if (stripos($fieldname, 'name') !== false) {
+						$username .= $fieldvalue .' ';
+					}
+				}
+				$username = trim($username);
 			}
-			if (!empty($arr_internal_info)) {
-				$filemsg .= "\r\n\r\nInternal Error Details: ". json_encode($arr_internal_info, JSON_PRETTY_PRINT);
+			if (!$username) {
+				$username = null;
 			}
-			if ($errordata) {
-				$filemsg .= "\r\n\r\nStack Trace:\r\n". $errordata;
+
+			if ($databaseTable) {
+				\Yii::$app->db->createCommand("INSERT INTO `". $databaseTable ."` SET err_code = :code, err_msg = :msg, err_details = :details, err_timestamp = :timestamp, err_url = :url, err_request = :request, err_stack = :stack, err_userID = :userID, err_user_name = :user_name, err_expire_days = :expire_days",
+					[
+						'code' => $this->errorCode,
+						'msg' => $msg_string,
+						'details' => (!empty($arr_internal_info) ? $this->jsonEncodeCleaned($arr_internal_info) : null),
+						'timestamp' => gmdate('Y-m-d H:i:s', $err_timestamp),
+						'url' => $url,
+						'request' => $this->jsonEncodeCleaned([
+							'IP' => $_SERVER['REMOTE_ADDR'] . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : ''),
+							$_SERVER['REQUEST_METHOD'] => (!empty($_POST) ? $_POST : null),
+							'Referer' => $_SERVER['HTTP_REFERER'],
+						]),
+						'stack' => ($errordata ? $errordata : null),
+						'userID' => Yii::$app->user->getId(),
+						'user_name' => $username,
+						'expire_days' => ($expire ? $expire : null),
+					])->execute();
+			} else {
+				$filemsg = "----------------------------------------------------------------------------- ". $err_timestamp_read ." -----------------------------------------------------------------------------\r\n\r\n";
+				$filemsg .= $msg_string ."\r\n";
+				$filemsg .= "\r\nError Code: ". $this->errorCode;
+				$filemsg .= "\r\nURL: ". $_SERVER['REQUEST_METHOD'] ." ". $_SERVER['REQUEST_SCHEME'] ."://". $_SERVER['HTTP_HOST'] . $url;
+				$filemsg .= "\r\nReferer: ". $_SERVER['HTTP_REFERER'];
+				$filemsg .= "\r\nIP: ". $_SERVER['REMOTE_ADDR'] . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
+				if (!empty($_POST)) {
+					$filemsg .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+				}
+				if (!empty($arr_internal_info)) {
+					$filemsg .= "\r\n\r\nInternal Error Details: ". json_encode($arr_internal_info, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+				}
+				if ($errordata) {
+					$filemsg .= "\r\n\r\nStack Trace:\r\n". $errordata;
+				}
+				$filemsg .= "\r\n";
+				$filemsg .= "\r\nUserID: ". Yii::$app->user->getId();
+				$filemsg .= "\r\nUser name: ". $username;
+				file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/exceptions.log', $filemsg, FILE_APPEND);
 			}
-			$filemsg .= "\r\n";
-			file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/exceptions.log', $filemsg, FILE_APPEND);
 		}
 
 		// Notify us
@@ -221,5 +283,9 @@ class UserException extends \yii\base\UserException {
 				// TODO: log error if $register=true - well, currently we log it above in a file...! But that should probably be changed to a database and then ALWAYS disable Yii's own logging by setting targets to empty array!
 			}
 		}
+	}
+
+	function jsonEncodeCleaned($variable) {
+		return trim(str_replace("\n    ", "\n", json_encode($variable, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)), "{}\r\n");
 	}
 }
