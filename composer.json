@@ -3,7 +3,7 @@
     "description": "Misc helpful libraries for Yii2. Eg. a helper for simplified handling of common tasks with AJAX, modals, and display of messages from Javascript code",
     "type": "library",
     "keywords": ["yii2","extension","javascript","ajax","modal"],
-    "license": "LGPL-3.0+",
+    "license": "LGPL-3.0-or-later",
     "authors": [ {
             "name": "Allan Jensen",
             "email": "yii2-libs@allanid.com"
