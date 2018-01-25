@@ -9,6 +9,8 @@ class SystemDocumentation extends Component {
 	/**
 	 * Generate overview of attributes permissions (add, edit and view) for a model
 	 *
+	 * TODO: consider if scenario attribute has been prefixed with "!" to indicate no massive assignment - but still should be validated (see http://www.yiiframework.com/doc-2.0/yii-base-model.html#scenarios%28%29-detail)
+	 *
 	 * @param yii\base\model|string $model : Actual model or fully qualified name of model to show permissions for
 	 */
 	public static function showAttributePermissions($model) {
@@ -53,8 +55,8 @@ class SystemDocumentation extends Component {
 	border-top: 8px solid #c6e2bb;
 }');
 ?>
-<div>Blank green = allow set when both adding and editing record</div>
-<div>Red background = never allow to be set (only by direct assignment in code)</div>
+<div>Blank green = allow massive assignment both when adding and editing record (= the user may directly specify these values)</div>
+<div>Red background = never allow massive assignment (note that direct assignment in code is always allowed)</div>
 <div>Red triangle = never allow viewing</div>
 
 <h3><?= $modelInsert->className() ?></h3>
