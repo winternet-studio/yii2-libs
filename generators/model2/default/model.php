@@ -45,7 +45,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	public function rules() {
 		// $options = self::allowedValues();
 
-		return [<?= "\n			" . implode(",\n			", $rules) . ",\n        " ?>];
+		return [<?= "\n			" . implode(",\n			", $rules) . ",\n		" ?>];
 	}
 
 	// ...afterSave() etc goes here...
