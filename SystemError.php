@@ -62,7 +62,7 @@ class SystemError extends Component {
 		}
 
 		if (Yii::$app->getComponents()['user'] && Yii::$app->user->isGuest) {
-			// Give user a change to login first
+			// Give user a chance to login first
 			Yii::$app->response->redirect(Url::to([$this->loginRoute, $this->urlParam => Url::current()]), $this->redirectStatusCode)->send();
 			Yii::$app->end();
 		} else {
