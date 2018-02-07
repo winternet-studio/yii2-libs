@@ -66,10 +66,18 @@ foreach ($generator->getColumnNames() as $attribute) {
 	if (in_array($attribute, $safeAttributes)) {
 		$activeField = $generator->generateActiveField($attribute);
 
-		if (preg_match("/]\\)$/", $activeField)) {
-			$activeField = substr($activeField, 0, -2) .", 'disabled' => !in_array('". $attribute ."', \$editAttribs) ". substr($activeField, -2);
+		if (strpos($activeField, 'checkboxList') !== false) {
+			if (preg_match("/]\\)$/", $activeField)) {
+				$activeField = substr($activeField, 0, -2) .", 'itemOptions' => ['disabled' => !in_array('". $attribute ."', \$editAttribs)] ". substr($activeField, -2);
+			} else {
+				$activeField = substr($activeField, 0, -1) ."['itemOptions' => ['disabled' => !in_array('". $attribute ."', \$editAttribs)] ]". substr($activeField, -1);
+			}
 		} else {
-			$activeField = substr($activeField, 0, -1) ."['disabled' => !in_array('". $attribute ."', \$editAttribs) ]". substr($activeField, -1);
+			if (preg_match("/]\\)$/", $activeField)) {
+				$activeField = substr($activeField, 0, -2) .", 'disabled' => !in_array('". $attribute ."', \$editAttribs) ". substr($activeField, -2);
+			} else {
+				$activeField = substr($activeField, 0, -1) ."['disabled' => !in_array('". $attribute ."', \$editAttribs) ]". substr($activeField, -1);
+			}
 		}
 
 		echo "\n";
