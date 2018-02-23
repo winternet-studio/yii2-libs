@@ -188,7 +188,7 @@ if (count($pks) === 1) {
 	$condition = '[' . implode(', ', $condition) . ']';
 }
 ?>
-		if (($model = <?= $modelClass ?>::findUsers<?= $modelClass ?>s(<?= $condition ?>, ['setScenario' => true])) !== null) {
+		if (($model = <?= $modelClass ?>::findOfUser(<?= $condition ?>, ['setScenario' => true])) !== null) {
 			return $model;
 		} else {
 			throw new NotFoundHttpException('The requested page does not exist.');

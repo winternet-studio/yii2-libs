@@ -68,6 +68,12 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// 	$scenarios = parent::scenarios();
 
 	// 	$all_attributes = $this->attributes();
+
+	// 	// Prefix with ! (= no massive assign but still validated)
+	// 	$all_attributes = array_map(function($a) {
+	// 		if (in_array($a, ['my_attribute1', 'my_attribute2'])) $a = '!'.$a; return $a;
+	// 	}, $all_attributes);
+
 	// 	$scenarios[self::SCENARIO_ADMIN] = $all_attributes;
 
 	// 	return $scenarios;
@@ -99,7 +105,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	 *
 	 * @return array
 	 */
-	// public static function findUsers<?= $className ?>s($id = false, $options = []) {
+	// public static function findOfUser($id = false, $options = []) {
 	// 	if (Yii::$app->user->isGuest) {
 	// 		return [];
 	// 	}
@@ -131,6 +137,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	 * Apply the current user's scenario to the model
 	 */
 	// public function applyUserScenario($options = []) {
+	// 	//(set scenario based on Yii::$app->user->isGuest, Yii::$app->user->identity, a session variable, or any other criteria)
 	// 	if (0) {
 	// 		$this->setScenario(self::SCENARIO_DEFAULT);
 	// 	} else {
@@ -146,15 +153,13 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// 	if (Yii::$app->user->isGuest) {
 	// 		$query->where('0=1');
 	// 	} else {
-
-	// 		if ($accessLevelOne) {
+	// 		if (Yii::$app->user->identity->usr_xxxxxx == 'admin') {
 	// 			$query->andWhere(['in', '<?= array_keys($labels)[0] ?>', [1, 2, 3] ]);
-	// 		} elseif ($accessLevelTwo) {
+	// 		} elseif (Yii::$app->user->identity->usr_xxxxxx == 'somelevel') {
 	// 			$query->andWhere(['in', '<?= array_keys($labels)[0] ?>', [6, 7, 8] ]);
 	// 		} else {
-	// 			$query->andWhere(['<?= array_keys($labels)[0] ?>' => -9999]);
+	// 			$query->andWhere('0=1');
 	// 		}
-
 	// 	}
 	// }
 
