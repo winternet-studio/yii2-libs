@@ -93,7 +93,7 @@ class JsHelper extends Component {
 	 *	```
 	 *	appJS.showModal({
 	 *		html: 'Are you sure you want to remove the image?',
-	 *		customModalSelector: '#JsHelperModalConfirm',
+	 *		customModalSelector: '#JsHelperModal',
 	 *		openedCallback: function(modalRef) {
 	 *			$(modalRef).('.btn-yes').on('click', function() {
 	 *				// do something...
