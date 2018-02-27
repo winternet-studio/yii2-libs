@@ -207,6 +207,9 @@ class UserException extends \yii\base\UserException {
 						'user_name' => $username,
 						'expire_days' => ($expire ? $expire : null),
 					])->execute();
+
+				$errorID = \Yii::$app->db->getLastInsertID();
+				$filemsg = 'All details registered in database with error code '. $this->errorCode .' (errorID '. $errorID .').';
 			} else {
 				$filemsg = "----------------------------------------------------------------------------- ". $err_timestamp_read ." -----------------------------------------------------------------------------\r\n\r\n";
 				$filemsg .= $msg_string ."\r\n";
