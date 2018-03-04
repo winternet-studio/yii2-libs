@@ -4,16 +4,55 @@ namespace winternet\yii2;
 use yii\base\Component;
 
 class ModelHelper extends Component {
-	public static function requiredAttributes($model) {
-		/*
-		DESCRIPTION:
-		- return a list of model attributes that are required
-		INPUT:
-		- $model
-		OUTPUT:
-		- array of attributes
-		*/
+	/**
+	 * Disallow mass assignment while retaining validation of the attribute
+	 *
+	 * @param array $all : List of attributes to go through
+	 * @param array $disallow : Attributes to disallow mass assignment for. Other attributes in the $all array are not touched.
+	 * @return array : The modified list of attributes
+	 */
+	public static function disallowMassAssign($all, $disallow) {
+		return array_map(function($attribute) use (&$disallow) {
+			if (in_array($attribute, $disallow) && $attribute[0] !== '!') {
+				$attribute = '!'. $attribute;  //prefix with ! (= no massive assign but still validated)
+			}
+			return $attribute;
+		}, $all);
+	}
 
+	/**
+	 * Alias for disallowMassAssign()
+	 */
+	public static function noMassAssign($all, $disallow) {
+		return self::disallowMassAssign($all, $disallow);
+	}
+
+	/**
+	 * Disallow mass assignment while retaining validation of the attribute
+	 *
+	 * @param array $all : List of attributes to go through
+	 * @param array $allow : Attributes to allow mass assignment for. All others in $all will be set to "not allowed".
+	 * @return array : The modified list of attributes
+	 */
+	public static function allowMassAssign($all, $allow) {
+		// Prefix with ! (= no massive assign but still validated)
+		return array_map(function($attribute) use (&$allow) {
+			if (!in_array($attribute, $allow)) {
+				$attribute = '!'. $attribute;  //prefix with ! (= no massive assign but still validated)
+			} elseif ($attribute[0] === '!') {  //remove existing 
+				$attribute = substr($attribute, 1);
+			}
+			return $attribute;
+		}, $all);
+	}
+
+	/**
+	 * Return a list of model attributes that are required
+	 *
+	 * @param yii\base\Model $model
+	 * @return array : Attributes
+	 */
+	public static function requiredAttributes($model) {
 		$required = [];
 
 		foreach ($model->rules() as $rule) {

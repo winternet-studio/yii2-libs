@@ -67,14 +67,11 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// public function scenarios() {
 	// 	$scenarios = parent::scenarios();
 
-	// 	$all_attributes = $this->attributes();
+	// 	$allAttributes = $this->attributes();
 
-	// 	// Prefix with ! (= no massive assign but still validated)
-	// 	$all_attributes = array_map(function($a) {
-	// 		if (in_array($a, ['my_attribute1', 'my_attribute2'])) $a = '!'.$a; return $a;
-	// 	}, $all_attributes);
+	// 	$allAttributes = \winternet\yii2\ModelHelper::allowMassAssign(['my_attribute1', 'my_attribute2']);
 
-	// 	$scenarios[self::SCENARIO_ADMIN] = $all_attributes;
+	// 	$scenarios[self::SCENARIO_ADMIN] = $allAttributes;
 
 	// 	return $scenarios;
 	// }
