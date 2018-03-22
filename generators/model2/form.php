@@ -14,7 +14,7 @@ if ($allConfigs) {
 	$allConfigs = json_decode($allConfigs, true);
 } else {
 	$allConfigs = [];
-	$allConfigs['_about'] = 'This file belongs to the Gii generator at '. $generator->className() .' (https://github.com/winternet-studio/yii2-libs)';
+	$allConfigs['_about'] = 'This file belongs to the Gii generator at '. get_class($generator) .' (https://github.com/winternet-studio/yii2-libs)';
 }
 if (!empty($allConfigs) && is_array($allConfigs['configs']['model2'])) {
 	// UI for selecting config to load

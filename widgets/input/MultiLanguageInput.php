@@ -11,7 +11,7 @@ use winternet\yii2\Common;
  *
  * With model & with ActiveForm:
  * ```php
- * echo $form->field($model, 'payment_terms')->widget(MultiLanguageInput::className(), [
+ * echo $form->field($model, 'payment_terms')->widget(MultiLanguageInput::class, [
  * 	'activeLanguages' => ['en', 'nb', 'da', 'de'],
  * ]);
  * ```

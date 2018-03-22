@@ -56,7 +56,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	public function behaviors() {
 		return [
 			[
-				'class' => \winternet\yii2\behaviors\CleanupBehavior::className(),
+				'class' => \winternet\yii2\behaviors\CleanupBehavior::class,
 			],
 		];
 	}

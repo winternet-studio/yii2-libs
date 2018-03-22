@@ -16,7 +16,7 @@ class SystemDocumentation extends Component {
 			$modelInsert = new $model();
 			$modelUpdate = new $model();
 		} else {
-			$className = $model->className();
+			$className = get_class($model);
 			$modelInsert = new $className();
 			$modelUpdate = new $className();
 		}
@@ -74,7 +74,7 @@ class SystemDocumentation extends Component {
 <div>Green triangle lower/right = attribute is validated</div>
 <div>Red triangle lower/right = attribute is not validated</div>
 
-<h3><?= $modelInsert->className() ?></h3>
+<h3><?= get_class($modelInsert) ?></h3>
 <table class="table table-bordered table-condensed bs-auto-width">
 <tr>
 	<th class="info">Scenario</th>

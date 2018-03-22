@@ -17,7 +17,7 @@ use yii\bootstrap\Html;
  *
  * With model & with ActiveForm:
  * ```php
- * echo $form->field($model, 'show_fields')->widget(MultifieldInput::classname(), [
+ * echo $form->field($model, 'show_fields')->widget(MultifieldInput::class, [
  * 	'items' =>
  *		[
  *			'name' => 'address',
