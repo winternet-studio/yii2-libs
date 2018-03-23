@@ -642,13 +642,15 @@ appJS.formatStdResult = function(arrResult, okMessageHtml, errorMessageHtml, opt
 	OUTPUT:
 	- string with HTML code
 	*/
-	var html = '', i;
+	var html = '', i, shown = [];
 	if (arrResult.status == 'ok') {
 		html = '<div class="std-func-result ok">'+ okMessageHtml;
 		if (arrResult.result_msg.length > 0) {
 			html += ' <span class="pls-note">'+ (options.textPleaseNote ? options.textPleaseNote : 'Please note') +':<span><ul>';
 			for (i in arrResult.result_msg) {
-				html += '<li>'+ arrResult.result_msg[i] +'</li>';
+				if (arrResult.result_msg.hasOwnProperty(i)) {
+					html += '<li>'+ arrResult.result_msg[i] +'</li>';
+				}
 			}
 			html += '</ul>';
 		}
@@ -656,7 +658,21 @@ appJS.formatStdResult = function(arrResult, okMessageHtml, errorMessageHtml, opt
 	} else {
 		html = '<div class="std-func-result error">'+ errorMessageHtml +'<ul>';
 		for (i in arrResult.err_msg) {
-			html += '<li>'+ arrResult.err_msg[i] +'</li>';
+			if (arrResult.err_msg.hasOwnProperty(i)) {
+				html += '<li>'+ arrResult.err_msg[i] +'</li>';
+				shown.push(arrResult.err_msg[i]);
+			}
+		}
+		if (typeof arrResult.err_msg_ext != 'undefined') {
+			for (i in arrResult.err_msg_ext) {
+				if (arrResult.err_msg_ext.hasOwnProperty(i)) {
+					for (var j in arrResult.err_msg_ext[i]) {
+						if (arrResult.err_msg_ext[i].hasOwnProperty(j) && $.inArray(arrResult.err_msg_ext[i][j], shown) == -1) {
+							html += '<li>'+ arrResult.err_msg_ext[i][j] +'</li>';
+						}
+					}
+				}
+			}
 		}
 		html += '</ul></div>';
 	}
