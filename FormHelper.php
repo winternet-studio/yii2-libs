@@ -148,7 +148,7 @@ form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be de
 		foreach ($modelErrors as $attr => $errors) {
 			// Generate the form field ID so Yii ActiveForm client-side can apply the error message
 			if (!$modelName) {
-				$modelName = $model::class;
+				$modelName = get_class($model);
 				$modelName = mb_strtolower(substr($modelName, strrpos($modelName, '\\')+1));
 			}
 
