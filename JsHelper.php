@@ -15,12 +15,14 @@ class JsHelper extends Component {
 	public static $defaultButtonNo = false;
 	public static $defaultButtonYes = false;
 
+	public static $translateTextCallback = null;
+
 	public static function initAjax($view = null) {
 		if (!$view) {
 			$view = Yii::$app->controller->getView();
 		}
 
-		JsHelperAsset::register($view);  // ensure the AJAX section is available
+		self::loadAssets($view);  // ensure the AJAX section is available
 
 		return self::initModal($view);
 	}
@@ -115,7 +117,7 @@ class JsHelper extends Component {
 			return '';
 		}
 
-		JsHelperAsset::register($view);  // ensure the Modal section is available
+		self::loadAssets($view);  // ensure the Modal section is available
 
 		self::$initModalDone = true;
 		return self::standardModal();
@@ -281,7 +283,7 @@ class JsHelper extends Component {
 			$options['view'] = \Yii::$app->controller->getView();
 		}
 
-		JsHelperAsset::register($options['view']);  // ensure the Javascript messaging section is available
+		self::loadAssets($options['view']);  // ensure the Javascript messaging section is available
 
 		$js = [];
 		if ($options['removeAfter']) {
@@ -293,5 +295,10 @@ class JsHelper extends Component {
 		if (!empty($js)) {
 			$options['view']->registerJs(implode('', $js));
 		}
+	}
+
+	private static function loadAssets($view) {
+		JsHelperAsset::register($view);  // ensure the AJAX section is available
+		if (self::$translateTextCallback) $view->registerJs('appJS.translateText = '. self::$translateTextCallback .';');
 	}
 }

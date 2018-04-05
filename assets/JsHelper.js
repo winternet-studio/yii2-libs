@@ -2,7 +2,9 @@ if (typeof appJS != 'undefined') {
 	alert('CONFLICT ERROR! The variable appJS already exists in the global namespace of Javascript. winternet/yii2/JsHelper library will overwrite the variable.');
 }
 
-appJS = {};
+appJS = {
+	translateText: null
+};
 
 
 /* ------------- AJAX section ------------- */
@@ -10,8 +12,8 @@ appJS = {};
 appJS.ajax = function(parms) {
 	if (typeof parms.error == 'undefined') {
 		var titleText = 'Sorry, we ran into a problem...';
-		if (typeof translateText != 'undefined') {
-			titleText = translateText('Sorry, we ran into a problem');
+		if (appJS.translateText !== null) {
+			titleText = appJS.translateText('Sorry, we ran into a problem');
 		} else if (typeof getphp != 'undefined' && getphp('Sorry_we_ran_into_a_problem')) {
 			titleText = getphp('Sorry_we_ran_into_a_problem');
 		}
