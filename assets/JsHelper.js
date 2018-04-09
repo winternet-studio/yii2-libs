@@ -14,8 +14,11 @@ appJS.ajax = function(parms) {
 		var titleText = 'Sorry, we ran into a problem...';
 		if (appJS.translateText !== null) {
 			titleText = appJS.translateText('Sorry, we ran into a problem');
-		} else if (typeof getphp != 'undefined' && getphp('Sorry_we_ran_into_a_problem')) {
-			titleText = getphp('Sorry_we_ran_into_a_problem');
+		} else if (typeof getphp != 'undefined') {
+			var vars = getphp();
+			if (typeof vars['Sorry, we ran into a problem'] !== 'undefined') {
+				titleText = vars['Sorry, we ran into a problem'];
+			}
 		}
 
 		parms.error = function(rsp, status, err) {
