@@ -9,8 +9,7 @@
  * Usage example:
  * ```
  * $fbFormatter = new \app\components\MessageFormatterFallback();
- * echo $fbFormatter->format('{number,plural,=0{# available} =1{# available} other{# available}}', ['number' => 45], Yii::$app->language);
- * Yii::t('app', '{number,plural,=0{# available} =1{# available} other{# available}}');  //dummy call to Yii::t() just so that it's added to the database by the script collecting the i18n strings
+ * echo $fbFormatter->format(Yii::t('app', '{number,plural,=0{# available} =1{# available} other{# available}}'), ['number' => 45], Yii::$app->language);
  * ```
  */
 
