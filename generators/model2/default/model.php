@@ -186,7 +186,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	public function attributeLabels() {
 		return [
 <?php foreach ($labels as $name => $label): ?>
-			<?= "'$name' => " . $generator->generateString($label) . ",\n" ?>
+			<?= "'$name' => " . str_replace("'app'", "'app/admin'", $generator->generateString($label)) . ",\n" ?>
 <?php endforeach; ?>
 		];
 	}
