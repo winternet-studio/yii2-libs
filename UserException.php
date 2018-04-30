@@ -174,16 +174,23 @@ class UserException extends \yii\base\UserException {
 		if ($register) {
 			$url = $_SERVER['REQUEST_URI'];
 
-			if (!Yii::$app->user->isGuest) {
-				// Automatically detect the name of the user!
-				$userinfo = Yii::$app->user->identity->toArray();
-				$username = '';
-				foreach ($userinfo as $fieldname => $fieldvalue) {
-					if (stripos($fieldname, 'name') !== false) {
-						$username .= $fieldvalue .' ';
+			if (Yii::$app->getComponents()['user']) {
+				if (!Yii::$app->user->isGuest) {
+					$userID = Yii::$app->user->getId();
+
+					// Automatically detect the name of the user!
+					$userinfo = Yii::$app->user->identity->toArray();
+					$username = '';
+					foreach ($userinfo as $fieldname => $fieldvalue) {
+						if (stripos($fieldname, 'name') !== false) {
+							$username .= $fieldvalue .' ';
+						}
 					}
+					$username = trim($username);
 				}
-				$username = trim($username);
+			}
+			if (!$userID) {
+				$userID = null;
 			}
 			if (!$username) {
 				$username = null;
@@ -203,7 +210,7 @@ class UserException extends \yii\base\UserException {
 							'Referer' => $_SERVER['HTTP_REFERER'],
 						]),
 						'stack' => ($errordata ? $errordata : null),
-						'userID' => Yii::$app->user->getId(),
+						'userID' => $userID,
 						'user_name' => $username,
 						'expire_days' => ($expire ? $expire : null),
 					])->execute();
@@ -227,7 +234,7 @@ class UserException extends \yii\base\UserException {
 					$filemsg .= "\r\n\r\nStack Trace:\r\n". $errordata;
 				}
 				$filemsg .= "\r\n";
-				$filemsg .= "\r\nUserID: ". Yii::$app->user->getId();
+				$filemsg .= "\r\nUserID: ". $userID;
 				$filemsg .= "\r\nUser name: ". $username;
 				file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/exceptions.log', $filemsg, FILE_APPEND);
 			}
