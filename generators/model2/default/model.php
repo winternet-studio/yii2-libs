@@ -98,6 +98,17 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// }
 
 	/**
+	 * Return a query instance that will only allow finding records the user is allowed to deal with
+	 *
+	 * @return yii\db\ActiveQuery
+	 */
+	// public static function findMine() {
+	// 	$query = self::find();
+	// 	self::applyUserConditions($query);
+	// 	return $query;
+	// }
+
+	/**
 	 * Return an array with records that belong to the current user
 	 *
 	 * @return array
@@ -107,8 +118,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// 		return [];
 	// 	}
 
-	// 	$query = self::find();
-	// 	self::applyUserConditions($query);
+	// 	$query = self::findMine();
 
 	// 	if ($id) {
 	// 		//return one
