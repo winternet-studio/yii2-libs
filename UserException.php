@@ -197,7 +197,12 @@ class UserException extends \yii\base\UserException {
 			}
 
 			if ($databaseTable) {
-				\Yii::$app->db->createCommand("INSERT INTO `". $databaseTable ."` SET err_code = :code, err_msg = :msg, err_details = :details, err_timestamp = :timestamp, err_url = :url, err_request = :request, err_stack = :stack, err_userID = :userID, err_user_name = :user_name, err_expire_days = :expire_days",
+				$dbConn = \Yii::$app->db;
+				if (\Yii::$app->db->getTransaction()) {  //if within a transaction create a new database connection to send query to - otherwise it's included in the transaction and won't actually be stored since the transaction at this point normally will roll back
+					$dbConn = clone \Yii::$app->db;
+				}
+
+				$dbConn->createCommand("INSERT INTO `". $databaseTable ."` SET err_code = :code, err_msg = :msg, err_details = :details, err_timestamp = :timestamp, err_url = :url, err_request = :request, err_stack = :stack, err_userID = :userID, err_user_name = :user_name, err_expire_days = :expire_days",
 					[
 						'code' => $this->errorCode,
 						'msg' => $msg_string,
@@ -215,7 +220,7 @@ class UserException extends \yii\base\UserException {
 						'expire_days' => ($expire ? $expire : null),
 					])->execute();
 
-				$errorID = \Yii::$app->db->getLastInsertID();
+				$errorID = $dbConn->getLastInsertID();
 				$filemsg = 'All details registered in database with error code '. $this->errorCode .' (errorID '. $errorID .').';
 			} else {
 				$filemsg = "----------------------------------------------------------------------------- ". $err_timestamp_read ." -----------------------------------------------------------------------------\r\n\r\n";
