@@ -149,9 +149,14 @@ class UserException extends \yii\base\UserException {
 			}
 			// $showmsg .= $errordata;  //in CLI mode I think this is pretty much similar to what Yii already itself writes to the output...
 
-			$extramsg = "\nError Code: ". $this->errorCode ."\n";
+			if ($register) {  //code is useless if we don't register the error
+				$extramsg = "\nError Code: ". $this->errorCode ."\n";
+			}
 		} elseif (in_array(Yii::$app->response->format, [Response::FORMAT_JSON, Response::FORMAT_JSONP, Response::FORMAT_XML])) {
-			$showmsg = $msg_stringHTML .' Error Code: '. $this->errorCode;
+			$showmsg = $msg_stringHTML;
+			if ($register) {  //code is useless if we don't register the error
+				$showmsg .= ' Error Code: '. $this->errorCode;
+			}
 		} else {
 			$showmsg = '<b class="error-msg">'. $msg_stringHTML .'</b>';
 			if (YII_DEBUG && YII_ENV == 'dev') {
@@ -166,7 +171,7 @@ class UserException extends \yii\base\UserException {
 				$showmsg .= '<br>';
 			}
 
-			$extramsg = '<br><div>If webmaster needs to be notified <a href="#" onclick="alert(\'Sorry, this has not been implemented yet! Please manually send us the error code.\');return false;">click here</a>.<br>Error Code: <b style="font-family: monospace; font-size: 105%">'. $this->errorCode .'</b></div><!--Error Code: '. $this->errorCode .'-->';  //HTML comment so that it's easy to search for the code in the log file (it matches text in CLI version)
+			$extramsg = '<br><div>If webmaster needs to be notified <a href="#" onclick="alert(\'Sorry, this has not been implemented yet! Please manually send us the error code.\');return false;">click here</a>.'. ($this->errorCode ? '<br>Error Code: <b style="font-family: monospace; font-size: 105%">'. $this->errorCode .'</b>' : '') .'</div><!--Error Code: '. ($register ? $this->errorCode : 'none') .'-->';  //HTML comment so that it's easy to search for the code in the log file (it matches text in CLI version)
 		}
 
 		// Store in file
