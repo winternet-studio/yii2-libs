@@ -143,4 +143,25 @@ class ModelHelper extends Component {
 
 		return $output;
 	}
+
+	/**
+	 * Dynamically create an ActiveRecord model
+	 *
+	 * @param array $params : Array with these entries:
+	 *   - `tableName` (req.) : Name of database table
+	 *
+	 * @return string : Class name to be instantiated
+	 */
+	public static function createActiveRecordModel($params) {
+		if (preg_match("/[^a-z0-9_]/i", $params['tableName'])) {
+			\Yii::$app->system->error('Table name for creating ActiveRecord class has invalid characters.', ['TableName' => $params['tableName']]);
+		}
+
+		$className = $params['tableName'];
+
+		$phpCode  = "class ". $className ." extends \yii\db\ActiveRecord { public static function tableName() {return '". $params['tableName'] ."';} }". PHP_EOL;
+		eval($phpCode);
+
+		return $className;
+	}
 }
