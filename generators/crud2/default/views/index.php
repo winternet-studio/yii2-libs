@@ -37,7 +37,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <?php if ($generator->indexWidgetType === 'grid'): ?>
 	<?= "<?= " ?>GridView::widget([
 		'dataProvider' => $dataProvider,
-		<?= !empty($generator->searchModelClass) ? "'filterModel' => \$searchModel,\n        'columns' => ModelHelper::filterAttributes([\n" : "'columns' => ModelHelper::filterAttributes([\n"; ?>
+		<?= !empty($generator->searchModelClass) ? "'filterModel' => \$searchModel,\n		'showOnEmpty' => false,\n		'columns' => ModelHelper::filterAttributes([\n" : "'columns' => ModelHelper::filterAttributes([\n"; ?>
 <?php
 $count = 0;
 if (($tableSchema = $generator->getTableSchema()) === false) {
