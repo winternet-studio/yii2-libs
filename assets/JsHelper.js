@@ -694,7 +694,7 @@ appJS.initBaseAlertModal = function(msg, options) {
 			'        <button type="button" class="close" data-dismiss="modal">&times;</button>'+
 			'        <h4 class="modal-title">Information</h4>'+
 			'      </div>'+
-			'      <div class="modal-body">Oh no! We have a message for you but unfortunately we lost it on the way :(</div>'+
+			'      <div class="modal-body">[message placeholder]</div>'+
 			'      <div class="modal-footer">'+
 			'        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>'+
 			'      </div>'+

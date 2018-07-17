@@ -157,7 +157,7 @@ class JsHelper extends Component {
 		}
 ?>
 			<div class="modal-body">
-				<p><?= ($options['html'] ? $options['html'] : 'We have a message for you... Unfortunately we lost it on the way :(') ?></p>
+				<p><?= ($options['html'] ? $options['html'] : '[message placeholder]') ?></p>
 			</div>
 <?php
 			if (!$options['hideButtons']) {
