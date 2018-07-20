@@ -3,6 +3,98 @@ if (typeof wsYii2 == 'undefined') {
 }
 
 wsYii2.FormHelper = {
+
+	/**
+	 * Load ActiveForm with new model attributes via Javascript
+	 *
+	 * Form fields must have been named like this: <input name="Contact[firstname]"> <input name="Contact[lastname]">
+	 *
+	 * @param {(string|jQuery object)} formSelector - String with selector or a jQuery object
+	 * @param {object} models : Object where keys match the 1st level form field names and the values are the model attributes that match the 2nd level, eg.: {Contact: {firstname: 'John', lastname: 'Doe'}, }
+	 */
+	loadActiveForm: function(formSelector, models) {
+		if (!(formSelector instanceof jQuery)) {
+			formSelector = $(formSelector);
+		}
+
+		$.each(models, function(modelName, model) {
+			$.each(model, function(attributeName, attributeValue) {
+				$input = formSelector.find(':input[name="'+ modelName +'['+ attributeName +']"]');
+				if ($input.length > 1) {
+					if ($input.first().is(':radio')) {
+						$input.each(function() {
+							if ($(this).val() == attributeValue) {
+								$(this).prop('checked', true).click();
+								if ($(this).closest('.btn').length > 0) {
+									$(this).closest('.btn').button('toggle');
+								}
+							}
+						});
+					} else {
+						alert('In wsYii2.FormHelper.loadActiveForm an input had multiple tags but they are not radio buttons.');
+					}
+				} else {
+					if (attributeValue && $input.is('select')) {
+						if ($input.find('option[value="'+ (attributeValue.replace /*only for strings*/ ? attributeValue.replace(/"/g, '&quot;') : attributeValue) +'"]').length == 0) {
+							// automatically add an option with the current value so that it is not lost when saving the form back into the model
+							var attributeLabel = 'Current value: '+ attributeValue;
+							if (model._meta && model._meta.labels && model._meta.labels[attributeName]) {
+								attributeLabel = model._meta.labels[attributeName];
+							}
+							$input.prepend(  $('<option/>').attr('value', attributeValue).html(attributeLabel)  );
+						}
+					}
+					$input.val(attributeValue);
+				}
+			})
+		});
+	},
+
+	/**
+	 * Convert an HTML form to an object, specified by a selector 
+	 *
+	 * @param {string|jQuery object} : formSelector
+	 * @param {boolean} : set to true to only collected fields that have been changed
+	 */
+	formToObject: function(formSelector, onlyChanged) {
+		var data = $(formSelector).serializeArray().reduce(function(m,o){ m[o.name] = o.value; return m;}, {});
+		if (onlyChanged) {
+alert('This part of the method (only returning changed values) has not been implemented yet. Returning all values for now.');
+return data;
+			$.each(data, function(indx, val) {
+				var defaultVal;
+				var $input = $(formSelector).find(':input[name="'+ indx +'"]');
+/*
+TODO:
+- consider the different types below this point  (basis: https://stackoverflow.com/questions/4591889/get-default-value-of-an-input-using-jquery#4592082)
+	input: https://www.w3schools.com/jsref/prop_text_defaultvalue.asp
+	checkbox and radio: https://www.w3schools.com/jsref/prop_checkbox_defaultchecked.asp
+	select: https://www.w3schools.com/jsref/prop_option_defaultselected.asp
+- also make function that will reset the default values to the current values on the form, again considering all 3 types
+*/
+				if ($input.length > 1) {
+					if ($input.first().is(':radio')) {
+						$input.each(function() {
+							if ($(this).prop('defaultChecked')) {
+								defaultVal = $(this).val();
+							}
+						});
+					} else {
+						alert('In wsYii2.FormHelper.loadActiveForm an input had multiple tags but they are not radio buttons.');
+					}
+				} else {
+					$input.val(attributeValue);
+				}
+			});
+		} else {
+			// Source: comment from juanpastas on https://stackoverflow.com/a/17784656/2404541
+			return data;
+		}
+	},
+
+	/**
+	 * Object for highlighting errors on a form using Bootstrap tabs
+	 */
 	HighlightTabbedFormErrors: {
 
 		init: function(formSelector) {
@@ -46,6 +138,9 @@ wsYii2.FormHelper = {
 		}
 	},
 
+	/**
+	 * Object for warning about leaving a form without changes having been saved
+	 */
 	WarnLeavingUnsaved: {
 
 		savedState: null,
