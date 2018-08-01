@@ -67,9 +67,8 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// public function scenarios() {
 	// 	$scenarios = parent::scenarios();
 
-	// 	$allAttributes = $this->attributes();
-
-	// 	$allAttributes = \winternet\yii2\ModelHelper::allowMassAssign(['my_attribute1', 'my_attribute2']);
+	// 	$allAttributes = \winternet\yii2\ModelHelper::disallowMassAssign($this->attributes(), ['<?= array_keys($labels)[0];  //assume first field is primary key ?>']);
+	// 	$allAttributes = \winternet\yii2\ModelHelper::allowMassAssign($this->attributes(), ['my_attribute1', 'my_attribute2']);
 
 	// 	$scenarios[self::SCENARIO_ADMIN] = $allAttributes;
 
