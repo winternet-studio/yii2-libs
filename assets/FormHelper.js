@@ -18,6 +18,9 @@ wsYii2.FormHelper = {
 		}
 
 		$.each(models, function(modelName, model) {
+			// Skip properties that are not models (= iterable arrays/objects)
+			if (typeof model === 'string') return true;
+
 			$.each(model, function(attributeName, attributeValue) {
 				$input = formSelector.find(':input[name="'+ modelName +'['+ attributeName +']"]');
 				if ($input.length > 1) {
