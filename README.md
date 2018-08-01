@@ -47,7 +47,7 @@ Javascript code:
 // To make an AJAX call:
 
 appJS.ajax({
-	url: langUrl('/your/url'),
+	url: '/your/url',
 	type: 'POST',
 	dataType: 'json',
 	data: {var1: 'something', var2: 'something else'}
