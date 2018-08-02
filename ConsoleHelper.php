@@ -50,6 +50,14 @@ class ConsoleHelper extends Component {
 		echo (new Controller(9999, 9999))->ansiFormat('=========================================================================', Console::FG_BLUE) ."\n";
 	}
 
+	/**
+	 * Echo a line of text
+	 *
+	 * Examples:
+	 * `ConsoleHelper::l('Some information', ['color' => 'FG_YELLOW'])`
+	 * `ConsoleHelper::l('Some information', ['color' => 'FG_RED.BOLD'])`
+	 * `ConsoleHelper::l('Some information', ['color' => 'FG_WHITE.BOLD.BG_BLUE'])`
+	 */
 	public static function l($line_str = null, $options = []) {
 		self::linePrefix($options);
 
