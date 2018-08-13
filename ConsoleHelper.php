@@ -57,6 +57,7 @@ class ConsoleHelper extends Component {
 	 * `ConsoleHelper::l('Some information', ['color' => 'FG_YELLOW'])`
 	 * `ConsoleHelper::l('Some information', ['color' => 'FG_RED.BOLD'])`
 	 * `ConsoleHelper::l('Some information', ['color' => 'FG_WHITE.BOLD.BG_BLUE'])`
+	 * All possible colors: https://www.yiiframework.com/doc/api/2.0/yii-helpers-console
 	 */
 	public static function l($line_str = null, $options = []) {
 		self::linePrefix($options);
