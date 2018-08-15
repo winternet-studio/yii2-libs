@@ -83,17 +83,17 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// public function viewable() {
 	// 	$scenario = $this->getScenario();
 
- 	// 	if ($scenario == self::SCENARIO_DEFAULT) {
- 	// 		return [];
+	// 	if ($scenario == self::SCENARIO_DEFAULT) {
+	// 		return [];
 
- 	// 	} elseif ($scenario == self::SCENARIO_ADMIN) {
- 	// 		$attributes = $this->attributes();
- 	// 		return $attributes;
+	// 	} elseif ($scenario == self::SCENARIO_ADMIN) {
+	// 		$attributes = $this->attributes();
+	// 		return $attributes;
 
- 	// 	} else {
- 	// 		return [];
+	// 	} else {
+	// 		return [];
 
- 	// 	}
+	// 	}
 	// }
 
 	/**
