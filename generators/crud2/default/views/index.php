@@ -30,7 +30,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <?= "    <?php " . ($generator->indexWidgetType === 'grid' ? "// " : "") ?>echo $this->render('_search', ['model' => $searchModel]); ?>
 <?php endif; ?>
 
-	<p>
+	<p class="pull-right">
 		<?= "<?= " ?>Html::a(<?= $generator->generateString('Create ' . Inflector::camel2words(StringHelper::basename($generator->modelClass))) ?>, ['create'], ['class' => 'btn btn-success']) ?>
 	</p>
 <?= $generator->enablePjax ? '<?php Pjax::begin(); ?>' : '' ?>
