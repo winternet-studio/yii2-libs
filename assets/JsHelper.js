@@ -96,99 +96,100 @@ appJS.enableSubmit = function() {
 
 /* ------------- Standard AJAX call ------------- */
 
-appJS.doAjax = function(url, params, responseFormat, postActions, options, passInfo) {
-	/*
-	DESCRIPTION:
-	- make a standard webservice call
-	INPUT:
-	- url : URL of the webservice
-	- params : object with parameters to send to the webservice
-	- responseFormat : how to interpret the data being returned from the webservice. Available options:
-		- 'nothing' : don't do any postprocessing as nothing is being returned, or the returned should only be processed by post-processing function
-		- 'resultError'       : the following fields are returned in an array: 'status' (with 'ok' or 'error'), 'err_msg' (array), 'result_msg' (array)
-		- 'resultErrorQuiet' : same as above but status will only be given if there are specific messages to go along with it
-		- 'resultOnly' : like 'resultError' but use the 'errorCallback:' in postActions to handle ALL aspects of dealing with errors (= error msgs not automatically shown)
-		- 'resultOnlyQuiet' : like 'resultOnly' but with the difference described in 'resultErrorQuiet'
-		- 'boolean'       : webservice returns true or false which respectively means succeeded or failed, and the user will be told so
-		- 'booleanQuiet' : same as above but user will only be notified if operation failed
-		- object with these keys for removing all existing entries in a dropdown box and fill with the items in the returned multi-dimensional associative array:
-			{
-				fillDropDown: true,
-				selectSelector: 'selector for the select input field',
-				valueColumn: 'name of key in the returned associative array that should be the value for the dropdown option',
-				labelColumn: 'name of key in the returned associative array that should be the label for the dropdown option'
-			}
-			- note that if an item is currently selected it will retain that selection if one of the new items have the same value
-	- postActions : array of actions to be done after the webservice has completed. An action is an object with one following keys:
-		- 'successMessage' : set value with a message to the user if operation succeeds, eg. "Thank you for contacting us."
-		- 'errorMessage' : set value with a message to the user if operation fails, eg. "Sorry, you message could not be sent."
-		- 'reloadPage' : set to true to reload the page if operation succeeds (must be the last action to perform)
-		- 'previousPage' : set to true to go back to the previous page in the browser history (must be the last action to perform)
-		- 'redirectUrl' : set value to a URL to redirect to if operation succeeds (must be the last action to perform)
-		- 'setHtml' : set to true to set the HTML (innerHtml property) for an element on the page if operation succeeds. Additional required keys:
-			- 'selector' : selector for the element to set HTML for
-			- 'html' : HTML to be set
-		- 'successCallback' : set value to a string with function name or an anonymous function to call if operation succeeds. One argument is passed which will be an object with the following properties:
-			- data : response from server
-			- format : format of response data
-			- inputParams : parameters sent to server
-		- 'errorCallback' : set value to a string with function name or an anonymous function to call if operation fails. One argument is passed which will be an object with the following properties:
-			- data : response from server
-			- format : format of response data
-			- inputParams : parameters sent to server
-		- instead of one of the above you can also pass a function name in a string or write an anonymous function directly to be executed. One argument is passed which will be an object with the following properties:
-			- data : response from server
-			- success : boolean true or false based on response from server
-			- format : format of response data
-			- inputParams : parameters sent to server
-	- options : object with nay of these options:
-		- 'confirmMessage' : set a string with message to have the user confirm before executing the AJAX call
-		- 'skipShowProcess' : set to true to not dim the page and show process status
-		- 'requireSsl' : set to true to require SSL for transmitting this request to the server
-		- 'ajaxOptions' : extra options for the jQuery ajax() call
-		- 'textSuccess' : set custom message
-		- 'textErrorBecause' : set custom message
-		- 'textError' : set custom message
-		- 'textPleaseNote' : set custom message
-		- 'textSelectionCleared' : set custom message
-	OUTPUT:
-	- nothing (as everything is handled within the call itself)
-	*/
-	if (!$.isPlainObject(params)) params = {};
-	if (!$.isPlainObject(options)) options = {};
-	if (!$.isPlainObject(options.ajaxOptions)) options.ajaxOptions = {};
+/**
+ * Make a standard webservice call
+ *
+ * @param {object} args - Object where the following options are available:
+ *   - {string} url - URL of the webservice
+ *   - {object} params - Object with parameters to send to the webservice
+ *   - {string|object} responseFormat - How to interpret the data being returned from the webservice. Available options:
+ *   	- `nothing` : don't do any postprocessing as nothing is being returned, or the returned should only be processed by post-processing function
+ *   	- `resultError`       : the following fields are returned in an array: `status` (with `ok` or `error`), `err_msg` (array), `result_msg` (array)
+ *   	- `resultErrorQuiet` : same as above but status will only be given if there are specific messages to go along with it
+ *   	- `resultOnly` : like `resultError` but use the `errorCallback:` in postActions to handle ALL aspects of dealing with errors (= error msgs not automatically shown)
+ *   	- `resultOnlyQuiet` : like 'resultOnly' but with the difference described in `resultErrorQuiet`
+ *   	- `boolean`       : webservice returns true or false which respectively means succeeded or failed, and the user will be told so
+ *   	- `booleanQuiet` : same as above but user will only be notified if operation failed
+ *   	- object with these keys for removing all existing entries in a dropdown box and fill with the items in the returned multi-dimensional associative array:
+ *   		{
+ *   			fillDropDown: true,
+ *   			selectSelector: 'selector for the select input field',
+ *   			valueColumn: 'name of key in the returned associative array that should be the value for the dropdown option',
+ *   			labelColumn: 'name of key in the returned associative array that should be the label for the dropdown option'
+ *   		}
+ *   		- note that if an item is currently selected it will retain that selection if one of the new items have the same value
+ *   - {array} postActions - Array of actions to be done after the webservice has completed. An action is an object with one following keys:
+ *   	- `successMessage` : set value with a message to the user if operation succeeds, eg. "Thank you for contacting us."
+ *   	- `errorMessage` : set value with a message to the user if operation fails, eg. "Sorry, you message could not be sent."
+ *   	- `reloadPage` : set to true to reload the page if operation succeeds (must be the last action to perform)
+ *   	- `previousPage` : set to true to go back to the previous page in the browser history (must be the last action to perform)
+ *   	- `redirectUrl` : set value to a URL to redirect to if operation succeeds (must be the last action to perform)
+ *   	- `setHtml` : set to true to set the HTML (innerHtml property) for an element on the page if operation succeeds. Additional required keys:
+ *   		- 'selector' : selector for the element to set HTML for
+ *   		- 'html' : HTML to be set
+ *   	- `successCallback` : set value to a string with function name or an anonymous function to call if operation succeeds. One argument is passed which will be an object with the following properties:
+ *   		- data : response from server
+ *   		- format : format of response data
+ *   		- doAjaxArgs : arguments passed to the doAjax function
+ *   	- `errorCallback` : set value to a string with function name or an anonymous function to call if operation fails. One argument is passed which will be an object with the following properties:
+ *   		- data : response from server
+ *   		- format : format of response data
+ *   		- doAjaxArgs : arguments passed to the doAjax function
+ *   	- instead of one of the above you can also pass a function name in a string or write an anonymous function directly to be executed. One argument is passed which will be an object with the following properties:
+ *   		- data : response from server
+ *   		- success : boolean true or false based on response from server
+ *   		- format : format of response data
+ *   		- doAjaxArgs : arguments passed to the doAjax function
+ *   - {object} options - Object with nay of these options:
+ *   	- `confirmMessage` : set a string with message to have the user confirm before executing the AJAX call
+ *   	- `skipShowProcess` : set to true to not dim the page and show process status
+ *   	- `requireSsl` : set to true to require SSL for transmitting this request to the server
+ *   	- `ajaxOptions` : extra options for the jQuery ajax() call
+ *   	- `textSuccess` : set custom message
+ *   	- `textErrorBecause` : set custom message
+ *   	- `textError` : set custom message
+ *   	- `textPleaseNote` : set custom message
+ *   	- `textSelectionCleared` : set custom message
+ *
+ * @return {void} - Everything is handled within the call itself
+ */
+appJS.doAjax = function(args) {
+	if (!$.isPlainObject(args.params)) args.params = {};
+	if (!$.isPlainObject(args.options)) args.options = {};
+	if (!$.isPlainObject(args.options.ajaxOptions)) args.options.ajaxOptions = {};
+	if (typeof args.postActions == 'string') args.postActions = [args.postActions];  //if string was provided, convert it to an array
 
-	options = $.extend({  //defaults
+	args.options = $.extend({  //defaults
 		confirmMessage: null,
 		textSuccess: 'Operation completed successfully.',
 		textErrorBecause: 'Sorry, operation could not be completed because:',
 		textError: 'Sorry, the operation failed.',
 		textPleaseNote: 'Please note',
 		textSelectionCleared: 'Please note that current selection ({value}) in dropdown box was not re-selected after changing its options.',
-	}, options);
+	}, args.options);
 
-	if (options.confirmMessage !== null) {
+	if (args.options.confirmMessage !== null) {
 		this.showModal({
-			customModalSelector: '#JsHelperBaseConfirmModal',
-			title: (options.confirmTitle ? options.confirmTitle : 'Confirm'),
-			html: (options.confirmMessage === true ? 'Are you sure you want to do this?' : options.confirmMessage),
+			customModalSelector: 'confirm',
+			title: (args.options.confirmTitle ? args.options.confirmTitle : 'Confirm'),
+			html: (args.options.confirmMessage === true ? 'Are you sure you want to do this?' : args.options.confirmMessage),
 			openedCallback: function(modalRef) {
 				$(modalRef).find('.btn-yes').on('click', function() {
-					options.confirmMessage = null;
-					appJS.doAjax(url, params, responseFormat, postActions, options, passInfo);
+					args.options.confirmMessage = null;
+					appJS.doAjax(args);
 				});
 			}
 		});
 		return;
 	}
 
-	if (!options.skipShowProcess) {
+	if (!args.options.skipShowProcess) {
 		appJS.showProgressBar();
 	}
 
-	if (options.requireSsl) {
-		if (url.substr(0, 4) == 'http') {
-			if (url.substr(0, 5) != 'https') {
+	if (args.options.requireSsl) {
+		if (args.url.substr(0, 4) == 'http') {
+			if (args.url.substr(0, 5) != 'https') {
 				appJS.showModal('This data may only be sent over a secure connection. Please contact website developer.');
 			}
 		} else if (document.location.protocol != 'https:') {
@@ -197,17 +198,16 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 	}
 
 	var parms = {
-		url: url,
-		type: ($.isEmptyObject(options) ? 'GET' : 'POST'),
-		data: params,
+		url: args.url,
+		type: ($.isEmptyObject(args.options) ? 'GET' : 'POST'),
+		data: args.params,
 		success: function(rsp, jqXHR, textStatus) {
-			var i, args, functionName;
-			var f = responseFormat;
+			var i, functionName;
+			var f = args.responseFormat;
 			var success = true;
 			var postModalActionsActivated = false;
 
 			if (!f) f = '';
-			postActions = (typeof postActions == 'string' ? [postActions] : postActions);  //if string was provided, convert it to an array
 
 			// Postpone some post actions until after modal has been closed
 			var postModalActions = function(allActions) {
@@ -248,9 +248,9 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 						msgCount = Object.keys(rsp.result_msg).length;
 					}
 					if (!isQuiet || msgCount > 0) {
-						var resultMsg = '<span class="result-text success-text">'+ options.textSuccess;
+						var resultMsg = '<span class="result-text success-text">'+ args.options.textSuccess;
 						if (msgCount > 0) {
-							resultMsg += ' '+ options.textPleaseNote +':</span><br><br><span class="messages result-messages"><ul>';
+							resultMsg += ' '+ args.options.textPleaseNote +':</span><br><br><span class="messages result-messages"><ul>';
 							for (i in rsp.result_msg) {
 								if (rsp.result_msg.hasOwnProperty(i)) {
 									resultMsg += '<li>'+ rsp.result_msg[i] +'</li>';
@@ -261,7 +261,7 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 							resultMsg += '</span>';
 						}
 
-						var effActions = postModalActions(postActions);
+						var effActions = postModalActions(args.postActions);
 						appJS.showModal({
 							html: '<div class="ws-ajax-result">'+ resultMsg +'</div>',
 							closedCallback: function() {
@@ -272,7 +272,7 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 				} else {
 					success = false;
 					if (f != 'resultOnly' && f != 'resultOnlyQuiet') {
-						var errMsg = '<span class="result-text error-text">'+ options.textErrorBecause +'</span><br><br><span class="messages error-messages"><ul>';
+						var errMsg = '<span class="result-text error-text">'+ args.options.textErrorBecause +'</span><br><br><span class="messages error-messages"><ul>';
 						for (i in rsp.err_msg) {
 							if (rsp.err_msg.hasOwnProperty(i)) {
 								errMsg += '<li>'+ rsp.err_msg[i] +'</li>';
@@ -280,7 +280,7 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 						}
 						errMsg += '</ul></span>';
 
-						var effActions = postModalActions(postActions);
+						var effActions = postModalActions(args.postActions);
 						appJS.showModal({
 							html: '<div class="ws-ajax-result">'+ errMsg +'</div>',
 							closedCallback: function() {
@@ -291,9 +291,9 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 				}
 			} else if (f == 'boolean' || f == 'booleanQuiet') {
 				if (rsp && f != 'booleanQuiet') {
-					var effActions = postModalActions(postActions);
+					var effActions = postModalActions(args.postActions);
 					appJS.showModal({
-						html: '<div class="ws-ajax-result">'+ options.textSuccess +'</div>',
+						html: '<div class="ws-ajax-result">'+ args.options.textSuccess +'</div>',
 						closedCallback: function() {
 							modalClosedCallback(effActions, success);
 						}
@@ -301,9 +301,9 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 				} else if (!rsp) {
 					success = false;
 
-					var effActions = postModalActions(postActions);
+					var effActions = postModalActions(args.postActions);
 					appJS.showModal({
-						html: '<div class="ws-ajax-result">'+ options.textError +'</div>',
+						html: '<div class="ws-ajax-result">'+ args.options.textError +'</div>',
 						closedCallback: function() {
 							modalClosedCallback(effActions, success);
 						}
@@ -336,9 +336,9 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 					}
 				}
 				if (cVal.length>0 && cSet==false) {
-					var effActions = postModalActions(postActions);
+					var effActions = postModalActions(args.postActions);
 					appJS.showModal({
-						html: options.textSelectionCleared.replace('{value}', cLbl),
+						html: args.options.textSelectionCleared.replace('{value}', cLbl),
 						closedCallback: function() {
 							modalClosedCallback(effActions, success);
 						}
@@ -349,19 +349,18 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 			}
 
 			// Post actions
-			if (typeof postActions == 'function') {
-				args = {
+			if (typeof args.postActions == 'function') {
+				args.postActions({
 					data: rsp,
 					success: success,
 					format: format,
-					inputParams: inputParams,
-				}
-				postActions(args);
+					doAjaxArgs: args,
+				});
 			} else {
 				var c;
-				for (var act in postActions) {
-					if (!postActions.hasOwnProperty(act)) continue; //real keys will always be numeric
-					c = postActions[act];
+				for (var act in args.postActions) {
+					if (!args.postActions.hasOwnProperty(act)) continue; //real keys will always be numeric
+					c = args.postActions[act];
 					if (success && typeof c.successMessage != 'undefined') {
 						appJS.showModal(c.successMessage);
 					} else if (!success && typeof c.errorMessage != 'undefined') {
@@ -371,16 +370,16 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 					} else if (success && typeof c.successCallback != 'undefined') {
 						if (typeof c.successCallback == 'string') {
 							functionName = c.successCallback;
-							window[functionName]({rsp: rsp, format: format, inputParams: inputParams});  //calling function in global scope
+							window[functionName]({rsp: rsp, format: format, doAjaxArgs: args});  //calling function in global scope
 						} else {
-							c.successCallback({rsp: rsp, format: format, inputParams: inputParams});
+							c.successCallback({rsp: rsp, format: format, doAjaxArgs: args});
 						}
 					} else if (!success && typeof c.errorCallback != 'undefined') {
 						if (typeof c.errorCallback == 'string') {
 							functionName = c.substr(21);
-							window[functionName]({rsp: rsp, format: format, inputParams: inputParams});  //calling function in global scope
+							window[functionName]({rsp: rsp, format: format, doAjaxArgs: args});  //calling function in global scope
 						} else {
-							c.errorCallback({rsp: rsp, format: format, inputParams: inputParams});
+							c.errorCallback({rsp: rsp, format: format, doAjaxArgs: args});
 						}
 					} else if (success && typeof c.redirectUrl != 'undefined') {
 						window.location.href = c.redirectUrl;
@@ -395,9 +394,9 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 		}
 	};
 
-	$.extend(parms, options.ajaxOptions);
+	$.extend(parms, args.options.ajaxOptions);
 
-	if (!options.skipShowProcess) {
+	if (!args.options.skipShowProcess) {
 		if (typeof parms.complete != 'undefined') {
 			var parmsCopy = jQuery.extend({}, parms);
 			parms.complete = function(jqXHR, textStatus) {
@@ -468,39 +467,38 @@ appJS.hideProgressBar = function(options) {
 
 /* ------------- Modal section ------------- */
 
+/**
+ * Show a Bootstrap modal
+ *
+ * @param {string} parms - String with HTML or object with these possible keys:
+ *   - `title` : title/headling for the modal
+ *   - `skipTitleHtml` : set to true to skip setting a title for the modal (to not override an existing title)
+ *   - `html` : HTML to show as content of the modal
+ *   - `customModalSelector` : selector for a custom modal to use as base for the modal (eg. `#NumOfPagesToAddModal`). Some ready-made presets are available:
+ *   	- `confirm` : confirmation modal with two buttons, default to No and Yes with classes btn-no and btn-yes respectively
+ *   	- `prompt` : confirmation modal with two buttons, default to Cancel and OK with classes btn-cancel and btn-ok respectively
+ *   - `preventClose` : set to true to prevent closing the modal with keyboard or by clicking outside the modal
+ *   - `skipCloseOnInputEnter` : set to true to prevent closing the modal when pressing Enter in the first input field
+ *   - `buttonOptions` : options for the buttons. Numeric object for each button, eg. for first button and second button: {0: {text: 'No, I do not agree'}, 1: {text: 'Yes, I agree'}}
+ *   	- available keys:
+ *   		- `text` : set the label of the button
+ *   		- `classes` : add one or more classes to the button (comma-sep.)
+ *   - `hideButtons` : set to true to show no buttons in the footer
+ *   - `modalOptions` : extra options to pass on to the Bootstrap modal
+ *   - `openCallback`
+ *   - `openedCallback`
+ *   - `closeCallback`
+ *   - `closedCallback`
+ *
+ * @return {object} - jQuery reference to the modal in property `jqModal`
+ */
 appJS.showModal = function(parms) {
-	/*
-	DESCRIPTION:
-	- show a Bootstrap modal
-	INPUT:
-	- parms : string with HTML or object with these possible keys:
-		- 'title' : title/headling for the modal
-		- 'skipTitleHtml' : set to true to skip setting a title for the modal (to not override an existing title)
-		- 'html' : HTML to show as content of the modal
-		- 'customModalSelector' : selector for a custom modal to use as base for the modal (eg. #NumOfPagesToAddModal). Some ready-made presets are available:
-			- '#JsHelperBaseConfirmModal' : confirmation modal with two buttons, default to No and Yes with classes btn-no and btn-yes respectively
-			- '#JsHelperBasePromptModal' : confirmation modal with one button, default to Cancel and OK with classes btn-cancel and btn-ok respectively
-		- 'preventClose' : set to true to prevent closing the modal with keyboard or by clicking outside the modal
-		- 'skipCloseOnInputEnter' : set to true to prevent closing the modal when pressing Enter in the first input field
-		- 'buttonOptions' : options for the buttons. Numeric object for each button, eg. for first button and second button: {0: {text: 'No, I do not agree'}, 1: {text: 'Yes, I agree'}}
-			- available keys:
-				- 'text' : set the label of the button
-				- 'classes' : add one or more classes to the button (comma-sep.)
-		- 'hideButtons' : set to true to show no buttons in the footer
-		- 'modalOptions' : extra options to pass on to the Bootstrap modal
-		- 'openCallback'
-		- 'openedCallback'
-		- 'closeCallback'
-		- 'closedCallback'
-	OUTPUT:
-	- object with a jQuery reference to the modal in property `jqModal`
-	*/
 	var modalOpts, modalSelector = '#JsHelperModal';
 	if (typeof parms == 'string') parms = {html: parms};
-	if (parms.customModalSelector === '#JsHelperBaseConfirmModal') {
+	if (parms.customModalSelector === 'confirm') {
 		this.initBaseConfirmModal();
 		modalSelector = '#JsHelperBaseConfirmModal';
-	} else if (parms.customModalSelector === '#JsHelperBasePromptModal') {
+	} else if (parms.customModalSelector === 'prompt') {
 		this.initBasePromptModal();
 		modalSelector = '#JsHelperBasePromptModal';
 	} else if (typeof parms.customModalSelector != 'undefined') {

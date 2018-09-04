@@ -67,7 +67,7 @@ class JsHelper extends Component {
 
 		self::initAjax();
 
-		$options['linkOptions']['onclick'] = "appJS.doAjax(". json_encode($url) .", ". json_encode($params) .", ". json_encode($options['responseFormat']) .", ". Json::encode($options['postActions']) .", ". Json::encode($options['callOptions']) .");return false;";
+		$options['linkOptions']['onclick'] = "appJS.doAjax({url: ". json_encode($url) .", params: ". json_encode($params) .", responseFormat: ". json_encode($options['responseFormat']) .", postActions: ". Json::encode($options['postActions']) .", options: ". Json::encode($options['callOptions']) ."});return false;";
 
 		return Html::a($label, '#', $options['linkOptions']);
 	}
