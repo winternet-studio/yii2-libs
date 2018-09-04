@@ -118,7 +118,7 @@ appJS.enableSubmit = function() {
  *   			labelColumn: 'name of key in the returned associative array that should be the label for the dropdown option'
  *   		}
  *   		- note that if an item is currently selected it will retain that selection if one of the new items have the same value
- *   - {array} postActions - Array of actions to be done after the webservice has completed. An action is an object with one following keys:
+ *   - {array|string|callable} postActions - Array of actions to be done after the webservice has completed. An action is an object with one following keys:
  *   	- `successMessage` : set value with a message to the user if operation succeeds, eg. "Thank you for contacting us."
  *   	- `errorMessage` : set value with a message to the user if operation fails, eg. "Sorry, you message could not be sent."
  *   	- `reloadPage` : set to true to reload the page if operation succeeds (must be the last action to perform)
@@ -207,31 +207,45 @@ appJS.doAjax = function(args) {
 			if (!f) f = '';
 
 			// Postpone some post actions until after modal has been closed
-			var postModalActions = function(allActions) {
+			var postModalActions = function() {
 				var postModalActions = [];
-				for (var act in allActions) {
-					if (!allActions.hasOwnProperty(act)) continue; //real keys will always be numeric
 
-					if (typeof allActions[act].reloadPage !== 'undefined' || typeof allActions[act].redirectUrl !== 'undefined' || typeof allActions[act].previousPage !== 'undefined') {
-						postModalActions.push(allActions[act]);
+				if (typeof args.postActions == 'function') {  //in case postActions is only a callable don't postpone anything
+					postModalActions = args.postActions;
+					args.postActions = [];
+				} else {
+					for (var act in args.postActions) {
+						if (!args.postActions.hasOwnProperty(act)) continue; //real keys will always be numeric
 
-						// Remove it from the main array so it's not done immediately
-						allActions.splice(act, 1);
+						if (typeof args.postActions[act].reloadPage !== 'undefined' || typeof args.postActions[act].redirectUrl !== 'undefined' || typeof args.postActions[act].previousPage !== 'undefined') {
+							postModalActions.push(args.postActions[act]);
+
+							// Remove it from the main array so it's not done immediately
+							args.postActions.splice(act, 1);
+						}
 					}
 				}
 				return postModalActions;
 			};
 
 			var modalClosedCallback = function(actions, isSuccess) {
-				for (var i in actions) {
-					if (actions.hasOwnProperty(i)) {
-						var c = actions[i];
-						if (isSuccess && typeof c.redirectUrl != 'undefined') {
-							window.location.href = c.redirectUrl;
-						} else if (isSuccess && typeof c.reloadPage != 'undefined') {
-							window.location.reload();
-						} else if (isSuccess && typeof c.previousPage != 'undefined') {
-							history.back();
+				if (typeof actions == 'function') {
+					actions({
+						data: rsp,
+						success: isSuccess,
+						doAjaxArgs: args,
+					});
+				} else {
+					for (var i in actions) {
+						if (actions.hasOwnProperty(i)) {
+							var c = actions[i];
+							if (isSuccess && typeof c.redirectUrl != 'undefined') {
+								window.location.href = c.redirectUrl;
+							} else if (isSuccess && typeof c.reloadPage != 'undefined') {
+								window.location.reload();
+							} else if (isSuccess && typeof c.previousPage != 'undefined') {
+								history.back();
+							}
 						}
 					}
 				}
@@ -258,7 +272,7 @@ appJS.doAjax = function(args) {
 							resultMsg += '</span>';
 						}
 
-						var effActions = postModalActions(args.postActions);
+						var effActions = postModalActions();
 						appJS.showModal({
 							html: '<div class="ws-ajax-result">'+ resultMsg +'</div>',
 							closedCallback: function() {
@@ -277,7 +291,7 @@ appJS.doAjax = function(args) {
 						}
 						errMsg += '</ul></span>';
 
-						var effActions = postModalActions(args.postActions);
+						var effActions = postModalActions();
 						appJS.showModal({
 							html: '<div class="ws-ajax-result">'+ errMsg +'</div>',
 							closedCallback: function() {
@@ -288,7 +302,7 @@ appJS.doAjax = function(args) {
 				}
 			} else if (f == 'boolean' || f == 'booleanQuiet') {
 				if (rsp && f != 'booleanQuiet') {
-					var effActions = postModalActions(args.postActions);
+					var effActions = postModalActions();
 					appJS.showModal({
 						html: '<div class="ws-ajax-result">'+ args.options.textSuccess +'</div>',
 						closedCallback: function() {
@@ -298,7 +312,7 @@ appJS.doAjax = function(args) {
 				} else if (!rsp) {
 					success = false;
 
-					var effActions = postModalActions(args.postActions);
+					var effActions = postModalActions();
 					appJS.showModal({
 						html: '<div class="ws-ajax-result">'+ args.options.textError +'</div>',
 						closedCallback: function() {
@@ -333,7 +347,7 @@ appJS.doAjax = function(args) {
 					}
 				}
 				if (cVal.length>0 && cSet==false) {
-					var effActions = postModalActions(args.postActions);
+					var effActions = postModalActions();
 					appJS.showModal({
 						html: args.options.textSelectionCleared.replace('{value}', cLbl),
 						closedCallback: function() {
