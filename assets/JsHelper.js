@@ -168,7 +168,6 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 	}, options);
 
 	if (options.confirmMessage !== null) {
-		this.initBaseConfirmModal();
 		this.showModal({
 			customModalSelector: '#JsHelperBaseConfirmModal',
 			title: (options.confirmTitle ? options.confirmTitle : 'Confirm'),
@@ -478,7 +477,9 @@ appJS.showModal = function(parms) {
 		- 'title' : title/headling for the modal
 		- 'skipTitleHtml' : set to true to skip setting a title for the modal (to not override an existing title)
 		- 'html' : HTML to show as content of the modal
-		- 'customModalSelector' : selector for a custom modal to use as base for the modal (eg. #NumOfPagesToAddModal)
+		- 'customModalSelector' : selector for a custom modal to use as base for the modal (eg. #NumOfPagesToAddModal). Some ready-made presets are available:
+			- '#JsHelperBaseConfirmModal' : confirmation modal with two buttons, default to No and Yes with classes btn-no and btn-yes respectively
+			- '#JsHelperBasePromptModal' : confirmation modal with one button, default to Cancel and OK with classes btn-cancel and btn-ok respectively
 		- 'preventClose' : set to true to prevent closing the modal with keyboard or by clicking outside the modal
 		- 'skipCloseOnInputEnter' : set to true to prevent closing the modal when pressing Enter in the first input field
 		- 'buttonOptions' : options for the buttons. Numeric object for each button, eg. for first button and second button: {0: {text: 'No, I do not agree'}, 1: {text: 'Yes, I agree'}}
@@ -496,13 +497,17 @@ appJS.showModal = function(parms) {
 	*/
 	var modalOpts, modalSelector = '#JsHelperModal';
 	if (typeof parms == 'string') parms = {html: parms};
-	if (typeof parms.customModalSelector != 'undefined') {
+	if (parms.customModalSelector === '#JsHelperBaseConfirmModal') {
+		this.initBaseConfirmModal();
+		modalSelector = '#JsHelperBaseConfirmModal';
+	} else if (parms.customModalSelector === '#JsHelperBasePromptModal') {
+		this.initBasePromptModal();
+		modalSelector = '#JsHelperBasePromptModal';
+	} else if (typeof parms.customModalSelector != 'undefined') {
 		modalSelector = parms.customModalSelector;
 	} else {
-		if ($(modalSelector).length == 0) {
-			this.initBaseAlertModal();
-			modalSelector = '#JsHelperBaseAlertModal';
-		}
+		this.initBaseAlertModal();
+		modalSelector = '#JsHelperBaseAlertModal';
 	}
 	if (typeof parms.modalOptions != 'undefined') modalOpts = $.extend({keyboard: true}, parms.modalOptions);  //keyboard:true = enable Esc keypress to close the modal
 	if (typeof parms.preventClose != 'undefined') modalOpts = $.extend(modalOpts, {keyboard: false, backdrop: 'static'});  //source: http://www.tutorialrepublic.com/faq/how-to-prevent-bootstrap-modal-from-closing-when-clicking-outside.php
@@ -719,6 +724,28 @@ appJS.initBaseConfirmModal = function(msg, options) {
 			'      <div class="modal-footer">'+
 			'        <button type="button" class="btn btn-default btn-no" data-dismiss="modal">No</button>'+
 			'        <button type="button" class="btn btn-primary btn-yes" data-dismiss="modal">Yes</button>'+
+			'      </div>'+
+			'    </div>'+
+			'  </div>'+
+			'</div>';
+		$('body').append(popupTemplate);
+	}
+}
+
+appJS.initBasePromptModal = function(msg, options) {
+	if ($('#JsHelperBasePromptModal').length == 0) {
+		var popupTemplate =
+			'<div id="JsHelperBasePromptModal" class="modal fade">'+
+			'  <div class="modal-dialog">'+
+			'    <div class="modal-content">'+
+			'      <div class="modal-header">'+
+			'        <button type="button" class="close" data-dismiss="modal">&times;</button>'+
+			'        <h4 class="modal-title"></h4>'+
+			'      </div>'+
+			'      <div class="modal-body">[message placeholder]</div>'+
+			'      <div class="modal-footer">'+
+			'        <button type="button" class="btn btn-default btn-cancel" data-dismiss="modal">Cancel</button>'+
+			'        <button type="button" class="btn btn-primary btn-ok" data-dismiss="modal">&nbsp; &nbsp; OK &nbsp; &nbsp;</button>'+
 			'      </div>'+
 			'    </div>'+
 			'  </div>'+
