@@ -565,7 +565,7 @@ appJS.showModal = function(parms) {
 			$firstInput.focus().select();
 			$firstInput.on('keyup', function(ev) {
 				if (ev.keyCode == 13) {
-					var $btn = $(modalSelector).find('.btn-yes');
+					var $btn = $(modalSelector).find('.btn-yes, .btn-ok');
 					if ($btn.length > 0) {
 						$btn.trigger('click');
 					} else {
