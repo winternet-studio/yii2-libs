@@ -372,16 +372,16 @@ appJS.doAjax = function(url, params, responseFormat, postActions, options, passI
 					} else if (success && typeof c.successCallback != 'undefined') {
 						if (typeof c.successCallback == 'string') {
 							functionName = c.successCallback;
-							window[functionName](rsp, format, inputParams);  //calling function in global scope
+							window[functionName]({rsp: rsp, format: format, inputParams: inputParams});  //calling function in global scope
 						} else {
-							c.successCallback(rsp, format, inputParams);
+							c.successCallback({rsp: rsp, format: format, inputParams: inputParams});
 						}
 					} else if (!success && typeof c.errorCallback != 'undefined') {
 						if (typeof c.errorCallback == 'string') {
 							functionName = c.substr(21);
-							window[functionName](rsp, format, inputParams);  //calling function in global scope
+							window[functionName]({rsp: rsp, format: format, inputParams: inputParams});  //calling function in global scope
 						} else {
-							c.errorCallback(rsp, format, inputParams);
+							c.errorCallback({rsp: rsp, format: format, inputParams: inputParams});
 						}
 					} else if (success && typeof c.redirectUrl != 'undefined') {
 						window.location.href = c.redirectUrl;
