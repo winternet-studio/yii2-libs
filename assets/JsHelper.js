@@ -129,16 +129,13 @@ appJS.enableSubmit = function() {
  *   		- 'html' : HTML to be set
  *   	- `successCallback` : set value to a string with function name or an anonymous function to call if operation succeeds. One argument is passed which will be an object with the following properties:
  *   		- data : response from server
- *   		- format : format of response data
  *   		- doAjaxArgs : arguments passed to the doAjax function
  *   	- `errorCallback` : set value to a string with function name or an anonymous function to call if operation fails. One argument is passed which will be an object with the following properties:
  *   		- data : response from server
- *   		- format : format of response data
  *   		- doAjaxArgs : arguments passed to the doAjax function
  *   	- instead of one of the above you can also pass a function name in a string or write an anonymous function directly to be executed. One argument is passed which will be an object with the following properties:
  *   		- data : response from server
  *   		- success : boolean true or false based on response from server
- *   		- format : format of response data
  *   		- doAjaxArgs : arguments passed to the doAjax function
  *   - {object} options - Object with nay of these options:
  *   	- `confirmMessage` : set a string with message to have the user confirm before executing the AJAX call
@@ -353,7 +350,6 @@ appJS.doAjax = function(args) {
 				args.postActions({
 					data: rsp,
 					success: success,
-					format: format,
 					doAjaxArgs: args,
 				});
 			} else {
@@ -370,16 +366,16 @@ appJS.doAjax = function(args) {
 					} else if (success && typeof c.successCallback != 'undefined') {
 						if (typeof c.successCallback == 'string') {
 							functionName = c.successCallback;
-							window[functionName]({rsp: rsp, format: format, doAjaxArgs: args});  //calling function in global scope
+							window[functionName]({rsp: rsp, doAjaxArgs: args});  //calling function in global scope
 						} else {
-							c.successCallback({rsp: rsp, format: format, doAjaxArgs: args});
+							c.successCallback({rsp: rsp, doAjaxArgs: args});
 						}
 					} else if (!success && typeof c.errorCallback != 'undefined') {
 						if (typeof c.errorCallback == 'string') {
 							functionName = c.substr(21);
-							window[functionName]({rsp: rsp, format: format, doAjaxArgs: args});  //calling function in global scope
+							window[functionName]({rsp: rsp, doAjaxArgs: args});  //calling function in global scope
 						} else {
-							c.errorCallback({rsp: rsp, format: format, doAjaxArgs: args});
+							c.errorCallback({rsp: rsp, doAjaxArgs: args});
 						}
 					} else if (success && typeof c.redirectUrl != 'undefined') {
 						window.location.href = c.redirectUrl;
