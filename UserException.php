@@ -104,7 +104,7 @@ class UserException extends \yii\base\UserException {
 								foreach ($b['args'] as $xarg) {
 									if (is_array($xarg) || is_object($xarg)) {
 										try {
-											$vartmp = var_export($xarg, true);
+											$vartmp = @var_export($xarg, true);
 											$vartmp = str_replace('array (', ' array(', $vartmp);
 										} catch (\Exception $e) {
 											// use print_r instead when variable has circular references (which var_export does not handle)
