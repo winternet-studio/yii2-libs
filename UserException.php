@@ -218,6 +218,7 @@ class UserException extends \yii\base\UserException {
 							'IP' => $_SERVER['REMOTE_ADDR'] . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : ''),
 							$_SERVER['REQUEST_METHOD'] => (!empty($_POST) ? $_POST : null),
 							'Referer' => $_SERVER['HTTP_REFERER'],
+							'User Agent' => $_SERVER['HTTP_USER_AGENT'],
 						]),
 						'stack' => ($errordata ? $errordata : null),
 						'userID' => $userID,
