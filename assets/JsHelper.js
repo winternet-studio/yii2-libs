@@ -125,18 +125,19 @@ appJS.enableSubmit = function() {
  *   	- `previousPage` : set to true to go back to the previous page in the browser history (must be the last action to perform)
  *   	- `redirectUrl` : set value to a URL to redirect to if operation succeeds (must be the last action to perform)
  *   	- `setHtml` : set to true to set the HTML (innerHtml property) for an element on the page if operation succeeds. Additional required keys:
- *   		- 'selector' : selector for the element to set HTML for
- *   		- 'html' : HTML to be set
+ *   		- `selector` : selector for the element to set HTML for
+ *   		- `html` : HTML to be set
  *   	- `successCallback` : set value to a string with function name or an anonymous function to call if operation succeeds. One argument is passed which will be an object with the following properties:
- *   		- data : response from server
- *   		- doAjaxArgs : arguments passed to the doAjax function
+ *   		- `data` : response from server
+ *   		- `doAjaxArgs` : arguments passed to the doAjax function
  *   	- `errorCallback` : set value to a string with function name or an anonymous function to call if operation fails. One argument is passed which will be an object with the following properties:
- *   		- data : response from server
- *   		- doAjaxArgs : arguments passed to the doAjax function
- *   	- instead of one of the above you can also pass a function name in a string or write an anonymous function directly to be executed. One argument is passed which will be an object with the following properties:
- *   		- data : response from server
- *   		- success : boolean true or false based on response from server
- *   		- doAjaxArgs : arguments passed to the doAjax function
+ *   		- `data` : response from server
+ *   		- `doAjaxArgs` : arguments passed to the doAjax function
+ *   	- as a shortcut for specifying just a single action you can pass the strings `reloadPage` or `previousPage`
+ *   	- instead of one of the above you can also pass a callback function to be executed. One argument is passed which will be an object with the following properties:
+ *   		- `data` : response from server
+ *   		- `success` : boolean true or false based on response from server
+ *   		- `doAjaxArgs` : arguments passed to the doAjax function
  *   - {object} options - Object with nay of these options:
  *   	- `confirmMessage` : set a string with message to have the user confirm before executing the AJAX call
  *   	- `skipShowProcess` : set to true to not dim the page and show process status
@@ -154,7 +155,15 @@ appJS.doAjax = function(args) {
 	if (!$.isPlainObject(args.params)) args.params = {};
 	if (!$.isPlainObject(args.options)) args.options = {};
 	if (!$.isPlainObject(args.options.ajaxOptions)) args.options.ajaxOptions = {};
-	if (typeof args.postActions == 'string') args.postActions = [args.postActions];  //if string was provided, convert it to an array
+	if (typeof args.postActions == 'string') {
+		if (args.postActions == 'reloadPage') {
+			args.postActions = [ {reloadPage: true} ];
+		} else if (args.postActions == 'previousPage') {
+			args.postActions = [ {previousPage: true} ];
+		} else {
+			alert('CONFIGURATION ERROR! postActions is an invalid string: '+ args.postActions);
+		}
+	}
 
 	args.options = $.extend({  //defaults
 		confirmMessage: null,
