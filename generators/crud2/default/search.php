@@ -19,6 +19,18 @@ $labels = $generator->generateSearchLabels();
 $searchAttributes = $generator->getSearchAttributes();
 $searchConditions = $generator->generateSearchConditions();
 
+
+// Add rules for operators
+$operatorAttributes = [];
+foreach ($generator->getSearchAttributes() as $attribute) {
+	$operatorAttributes[] = $attribute .'_OP';
+}
+$rules[] = "[['" . implode("', '", $operatorAttributes) . "'], 'string']";
+$rules[] = "[['" . implode("', '", $operatorAttributes) . "'], 'in', 'range' => array_keys(\$this->compareOperators())]";
+
+// Add rule for common search term
+$rules[] = "['__common', 'string']";
+
 echo "<?php\n";
 ?>
 namespace <?= StringHelper::dirname(ltrim($generator->searchModelClass, '\\')) ?>;
@@ -32,6 +44,23 @@ use <?= ltrim($generator->modelClass, '\\') . (isset($modelAlias) ? " as $modelA
  * <?= $searchModelClass ?> represents the model behind the search form about `<?= $generator->modelClass ?>`.
  */
 class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $modelClass ?> {
+
+	/**
+	 * @var string Attribute for term to search for across all attributes
+	 */
+	public $__common;
+
+	/**
+	 * @var string Attributes for comparison operator for each attribute
+	 */
+<?php
+	foreach ($operatorAttributes as $operatorAttribute) {
+?>
+	public $<?= $operatorAttribute ?>;
+<?php
+	}
+?>
+
 	/**
 	 * @inheritdoc
 	 */
@@ -45,8 +74,31 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 	 * @inheritdoc
 	 */
 	public function scenarios() {
+		$scenarios = parent::scenarios();
+		$viewable = parent::viewable();
+
+		// Add the *_OP attributes for the current scenario
+		$scenarios[$this->scenario] = [];  //start over because we need to include those that we have view permission for without having update permission (and remove "!" in front of any attributes)
+		foreach ($viewable as $attribute) {
+			$scenarios[$this->scenario][] = $attribute;
+			$scenarios[$this->scenario][] = $attribute .'_OP';
+		}
+		return $scenarios;
+
+		// Do not bypass scenarios since we need to limit searchable fields based on user's permissions
 		// bypass scenarios() implementation in the parent class
-		return Model::scenarios();
+		// return Model::scenarios();
+	}
+
+	/**
+	 * Attributes to allow searching by (outcommenting attributes disables searching for ALL users)
+	 *
+	 * @return array
+	 */
+	public function searchable() {
+		return [
+			'<?= implode("',\n			'", $generator->getSearchAttributes()) ?>',
+		];
 	}
 
 	/**
@@ -57,6 +109,10 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 	 * @return ActiveDataProvider
 	 */
 	public function search($params) {
+		$this->applyUserScenario();
+
+		$searchable = array_intersect($this->searchable(), $this->viewable());
+
 		$query = <?= isset($modelAlias) ? $modelAlias : $modelClass ?>::find();
 		<?= isset($modelAlias) ? $modelAlias : $modelClass ?>::applyUserConditions($query);
 
@@ -64,19 +120,63 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 
 		$dataProvider = new ActiveDataProvider([
 			'query' => $query,
+			// 'sort' => ['defaultOrder' => ['<?= $generator->getSearchAttributes()[0] ?>' => SORT_ASC]],
 		]);
 
 		$this->load($params);
 
 		if (!$this->validate()) {
-			// uncomment the following line if you do not want to return any records when validation fails
+			// outcomment the following line if you want to return records when validation fails
 			$query->where('0=1');
 			return $dataProvider;
 		}
 
-		// grid filtering conditions
-		<?= implode("\n		", $searchConditions) ?>
+		// Field specific search
+		foreach ($searchable as $attribute) {
+			$operator = $this->{$attribute .'_OP'};
+			if (!$operator) $operator = 'equal';
+
+			if (in_array($operator, ['empty', 'notempty'])) {
+				$query->andWhere(\winternet\yii2\DatabaseHelper::modelToCondition($attribute, $this->$attribute, $operator));
+			} else {
+				$query->andFilterWhere(\winternet\yii2\DatabaseHelper::modelToCondition($attribute, $this->$attribute, $operator));
+			}
+		}
+
+		// Search across all fields
+		$condition = ['or'];
+		foreach ($searchable as $attribute) {
+			$condition[] = ['like', $attribute, $this->__common];
+		}
+		$query->andFilterWhere($condition);
 
 		return $dataProvider;
+	}
+
+	/**
+	 * A list of possible compare operators for searching
+	 *
+	 * @return array
+	 */
+	public function compareOperators() {
+		return [
+			'equal' => '=',
+			'notequal' => 'not =',
+			'contains' => 'contains',
+			'containsnot' => 'contains not',
+			'soundslike' => 'is similar to',
+			'empty' => 'is empty',
+			'notempty' => 'is not empty',
+			'in' => 'is one of',
+			'notin' => 'is not one of',
+			'lt' => '<',
+			'lteq' => '<=',
+			'gt' => '>',
+			'gteq' => '>=',
+			'between' => 'is between',
+			'notbetween' => 'is not between',
+			'regexp' => 'regular expr.',
+			'notregexp' => 'not regular expr.',
+		];
 	}
 }

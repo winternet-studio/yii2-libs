@@ -87,6 +87,37 @@ class ModelHelper extends Component {
 		return $css;
 	}
 
+	/**
+	 * Return the type of all attributes in a model
+	 *
+	 * NOTE that currently if an attribute matches multiple rules we look for the last one will be the effective one
+	 *
+	 * @param yii\base\Model $model
+	 * @return array : Attributes with subarray with key `validator` which holds the Yii validator (eg. `integer` or `double`) and ´common` a more basic field type (eg. `numeric` or `string`)
+	 */
+	public static function getAttributeTypes($model) {
+		$types = [];
+		foreach ($model->rules() as $rule) {
+			if ($rule[0] && $rule[1]) {
+				if (!is_array($rule[0])) {
+					$rule[0] = [ $rule[0] ];
+				}
+
+				if (in_array($rule[1], ['integer', 'double', 'number', 'boolean'], true)) {
+					foreach ($rule[0] as $attribute) {
+						$types[$attribute] = ['validator' => $rule[1], 'common' => 'numeric'];
+					}
+				} elseif (in_array($rule[1], ['string'], true)) {
+					foreach ($rule[0] as $attribute) {
+						$types[$attribute] = ['validator' => $rule[1], 'common' => 'string'];
+					}
+				}
+			}
+		}
+
+		return $types;
+	}
+
 	public static function filterAttributes($all_attributes, $attributes_to_keep) {
 		/*
 		DESCRIPTION:
@@ -154,7 +185,7 @@ class ModelHelper extends Component {
 	 */
 	public static function createActiveRecordModel($params) {
 		if (preg_match("/[^a-z0-9_]/i", $params['tableName'])) {
-			\Yii::$app->system->error('Table name for creating ActiveRecord class has invalid characters.', ['TableName' => $params['tableName']]);
+			new \winternet\yii2\UserException('Table name for creating ActiveRecord class has invalid characters.', ['TableName' => $params['tableName']]);
 		}
 
 		$className = $params['tableName'];

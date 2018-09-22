@@ -76,18 +76,26 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		$searchModel = new <?= isset($searchModelAlias) ? $searchModelAlias : $searchModelClass ?>();
 		$dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-		return $this->render('index', [
-			'searchModel' => $searchModel,
-			'dataProvider' => $dataProvider,
-		]);
+		if (Yii::$app->params['isApi']) {
+			return ['result' => $provider->getModels() ];
+		} else {
+			return $this->render('index', [
+				'searchModel' => $searchModel,
+				'dataProvider' => $dataProvider,
+			]);
+		}
 <?php else: ?>
 		$dataProvider = new ActiveDataProvider([
 			'query' => <?= $modelClass ?>::find(),
 		]);
 
-		return $this->render('index', [
-			'dataProvider' => $dataProvider,
-		]);
+		if (Yii::$app->params['isApi']) {
+			return ['result' => $models = $provider->getModels() ];
+		} else {
+			return $this->render('index', [
+				'dataProvider' => $dataProvider,
+			]);
+		}
 <?php endif; ?>
 	}
 
@@ -97,9 +105,13 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 	 * @return mixed
 	 */
 	public function actionView(<?= $actionParams ?>) {
-		return $this->render('view', [
-			'model' => $this->findModel(<?= $actionParams ?>),
-		]);
+		if (Yii::$app->params['isApi']) {
+			return ['result' => $this->findModel($id) ];
+		} else {
+			return $this->render('view', [
+				'model' => $this->findModel(<?= $actionParams ?>),
+			]);
+		}
 	}
 
 	/**
@@ -112,7 +124,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		$model->applyUserScenario();
 
 		// Form submission
-		if (Yii::$app->request->isAjax) {
+		if (Yii::$app->request->isAjax || Yii::$app->params['isApi']) {
 			Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 			$model->load(Yii::$app->request->post());
 			if (!$_POST['ajax']) $model->save();  //don't save when AJAX validation is done due to enableAjaxValidation=true
