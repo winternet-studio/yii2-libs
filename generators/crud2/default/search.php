@@ -26,7 +26,7 @@ foreach ($generator->getSearchAttributes() as $attribute) {
 	$operatorAttributes[] = $attribute .'_OP';
 }
 $rules[] = "[['" . implode("', '", $operatorAttributes) . "'], 'string']";
-$rules[] = "[['" . implode("', '", $operatorAttributes) . "'], 'in', 'range' => array_keys(\$this->compareOperators())]";
+$rules[] = "[['" . implode("', '", $operatorAttributes) . "'], 'in', 'range' => array_keys(\\winternet\\yii2\\DatabaseHelper::compareOperators())]";
 
 // Add rule for common search term
 $rules[] = "['__common', 'string']";
@@ -151,32 +151,5 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 		$query->andFilterWhere($condition);
 
 		return $dataProvider;
-	}
-
-	/**
-	 * A list of possible compare operators for searching
-	 *
-	 * @return array
-	 */
-	public function compareOperators() {
-		return [
-			'equal' => '=',
-			'notequal' => 'not =',
-			'contains' => 'contains',
-			'containsnot' => 'contains not',
-			'soundslike' => 'is similar to',
-			'empty' => 'is empty',
-			'notempty' => 'is not empty',
-			'in' => 'is one of',
-			'notin' => 'is not one of',
-			'lt' => '<',
-			'lteq' => '<=',
-			'gt' => '>',
-			'gteq' => '>=',
-			'between' => 'is between',
-			'notbetween' => 'is not between',
-			'regexp' => 'regular expr.',
-			'notregexp' => 'not regular expr.',
-		];
 	}
 }

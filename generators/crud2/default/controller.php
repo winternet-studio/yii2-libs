@@ -151,7 +151,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		$model = $this->findModel(<?= $actionParams ?>);
 
 		// Form submission
-		if (Yii::$app->request->isAjax) {
+		if (Yii::$app->request->isAjax || Yii::$app->params['isApi']) {
 			$model->load(Yii::$app->request->post());
 			$model->validate();
 			if (!$_POST['ajax']) $model->save();  //don't save when AJAX validation is done due to enableAjaxValidation=true
@@ -178,7 +178,11 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 	public function actionDelete(<?= $actionParams ?>) {
 		$this->findModel(<?= $actionParams ?>)->delete();
 
-		return $this->redirect(['index']);
+		if (Yii::$app->params['isApi']) {
+			return ['status' => 'ok'];
+		} else {
+			return $this->redirect(['index']);
+		}
 	}
 
 	/**

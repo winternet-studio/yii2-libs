@@ -128,6 +128,33 @@ class DatabaseHelper extends Component {
 	}
 
 	/**
+	 * A list of possible compare operators for searching
+	 *
+	 * @return array
+	 */
+	public static function compareOperators() {
+		return [
+			'equal' => '=',
+			'notequal' => 'not =',
+			'contains' => 'contains',
+			'containsnot' => 'contains not',
+			'soundslike' => 'is similar to',
+			'empty' => 'is empty',
+			'notempty' => 'is not empty',
+			'in' => 'is one of',
+			'notin' => 'is not one of',
+			'lt' => '<',
+			'lteq' => '<=',
+			'gt' => '>',
+			'gteq' => '>=',
+			'between' => 'is between',
+			'notbetween' => 'is not between',
+			'regexp' => 'regular expr.',
+			'notregexp' => 'not regular expr.',
+		];
+	}
+
+	/**
 	 * Help for the end-user to know how to use the different search operators
 	 *
 	 * @return array : Formatted for direct use in options for Html::dropDownList()

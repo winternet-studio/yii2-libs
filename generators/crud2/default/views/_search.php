@@ -20,7 +20,7 @@ use yii\widgets\ActiveForm;
 
 $this->registerJs(<<<'JS'
 function toggleSearchMethod() {
-	$('.booking-search, .booking-simple-search').slideToggle({complete: function() {
+	$('.<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-advanced-search, .<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-simple-search').slideToggle({complete: function() {
 		// Clear fields we are hiding and reset operator
 		$('.crud-search-area :input').not(':visible').not('.operator-input').val('');
 		$('.crud-search-area select.operator-input').find('option').prop('selected', function () {
@@ -56,12 +56,12 @@ $form = ActiveForm::begin([
 			}
 		}
 		$template  = '<div class="row">';
-		$template .=  '<div class="col-sm-2 text-right">{label}</div>';
-		$template .=  '<div class="col-sm-2">'. Html::dropDownList(Html::getInputName($model, $attribute .'_OP'), $defaultOperator, $model->compareOperators(), [
+		$template .=  '<div class="col-sm-2 attribute-label text-right">{label}</div>';
+		$template .=  '<div class="col-sm-2 operator-select">'. Html::dropDownList(Html::getInputName($model, $attribute .'_OP'), $defaultOperator, \winternet\yii2\DatabaseHelper::compareOperators(), [
 			'class' => 'form-control operator-input',
 			'options' => $operatorDropdownOptions,
 		]) .'</div>';
-		$template .=  '<div class="col-sm-8">{input}{hint}{error}<div class="operator-hint">'. $operatorDropdownOptions[ $model->{$attribute .'_OP'} ]['title'] /*needed if default operator has a hint*/ .'</div></div>';
+		$template .=  '<div class="col-sm-8 main-field">{input}{hint}{error}<div class="operator-hint">'. $operatorDropdownOptions[ $model->{$attribute .'_OP'} ]['title'] /*needed if default operator has a hint*/ .'</div></div>';
 		$template .= '</div>';
 		return [
 			'template' => $template,
@@ -75,7 +75,7 @@ $form = ActiveForm::begin([
 	</div>
 	<div style="height: 10px"></div>
 
-	<div class="booking-simple-search">
+	<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-simple-search">
 		<div class="input-group">
 			<?= "<?= " ?>$form->field($model, '__common', ['template' => '{input}'])->label(false) ?>
 			<span class="input-group-btn">
@@ -84,7 +84,7 @@ $form = ActiveForm::begin([
 		</div>
 	</div>
 
-	<div class="booking-search collapse">
+	<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-advanced-search collapse">
 		<div class="panel panel-info">
 			<div class="panel-heading"><h4><?= "<?= " ?>Yii::t('app', 'Advanced search') ?></h4></div>
 			<div class="panel-footer">
