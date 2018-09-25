@@ -125,4 +125,17 @@ class Generator extends \yii\gii\generators\crud\Generator {
 
 		return $conditions;
 	}
+
+	/**
+	 * Output code for a string in HTML context
+	 *
+	 * @author Allan Jensen, winternet.no
+	 */
+	public function generateStringHtml($string) {
+		if ($this->enableI18N) {
+			return '<?= '. $this->generateString($string) .' ?>';
+		} else {
+			return $string;
+		}
+	}
 }

@@ -83,6 +83,7 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 			$scenarios[$this->scenario][] = $attribute;
 			$scenarios[$this->scenario][] = $attribute .'_OP';
 		}
+		$scenarios[$this->scenario][] = '__common';
 		return $scenarios;
 
 		// Do not bypass scenarios since we need to limit searchable fields based on user's permissions

@@ -75,6 +75,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 <?php if (!empty($generator->searchModelClass)): ?>
 		$searchModel = new <?= isset($searchModelAlias) ? $searchModelAlias : $searchModelClass ?>();
 		$dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+		$filterApplied = (empty($dataProvider->query->where) ? false : true);
 
 		if (Yii::$app->params['isApi']) {
 			return ['result' => $provider->getModels() ];
@@ -82,18 +83,21 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 			return $this->render('index', [
 				'searchModel' => $searchModel,
 				'dataProvider' => $dataProvider,
+				'filterApplied' => $filterApplied,
 			]);
 		}
 <?php else: ?>
 		$dataProvider = new ActiveDataProvider([
 			'query' => <?= $modelClass ?>::find(),
 		]);
+		$filterApplied = (empty($dataProvider->query->where) ? false : true);
 
 		if (Yii::$app->params['isApi']) {
-			return ['result' => $models = $provider->getModels() ];
+			return ['result' => $provider->getModels() ];
 		} else {
 			return $this->render('index', [
 				'dataProvider' => $dataProvider,
+				'filterApplied' => $filterApplied,
 			]);
 		}
 <?php endif; ?>

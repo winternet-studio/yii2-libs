@@ -20,7 +20,7 @@ use yii\widgets\ActiveForm;
 
 $this->registerJs(<<<'JS'
 function toggleSearchMethod() {
-	$('.<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-advanced-search, .<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-simple-search').slideToggle({complete: function() {
+	$('.advanced-search, .simple-search').slideToggle({complete: function() {
 		// Clear fields we are hiding and reset operator
 		$('.crud-search-area :input').not(':visible').not('.operator-input').val('');
 		$('.crud-search-area select.operator-input').find('option').prop('selected', function () {
@@ -71,23 +71,23 @@ $form = ActiveForm::begin([
 ?>
 
 	<div class="search-options clearfix">
-		<a href="#" onclick="toggleSearchMethod();return false;" class="btn btn-xs btn-primary pull-right show-adv-search">Toggle advanced search</a>
+		<a href="#" onclick="toggleSearchMethod();return false;" class="btn btn-xs btn-primary pull-right show-adv-search"><?= $generator->generateStringHtml('Toggle advanced search') ?></a>
 	</div>
 	<div style="height: 10px"></div>
 
-	<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-simple-search">
+	<div class="simple-search">
 		<div class="input-group">
 			<?= "<?= " ?>$form->field($model, '__common', ['template' => '{input}'])->label(false) ?>
 			<span class="input-group-btn">
-				<?= "<?= " ?>Html::submitButton(Yii::t('app', 'Search'), ['class' => 'btn btn-primary']) ?>
+				<?= "<?= " ?>Html::submitButton(<?= $generator->generateStringHtml('Search') ?>, ['class' => 'btn btn-primary']) ?>
 			</span>
 		</div>
 	</div>
 
-	<div class="<?= Inflector::camel2id(StringHelper::basename($generator->modelClass)) ?>-advanced-search collapse">
+	<div class="advanced-search collapse">
 		<div class="panel panel-info">
-			<div class="panel-heading"><h4><?= "<?= " ?>Yii::t('app', 'Advanced search') ?></h4></div>
-			<div class="panel-footer">
+			<div class="panel-heading"><h4><?= $generator->generateStringHtml('Advanced search') ?></h4></div>
+			<div class="panel-body">
 <?= "<?php\n" ?>
 <?php
 $count = 0;
@@ -100,15 +100,26 @@ foreach ($generator->getColumnNames() as $attribute) {
 }
 ?>
 ?>
-				<div class="form-group">
-					<?= "<?= " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']) ?>
-					<?= "<?= " ?>Html::resetButton(<?= $generator->generateString('Reset') ?>, ['class' => 'btn btn-default']) ?>
-				</div>
+			</div>
+			<div class="panel-footer">
+				<?= "<?= " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']) ?>
+				<?= "<?= " ?>Html::resetButton(<?= $generator->generateString('Reset') ?>, ['class' => 'btn btn-default']) ?>
 			</div>
 		</div>
 
 <?= "<?php " ?>ActiveForm::end(); ?>
 
+	</div>
+
+	<div class="clear-filter text-center">
+<?= "<?php\n" ?>
+if ($filterApplied) {
+?>
+		<div style="height: 10px"></div>
+		<a href="<?= "<?= " ?>\yii\helpers\Url::to([Yii::$app->requestedRoute]) ?>" class="btn btn-warning"><?= $generator->generateStringHtml('Clear filter') ?></a>
+<?= "<?php\n" ?>
+}
+?>
 	</div>
 </div>
 
