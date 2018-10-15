@@ -584,19 +584,24 @@ appJS.showModal = function(parms) {
 		}
 		//put focus in first form field, if any
 		var $firstInput = $(modalSelector).find(':input:not(button):not(textarea):first');
-		if ($firstInput.length > 0 && parms.skipCloseOnInputEnter !== true) {
-			$firstInput.focus().select();
-			$firstInput.on('keyup', function(ev) {
-				if (ev.keyCode == 13) {
-					var $btn = $(modalSelector).find('.btn-yes, .btn-ok');
-					if ($btn.length > 0) {
-						$btn.trigger('click');
-					} else {
-						// for modals without a Yes button (just the default Close button)
-						$(modalSelector).modal('hide');
+		if ($firstInput.length > 0) {
+			if (parms.skipCloseOnInputEnter === true) {
+				//ensure we clear any event handlers that might have been established from previous use of this modal
+				$firstInput.off('keyup.JsHelperModal');
+			} else {
+				$firstInput.focus().select();
+				$firstInput.on('keyup.JsHelperModal', function(ev) {
+					if (ev.keyCode == 13) {
+						var $btn = $(modalSelector).find('.btn-yes, .btn-ok');
+						if ($btn.length > 0) {
+							$btn.trigger('click');
+						} else {
+							// for modals without a Yes button (just the default Close button)
+							$(modalSelector).modal('hide');
+						}
 					}
-				}
-			});
+				});
+			}
 		}
 	};
 	$(modalSelector).on('shown.bs.modal', openedCb);
