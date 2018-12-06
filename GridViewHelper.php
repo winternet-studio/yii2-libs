@@ -12,8 +12,8 @@ class GridViewHelper extends Component {
 			[
 				'attribute' => $attribute,
 				'filter' => Html::activeDropDownList($searchModel, $attribute, $searchModel::allowedValues($attribute), ['prompt' => (array_key_exists('prompt', $options) ? $options['prompt'] : ''), 'class' => 'form-control'. ($options['class'] ? ' '. $options['class'] : ''), 'style' => 'width: '. ($options['width'] ? $options['width'] : '85px') ]),
-				'value' => function($model) {
-					return $model::allowedValues($attribute)[ $model->$attribute ],
+				'value' => function($model) use (&$attribute) {
+					return $model::allowedValues($attribute)[ $model->$attribute ];
 				},
 			];
 	}
@@ -21,7 +21,7 @@ class GridViewHelper extends Component {
 	/**
 	 * @param $dataArray : Example: `\app\models\Customer::find()->orderBy('cust_name')->all()`
 	 */
-	public static function filterFromArray($searchModel, $attribute, $dataArray, $dataArrayKey, $dataArrayValue $options = []) {
+	public static function filterFromArray($searchModel, $attribute, $dataArray, $dataArrayKey, $dataArrayValue, $options = []) {
 		return
 			[
 				'attribute' => ($options['relatedAttribute'] ? $options['relatedAttribute'] : $attribute),
