@@ -39,6 +39,10 @@ class Result extends Component {
 		$this->resultMessages = [];
 	}
 
+	public function noErrors() {
+		return (empty($this->errorMessages) ? true : false);
+	}
+
 	public function output() {  //if I change the structure one day a new method could maybe be called toArray()...
 		if (count($this->errorMessages) == 0) {
 			return array(
