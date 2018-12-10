@@ -19,6 +19,10 @@ class Result extends Component {
 		$this->errorMessages[] = $message;
 	}
 
+	public function addErrors($arrayMessages) {
+		$this->errorMessages = array_merge($this->errorMessages, $arrayMessages);
+	}
+
 	public function addNotice($message) {
 		$this->resultMessages[] = $message;
 	}
