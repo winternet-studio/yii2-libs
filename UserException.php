@@ -295,6 +295,7 @@ class UserException extends \yii\base\UserException {
 			if (!$register) {
 				Yii::$app->log->targets = [];  //don't log it anywhere
 			}
+			// TEST: how will this work in CLI mode? And should we set an exit code?
 			throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg, $this->errorCode);
 		} else {
 			if (!$silent) {
