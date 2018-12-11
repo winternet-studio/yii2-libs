@@ -661,19 +661,18 @@ appJS.showModal = function(parms) {
 		}
 	};
 };
+/**
+ * Display a result message from an operation based on a standard response format from the server
+ *
+ * @param {object} arrResult - Result from the server (with properties `status`, `err_msg`, `result_msg`)
+ * @param {string} okMessageHtml - Message to show if successful
+ * @param {string} errorMessageHtml - Message to show in case of error(s)
+ * @param {object} options - Any of these properties:
+ * 	- `textPleaseNote` : text to append to the OK message if there are any result messages needed to be shown (defaults to "Please note" followed by a colon)
+ * @return {string} - HTML code
+ */
 appJS.formatStdResult = function(arrResult, okMessageHtml, errorMessageHtml, options) {
-	/*
-	DESCRIPTION:
-	- display a result message from an operation based on a standard response format from the server
-	INPUT:
-	- arrResult : an parsed object with the result from the server (with properties 'status', 'err_msg', 'result_msg')
-	- okMessageHtml : message to show if successful
-	- errorMessageHtml : message to show in case of error(s)
-	- options : object with any of these properties:
-		- 'textPleaseNote' : text to append to the OK message if there are any result messages needed to be shown (defaults to "Please note" followed by a colon)
-	OUTPUT:
-	- string with HTML code
-	*/
+	if (typeof options == 'undefined') options = {};
 	var html = '', i, shown = [];
 	if (arrResult.status == 'ok') {
 		html = '<div class="std-func-result ok">'+ okMessageHtml;

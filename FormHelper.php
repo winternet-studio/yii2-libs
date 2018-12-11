@@ -99,7 +99,7 @@ form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be de
 			if ($options['jsBefore']) {
 				$js .= $options['jsBefore'];
 			}
-			$js .= "alert(e+\"\\n\\n\"+\$('<div/>').html(r.responseJSON.message).text());";
+			$js .= "alert(e+\"\\n\\n\"+\$('<div/>').html((r.responseJSON && r.responseJSON.message ? r.responseJSON.message : r.responseText)).text());";
 			if ($options['jsAfter']) {
 				$js .= $options['jsAfter'];
 			}
@@ -158,7 +158,7 @@ form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be de
 
 		if ($options['add_existing']) {
 			if (!empty($result['err_msg'])) {
-				$result['err_msg_ext']['_global'] = $result['err_msg'];
+				$result['err_msg_ext']['_generic'] = $result['err_msg'];
 			}
 		}
 
