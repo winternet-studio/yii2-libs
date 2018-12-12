@@ -118,35 +118,39 @@ class JobQueue extends Component {
 	// -------------
 
 
+	/**
+	 * Add a job to the job queue
+	 *
+	 * @param array $params : Associative array with these keys:
+	 *   - `queueID` (opt.) : name of queue to add the job to (if using multiple queues)
+	 *   - `command` (req.) : command to execute. Usually in the format of {"route":"image/gen-thumbnail", "id":8256, "dest":"/storage/"}
+	 *     - non-strings are acceptable
+	 *   - `replaceID` (opt.) : ID of the job which will cause a later job with the same ID to replace this job if it hasn't started yet
+	 *     (therefore once a job is started this ID is removed)
+	 *   - `priority` (opt.) : set a custom priority, from -128 to 127 (default is 0)
+	 *   - `atCommand` (opt.) : the command for the Linux `at` command to execute to get this job done
+	 *     - use placeholder {{jobID}} to have the ID of the created job inserted into the command
+	 *     - single-quotes (') not allowed in the command and will be removed (no escaping is currently done)
+	 *     - www-data must be allowed to use `at` command:
+	 *       http://www.digitalwhores.net/linux/you-do-not-have-permission-to-use-at/
+	 *         - remove www-data from /etc/at.deny
+	 *       https://serverfault.com/questions/556332/why-is-www-data-ubuntu-apache-user-listed-in-the-etc-at-deny-file
+	 *   - `niceness` (number) (opt.) : add a `nice` value (process priority) to the job executed by `at` (only applicable when atCommand is used)
+	 *     - values can range from -20 to 19 (higher means lower priority (= nicer to the system resources))
+	 *     - root privileges is required to use values below 0.
+	 *     - default is 0
+	 *   - `delaySecs` (opt.) : number of seconds to delay the job (otherwise executed at next loop of the service) (only applicable when atCommand is used)
+	 *   - `touchFile` (opt.) : path to file to touch in order to trigger an incron job that has been setup (requires `incron` to have been installed, running and configured with the command to run)
+	 *     - example incron job: `/var/app/current/runtime/WS-JobQueue-trigger  IN_ATTRIB  /.../scriptfile.sh`
+	 *     - example script file (remember execute permissions on it for the executing user):
+	 *         #!/bin/bash
+	 *         rm -f /var/app/current/runtime/WS-JobQueue-incron-inprogress.tmp
+	 *         nice -19 php /var/app/current/yii enrich/process-job-queue >/dev/null 2>&1
+	 *   - `noConcurrentExecution` (opt.) : set to true to not set up multiple concurrent `at` jobs or touch a file if a job execution from a previous touch has not yet completed
+	 *     - can be used to reduce the number of commands run, but then each command must execute all pending jobs in the queue
+	 * @return void
+	 */
 	public function push($params = []) {
-		/*
-		DESCRIPTION:
-		- add a job to the job queue
-		INPUT:
-		- $params : associative array with these keys:
-			- 'queueID' (opt.) : name of queue to add the job to (if using multiple queues)
-			- 'command' (req.) : command to execute. Usually in the format of {"route":"image/gen-thumbnail", "id":8256, "dest":"/storage/"}
-				- non-strings are acceptable
-			- 'replaceID' (opt.) : ID of the job which will cause a later job with the same ID to replace this job if it hasn't started yet
-				(therefore once a job is started this ID is removed)
-			- 'priority' (opt.) : set a custom priority, from -128 to 127 (default is 0)
-			- 'delaySecs' (opt.) : number of seconds to delay the job (otherwise executed at next loop of the service)
-			- 'atCommand' (opt.) : the command for the Linux `at` command to execute to get this job done
-				- use placeholder {{jobID}} to have the ID of the created job inserted into the command
-				- single-quotes (') not allowed in the command and will be removed (no escaping is currently done)
-				- www-data must be allowed to use `at` command:
-					http://www.digitalwhores.net/linux/you-do-not-have-permission-to-use-at/
-						- remove www-data from /etc/at.deny
-					https://serverfault.com/questions/556332/why-is-www-data-ubuntu-apache-user-listed-in-the-etc-at-deny-file
-			- 'niceness' (number) (opt.) : add a `nice` value (process priority) to the job executed by `at`
-				- values can range from -20 to 19 (higher means lower priority (= nicer to the system resources))
-				- root privileges is required to use values below 0.
-				- default is 0
-			- 'noConcurrentAt' (opt.) : set to true to not set up multiple concurrent `at` jobs
-				- can be used to reduce the number of commands run, but then each command must execute all pending jobs in the queue
-		OUTPUT:
-		- nothing
-		*/
 		if (!$params['command']) {
 			new \winternet\yii2\UserException('Command for adding JobQueue is not specified.');
 		}
@@ -187,7 +191,7 @@ class JobQueue extends Component {
 				$cmd = 'nice -'. $params['niceness'] .' '. $cmd;
 			}
 
-			if ($params['noConcurrentAt']) {
+			if ($params['noConcurrentExecution']) {
 				$indic_file = \Yii::getAlias('@app/runtime/WS-JobQueue-at-inprogress.tmp');
 
 				// Cancel setting at command if one is already pending
@@ -219,6 +223,41 @@ class JobQueue extends Component {
 
 				$output = []; $exitcode = 0;
 				exec($cmd, $output, $exitcode);
+
+				if ($exitcode != 0) {
+					new \winternet\yii2\UserException('Failed to execute at command in JobQueue.', ['Exit code' => $exitcode, 'Output' => implode('', $output) ]);
+				}
+			}
+		}
+
+		if ($params['touchFile']) {
+			$folder = dirname($params['touchFile']);
+			$filename = basename($params['touchFile']);
+
+			if (!file_exists($folder)) {
+				new \winternet\yii2\UserException('Folder to touch file in from within JobQueue does not exist.', ['Folder' => $folder]);
+			}
+			if (!preg_match("/^[a-z0-9_\\-\\.]+$/i", $filename)) {
+				new \winternet\yii2\UserException('File name touch in JobQueue does not exist.', ['Filename' => $filename]);
+			}
+
+			$skip_touch = false;
+			if ($params['noConcurrentExecution']) {
+				$indic_file = \Yii::getAlias('@app/runtime/WS-JobQueue-incron-inprogress.tmp');
+
+				// Cancel setting at command if one is already pending
+				if (file_exists($indic_file)) {
+					$skip_touch = true;
+				} else {
+					// Create the file
+					touch($indic_file);
+				}
+			}
+
+			if (!$skip_touch) {
+				if (!touch($params['touchFile'])) {
+					new \winternet\yii2\UserException('Failed to touch file in JobQueue.', ['File' => $params['touchFile'] ]);
+				}
 			}
 		}
 	}
