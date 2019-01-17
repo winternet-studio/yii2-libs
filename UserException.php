@@ -228,6 +228,15 @@ class UserException extends \yii\base\UserException {
 
 				$errorID = $dbConn->getLastInsertID();
 				$filemsg = 'All details registered in database with error code '. $this->errorCode .' (errorID '. $errorID .').';
+
+				// Delete expired errors once per session
+				$session = Yii::$app->session;
+				if ($session) {
+					if (!$session->get('wsErrorsCleared')) {
+						$dbConn->createCommand("DELETE FROM `". $databaseTable ."` WHERE err_expire_days IS NOT NULL AND TO_DAYS(err_timestamp) + err_expire_days < TO_DAYS(NOW())")->execute();
+						$session->set('wsErrorsCleared', 1);
+					}
+				}
 			} else {
 				$filemsg = "----------------------------------------------------------------------------- ". $err_timestamp_read ." -----------------------------------------------------------------------------\r\n\r\n";
 				$filemsg .= $msg_string ."\r\n";
