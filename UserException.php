@@ -232,9 +232,17 @@ class UserException extends \yii\base\UserException {
 				// Delete expired errors once per session
 				$session = Yii::$app->session;
 				if ($session) {
-					if (!$session->get('wsErrorsCleared')) {
-						$dbConn->createCommand("DELETE FROM `". $databaseTable ."` WHERE err_expire_days IS NOT NULL AND TO_DAYS(err_timestamp) + err_expire_days < TO_DAYS(NOW())")->execute();
-						$session->set('wsErrorsCleared', 1);
+					try {
+						if (!$session->get('wsErrorsCleared')) {
+							$dbConn->createCommand("DELETE FROM `". $databaseTable ."` WHERE err_expire_days IS NOT NULL AND TO_DAYS(err_timestamp) + err_expire_days < TO_DAYS(NOW())")->execute();
+							$session->set('wsErrorsCleared', 1);
+						}
+					} catch (\Exception $e) {
+						if (preg_match("/session_start.*headers already sent/", $e->getMessage())) {  //in case of CLI programs we might end up with this error because output was already echoed way before we got to here where Yii2 tries to open the session, so ignore that error
+							// ignore exception
+						} else {
+							throw $e;
+						}
 					}
 				}
 			} else {
