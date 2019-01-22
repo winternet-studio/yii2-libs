@@ -9,6 +9,9 @@ appJS = {
 
 /* ------------- AJAX section ------------- */
 
+/**
+ * @return {Promise} - Returns the jQuery AJAX Promise
+ */
 appJS.ajax = function(parms) {
 	if (typeof parms.error == 'undefined') {
 		var titleText = 'Sorry, we ran into a problem...';
@@ -49,7 +52,7 @@ appJS.ajax = function(parms) {
 			}
 		};
 	}
-	$.ajax(parms);
+	return $.ajax(parms);
 };
 
 // IMPORTANT NOTE!!! Please note that this does not cancel other events that have been set with on('click'). In those events check for the presence of the class click-disabled before executing them.
