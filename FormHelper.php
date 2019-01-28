@@ -223,46 +223,91 @@ form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be de
 	 * Call this method in the controller, before calling the load() and save() methods.
 	 * The timestamps coming back from the form must be of a format that is correctly parsed by the PHP DateTime() constructor.
 	 *
-	 * Note that unless the option `modifyModel = true` the timestamp on the model is not modified (because the widget usually 
-	 * automatically handles the conversion), only the POSTed value is modified by this function.
+	 * If option `modifyModel = false` only the POSTed value is modified by this function. Existing values in the model will not be
+	 * modified (because the widget usually automatically handles the conversion).
 	 *
-	 * @param string $user_timezone Time zone of the end-user
-	 * @param array $models Model to convert timestamp attributes for
-	 * @param string $options Available options: 'format' (string), 'modifyModel' (boolean)
+	 * If option `modifyModel = true` also the timestamp of existing values in the model will be modified, eg. so that those values
+	 * can be directly shown in the form.
+	 *
+	 * @param string $userTimeZone : Time zone of the end-user
+	 * @param array $model : Model to convert timestamp attributes for (can just be an empty model)
+	 * @param string $options : Available options:
+	 *   - `format` (string)
+	 *   - `modifyModel` (boolean)
+	 *   - `multipleModels` (boolean) : set true to assume that the POST contains multiple of the given model,
+	 *        ie. that the form of the fields are `$_POST[modelName][index][attribute]` instead of just the normal `$_POST[modelName][attribute]`
+	 *   - `customPostData` (array) : inject POST values manually if $_POST is not to be used.
+	 *        Then the modified values are returned instead and they are not written back into neither $_POST nor Yii's request body params.
+	 *
 	 * @return void
 	 **/
-	public static function useTimeZone($user_timezone, $model, $options = []) {
+	public static function useTimeZone($userTimeZone, $model, $options = []) {
 		$defaults = [
 			'format' => 'Y-m-d H:i:s',
 			'modifyModel' => false,
+			'multipleModels' => true,
+			'customPostData' => null,
 			// NOT YET IMPLEMENTED. 'onlyAttributes' => [],
 			// NOT YET IMPLEMENTED. 'exclAttributes' => [],
 		];
 		$options = array_merge($defaults, $options);
 
-		date_default_timezone_set($user_timezone);
+		date_default_timezone_set($userTimeZone);
 
+		if ($options['customPostData']) {
+			$postData = $options['customPostData'];
+		} else {
+			$postData = $_POST;
+		}
+
+		$formName = $model->formName();
 		foreach ($model->getTableSchema()->columns as $attribute => $column) {
 			if ($column->type == 'datetime' || $column->type == 'timestamp') {
+				// Modify model value from UTC to user's timezone
 				if ($options['modifyModel']) {
-					$t = new \DateTime($model->$attribute, new \DateTimeZone('UTC'));
-					$t->setTimezone(new \DateTimeZone($user_timezone));
-					$model->$attribute = $t->format($options['format']);
+					$model->$attribute = Common::changeTimezone($model->$attribute, 'UTC', $userTimeZone, $options['format']);
 				}
 
-				if ($_POST[ $model->formName() ][$attribute]) {
-					$timestamp = new \DateTime($_POST[ $model->formName() ][$attribute], new \DateTimeZone($user_timezone));
-					$timestamp->setTimezone(new \DateTimeZone('UTC'));
+				if ($options['multipleModels']) {
+					foreach ($postData[$formName] as $currModelIndex => $currModelValues) {
+						if ($postData[$formName][$currModelIndex][$attribute]) {
+							$timestamp = Common::changeTimezone($postData[$formName][$currModelIndex][$attribute], $userTimeZone, 'UTC', $options['format']);
 
-					// Set standard $_POST variable
-					$_POST[ $model->formName() ][$attribute] = $timestamp->format($options['format']);
+							if (!$options['customPostData']) {
+								// Set standard $_POST variable
+								$_POST[$formName][$currModelIndex][$attribute] = $timestamp;
 
-					// Set Yii's bodyParams so that ->request->post() works
-					$post = \Yii::$app->request->getBodyParams();
-					$post[ $model->formName() ][$attribute] = $timestamp->format($options['format']);
-					\Yii::$app->request->setBodyParams($post);
+								// Set Yii's bodyParams so that ->request->post() works
+								$post = \Yii::$app->request->getBodyParams();
+								$post[$formName][$currModelIndex][$attribute] = $timestamp;
+								\Yii::$app->request->setBodyParams($post);
+							} else {
+								$postData[$formName][$currModelIndex][$attribute] = $timestamp;
+							}
+						}
+					}
+				} else {
+					if ($postData[$formName][$attribute]) {
+						$timestamp = Common::changeTimezone($postData[$formName][$attribute], $userTimeZone, 'UTC', $options['format']);
+
+						if (!$options['customPostData']) {
+							// Set standard $_POST variable
+							$_POST[$formName][$attribute] = $timestamp;
+
+							// Set Yii's bodyParams so that ->request->post() works
+							$post = \Yii::$app->request->getBodyParams();
+							$post[$formName][$attribute] = $timestamp;
+							\Yii::$app->request->setBodyParams($post);
+						} else {
+							$postData[$formName][$attribute] = $timestamp;
+						}
+					}
 				}
 			}
+		}
+
+		if ($options['customPostData']) {
+			return $postData;
 		}
 	}
 
