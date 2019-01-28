@@ -105,4 +105,39 @@ class Common extends Component {
 			return implode(',,,', $output);
 		}
 	}
+
+	/**
+	 * Change the timezone of a datetime/timestamp
+	 *
+	 * @param mixed $dateTime : MySQL datetime or Unix timestamp (or anything the DateTime() constructor accepts)
+	 * @param string $currTimeZone : (opt.) Current timezone of the timestamp. Assume UTC if null.
+	 * @param string $newTimeZone : (opt.) New timezone of the timestamp. Default current user's timezone (in attribute usr_timezone). If no timezone found no conversion is done.
+	 * @param string $format : Format the datetime according to this format instead of returning the DateTime object
+	 *
+	 * @return DateTime|string : DateTime object or formatted datetime as a string
+	 */
+	public static function changeTimezone($dateTime, $currTimeZone = null, $newTimeZone = null, $format = null) {
+		if ($dateTime) {
+			if (!$currTimeZone) {
+				$currTimeZone = 'UTC';
+			}
+			$timestamp = new \DateTime($dateTime, new \DateTimeZone($currTimeZone));
+
+			if (!$newTimeZone && !Yii::$app->user->isGuest) {
+				if (Yii::$app->user->identity->usr_timezone) {
+					 $newTimeZone = Yii::$app->user->identity->usr_timezone;
+				}
+			}
+			if ($newTimeZone) {
+				$timestamp->setTimezone(new \DateTimeZone($newTimeZone));
+			}
+			if ($format) {
+				return $timestamp->format($format);
+			} else {
+				return $timestamp;
+			}
+		} else {
+			return null;
+		}
+	}
 }
