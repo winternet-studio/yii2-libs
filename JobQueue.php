@@ -69,7 +69,7 @@ class JobQueue extends Component {
 		// $this->consoleLog('Command: '. $cmd);
 		exec($cmd .' 2>&1', $output, $exitcode);
 
-		$this->finishJob($job['jobID'], substr($exitcode . implode('', $output), 0, 50));
+		$this->finishJob($job['jobID'], substr($exitcode . implode('', $output), 0, 500));
 
 		return true;
 	}
@@ -141,7 +141,7 @@ class JobQueue extends Component {
 	 *     - default is 0
 	 *   - `delaySecs` (opt.) : number of seconds to delay the job (otherwise executed at next loop of the service) (only applicable when atCommand is used)
 	 *   - `touchFile` (opt.) : path to file to touch in order to trigger an incron job that has been setup (requires `incron` to have been installed, running and configured with the command to run)
-	 *     - example incron job: `/var/app/current/runtime/WS-JobQueue-trigger  IN_ATTRIB  /.../scriptfile.sh`
+	 *     - example incron job: `/var/app/current/runtime/WS-JobQueue-trigger  IN_ATTRIB  bash /.../scriptfile.sh`
 	 *     - example script file (remember execute permissions on it for the executing user):
 	 *         #!/bin/bash
 	 *         rm -f /var/app/current/runtime/WS-JobQueue-incron-inprogress.tmp
