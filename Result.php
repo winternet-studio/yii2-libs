@@ -39,6 +39,8 @@ class Result extends Component {
 	}
 
 	public function addError($message, $namedError = null) {
+		$this->setStatus('error');
+
 		// Handle arrays in case we by mistake pass that
 		if (is_array($message)) {
 			$keys = array_keys($message);
@@ -66,15 +68,18 @@ class Result extends Component {
 		if (is_array(current($arrayMessages))) {  //detect if we have an array with attributes as keys which each have an array of error messages
 			$this->addAllNamedErrors($arrayMessages);
 		} else {
+			$this->setStatus('error');
 			$this->errorMessages['_generic'] = array_merge($this->errorMessages['_generic'], $arrayMessages);
 		}
 	}
 
 	public function addNamedErrors($name, $arrayMessages) {
+		$this->setStatus('error');
 		$this->errorMessages[$name] = array_merge( (array) $this->errorMessages[$name], $arrayMessages);
 	}
 
 	private function addAllNamedErrors($arrayNames) {  //good for passing in Yii2 model->getErrors()
+		$this->setStatus('error');
 		foreach ($arrayNames as $name => $errors) {
 			$this->errorMessages[$name] = array_merge( (array) $this->errorMessages[$name], $errors);
 		}
@@ -216,7 +221,8 @@ class Result extends Component {
 	/**
 	 * Set custom status
 	 *
-	 * Will only have effect if $this->errorMessages is empty, otherwise it will be overwritten with `error` in $this->output()
+	 * Will only have effect if $this->errorMessages is empty, otherwise it will be overwritten with `error` in $this->output().
+	 * It will also be reset to `error` each time an error is added afterwards.
 	 */
 	public function setStatus($status) {
 		$this->status = $status;
@@ -232,7 +238,7 @@ class Result extends Component {
 				'err_msg_ext' => [],
 			);
 		} else {
-			$this->status = 'error';
+			$this->setStatus('error');
 			$output = array(
 				'status' => $this->status,
 				'result_msg' => [],
