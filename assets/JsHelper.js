@@ -7,6 +7,77 @@ appJS = {
 };
 
 
+/* ------------- Common core functions ------------- */
+
+/**
+ * Check deep property on object
+ *
+ * This saves you for checking if each property level already exists.
+ *
+ * @param {object} object - Object variable
+ * @param {string} path - String with properties in dot notation, eg. `child.clothing.shirtBrand` (which could for example have the value `H&M` which would then be returned)
+ *
+ * @return mixed - Returns value if found, undefined if not found
+ */
+appJS.getProp = function(object, path) {
+	// Source: https://stackoverflow.com/a/20240290/2404541
+    var o = object;
+    path = path.replace(/\[(\w+)\]/g, '.$1');
+    path = path.replace(/^\./, '');
+    var a = path.split('.');
+    while (a.length) {
+        var n = a.shift();
+        if (n in o) {
+            o = o[n];
+        } else {
+            return;
+        }
+    }
+    return o;
+/*
+	MY OWN WORKING VERSION:
+	var parts, value;
+	parts = path.split('.');
+	value = object;
+	for (var i = 0; i < parts.length; i++) {
+		value = value[parts[i]];
+		if (typeof value == 'undefined') {
+			break;
+		}
+	}
+	if (typeof value != 'undefined') {
+		return value;
+	}
+*/
+};
+
+/**
+ * Set deep property on object
+ *
+ * This saves you for checking if each property level already exists.
+ *
+ * @param {object} object - Object variable
+ * @param {string} path - String with properties in dot notation, eg. `child.clothing.shirtBrand`
+ * @param {mixed} value - Value to set set, eg. `H&M`
+ *
+ * @return void
+ */
+appJS.setProp = function(object, path, value) {
+	// Source: https://stackoverflow.com/a/20240290/2404541
+	var a = path.split('.');
+	var o = object;
+	for (var i = 0; i < a.length - 1; i++) {
+		var n = a[i];
+		if (n in o) {
+			o = o[n];
+		} else {
+			o[n] = {};
+			o = o[n];
+		}
+	}
+	o[a[a.length - 1]] = value;
+};
+
 /* ------------- AJAX section ------------- */
 
 /**
