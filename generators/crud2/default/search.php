@@ -135,7 +135,7 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 		// Field specific search
 		foreach ($searchable as $attribute) {
 			$operator = $this->{$attribute .'_OP'};
-			if (!$operator) $operator = 'equal';
+			if (!$operator) $operator = 'contains';  //use `contains` for the purpose of GridView filter which doesn't provide an operator
 
 			if (in_array($operator, ['empty', 'notempty'])) {
 				$query->andWhere(\winternet\yii2\DatabaseHelper::modelToCondition($attribute, $this->$attribute, $operator));
