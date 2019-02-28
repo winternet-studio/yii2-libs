@@ -79,7 +79,7 @@ $form = ActiveForm::begin([
 		<div class="input-group">
 			<?= "<?= " ?>$form->field($model, '__common', ['template' => '{input}'])->label(false) ?>
 			<span class="input-group-btn">
-				<?= "<?= " ?>Html::submitButton(<?= $generator->generateStringHtml('Search') ?>, ['class' => 'btn btn-primary']) ?>
+				<?= "<?= " ?>Html::submitButton(<?= $generator->generateString('Search') ?>, ['class' => 'btn btn-primary']) ?>
 			</span>
 		</div>
 	</div>
