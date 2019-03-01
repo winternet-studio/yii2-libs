@@ -121,7 +121,7 @@ class Common extends Component {
 			if (!$currTimeZone) {
 				$currTimeZone = 'UTC';
 			}
-			$timestamp = new \DateTime($dateTime, new \DateTimeZone($currTimeZone));
+			$timestamp = new \DateTime((is_numeric($dateTime) ? '@'. $dateTime : $dateTime), new \DateTimeZone($currTimeZone));
 
 			if (!$newTimeZone && !Yii::$app->user->isGuest) {
 				if (Yii::$app->user->identity->usr_timezone) {
