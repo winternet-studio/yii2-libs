@@ -64,7 +64,8 @@ class Result extends Component {
 		}
 	}
 
-	public function addErrors($arrayMessages) {
+	public function addErrors($arrayMessages) {  //good for passing in Yii2 model->getErrors() - which is actually handled by addAllNamedErrors()
+		if (empty($arrayMessages)) return;
 		if (is_array(current($arrayMessages))) {  //detect if we have an array with attributes as keys which each have an array of error messages
 			$this->addAllNamedErrors($arrayMessages);
 		} else {
@@ -78,7 +79,7 @@ class Result extends Component {
 		$this->errorMessages[$name] = array_merge( (array) $this->errorMessages[$name], $arrayMessages);
 	}
 
-	private function addAllNamedErrors($arrayNames) {  //good for passing in Yii2 model->getErrors()
+	private function addAllNamedErrors($arrayNames) {
 		$this->setStatus('error');
 		foreach ($arrayNames as $name => $errors) {
 			$this->errorMessages[$name] = array_merge( (array) $this->errorMessages[$name], $errors);
