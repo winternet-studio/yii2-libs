@@ -61,6 +61,14 @@ wsYii2.FormHelper = {
 	 */
 	formToObject: function(formSelector, onlyChanged) {
 		var data = $(formSelector).serializeArray().reduce(function(m,o){ m[o.name] = o.value; return m;}, {});
+
+		// Add Select2 widgets where nothing is selected - serializeArray() will no include those!
+		$(formSelector).find('select.select2-hidden-accessible').each(function(s2indv, s2val) {
+			if ($(this).select2('data').length == 0) {
+				data[ $(this).attr('name') ] = '';
+			}
+		});
+
 		if (onlyChanged) {
 alert('This part of the method (only returning changed values) has not been implemented yet. Returning all values for now.');
 return data;
