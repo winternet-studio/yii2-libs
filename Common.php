@@ -140,4 +140,25 @@ class Common extends Component {
 			return null;
 		}
 	}
+
+	/**
+	 * @param array $options : Possible keys:
+	 *   - `absoluteUrl` : set true to return full URL instead of only the part after the domain name
+	 *   - `skipConsolePrefix` : set true to not include "Console command: " prefix for console scripts
+	 */
+	public static function getScriptReference($options = []) {
+		if (Yii::$app->request->isConsoleRequest) {
+			if ($options['skipConsolePrefix']) {
+				return implode(' ', Yii::$app->request->getParams());
+			} else {
+				return 'Console command: '. implode(' ', Yii::$app->request->getParams());
+			}
+		} else {
+			if ($options['absoluteUrl']) {
+				return Yii::$app->request->getAbsoluteUrl();
+			} else {
+				return Yii::$app->request->getUrl();
+			}
+		}
+	}
 }

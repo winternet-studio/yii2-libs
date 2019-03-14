@@ -300,8 +300,8 @@ class UserException extends \yii\base\UserException {
 				Yii::$app->mailer->compose()
 					->setFrom($sender_address)
 					->setTo($recipient_address)
-					->setSubject($severe .' in '. $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] .' (instant-notif)')
-					->setTextBody($filemsg)
+					->setSubject($severe .' in '. Yii::$app->id .' (instant-notif)')
+					->setTextBody($filemsg . PHP_EOL . PHP_EOL . Common::getScriptReference())
 					->send();
 			} catch (\Exception $e) {
 				@file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/failed_email.log', $e->getMessage() . PHP_EOL . PHP_EOL . $filemsg, FILE_APPEND);
