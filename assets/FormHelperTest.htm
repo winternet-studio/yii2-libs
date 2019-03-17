@@ -1,0 +1,328 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FormHelper Test</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+<script type="text/javascript" src="FormHelper.js"></script>
+<script type="text/javascript">
+/* <![CDATA[ */
+function doTest(name, testCallback, expectedResult) {
+	// console.log("Testing "+ name);
+	var resultHtml;
+	var testResult = testCallback();
+	// console.log(testResult);
+	if ((typeof expectedResult == 'string' && testResult === expectedResult) ||
+		(typeof expectedResult != 'string' && JSON.stringify(testResult) === JSON.stringify(expectedResult)) ) {
+		resultHtml = '<span style="color: darkgreen; font-weight: bold">SUCCESS</span>';
+		resultHtml += ' <span style="background-color: yellow">'+ JSON.stringify(testResult) +'</span>'
+	} else {
+		resultHtml = '<span style="color: #9e0303; font-weight: bold">FAILED</span>';
+		resultHtml += ' <span style="background-color: blue; color: white">Returned value was '+ JSON.stringify(testResult) +' ('+ (typeof testResult) +') while we expected '+ JSON.stringify(expectedResult) +' ('+ (typeof expectedResult) +')</span>'
+	}
+	// console.log(new Error().stack);
+	$('#tests').append('<div>'+ resultHtml +' '+ name +'</div>');
+}
+
+$(function() {
+	doTest('GETTING: text-input', function() {
+		return wsYii2.FormHelper.getValue('text-input');
+	}, '7625');
+
+	doTest('GETTING: textarea-input', function() {
+		return wsYii2.FormHelper.getValue('textarea-input');
+	}, 'Kongleveien 9999\n3000 Drammen');
+
+	doTest('GETTING: select-input-selected', function() {
+		return wsYii2.FormHelper.getValue('select-input-selected');
+	}, 'FL');
+
+	doTest('GETTING: select-input-notselected', function() {
+		return wsYii2.FormHelper.getValue('select-input-notselected');
+	}, '');
+
+	doTest('GETTING: select-multiple-input-oneselected', function() {
+		return wsYii2.FormHelper.getValue('select-multiple-input-oneselected');
+	}, ['FL']);
+
+	doTest('GETTING: select-multiple-input-multipleselected', function() {
+		return wsYii2.FormHelper.getValue('select-multiple-input-multipleselected');
+	}, ['FL', 'TN']);
+
+	doTest('GETTING: select-multiple-input-notselected', function() {
+		return wsYii2.FormHelper.getValue('select-multiple-input-notselected');
+	}, []);
+
+	doTest('GETTING: radio-input-checked', function() {
+		return wsYii2.FormHelper.getValue('radio-input-checked');
+	}, 'Last');
+
+	doTest('GETTING: radio-input-notchecked', function() {
+		return wsYii2.FormHelper.getValue('radio-input-notchecked');
+	}, null);
+
+	doTest('GETTING: checkbox-one-input-checked', function() {
+		return wsYii2.FormHelper.getValue('checkbox-one-input-checked');
+	}, 'First');
+
+	doTest('GETTING: checkbox-one-input-checked, force array', function() {
+		return wsYii2.FormHelper.getValue('checkbox-one-input-checked', {forceArray: true});
+	}, ['First']);
+
+	doTest('GETTING: checkbox-one-input-notchecked', function() {
+		return wsYii2.FormHelper.getValue('checkbox-one-input-notchecked');
+	}, null);
+
+	doTest('GETTING: checkbox-one-input-notchecked, force array', function() {
+		return wsYii2.FormHelper.getValue('checkbox-one-input-notchecked', {forceArray: true});
+	}, []);
+
+	doTest('GETTING: checkbox-one-input-notchecked, return empty string for null', function() {
+		return wsYii2.FormHelper.getValue('checkbox-one-input-notchecked', {emptyString: true});
+	}, '');
+
+	doTest('GETTING: checkbox-multiple-input-checked', function() {
+		return wsYii2.FormHelper.getValue('checkbox-multiple-input-checked');
+	}, ['First', 'Third']);
+
+	doTest('GETTING: checkbox-multiple-input-notchecked', function() {
+		return wsYii2.FormHelper.getValue('checkbox-multiple-input-notchecked');
+	}, []);
+
+	doTest('GETTING: checkbox-multiple-input-notchecked, force array', function() {
+		return wsYii2.FormHelper.getValue('checkbox-multiple-input-notchecked', {forceArray: true});
+	}, []);
+
+	doTest('GETTING: Non-existing field', function() {
+		return wsYii2.FormHelper.getValue('i-do-not-exist');
+	}, undefined);
+
+
+	setTimeout(function() {
+		doTest('SETTING: text-input', function() {
+			wsYii2.FormHelper.setValue('text-input', 'Jones');
+			return wsYii2.FormHelper.getValue('text-input');
+		}, 'Jones');
+
+		doTest('SETTING: textarea-input', function() {
+			wsYii2.FormHelper.setValue('textarea-input', 'First\nSecond');
+			return wsYii2.FormHelper.getValue('textarea-input');
+		}, 'First\nSecond');
+
+		doTest('SETTING: select-input-selected, select nothing - set empty string', function() {
+			wsYii2.FormHelper.setValue('select-input-selected', 'AL');
+			wsYii2.FormHelper.setValue('select-input-selected', '');
+			return wsYii2.FormHelper.getValue('select-input-selected', {forceNull: true});
+		}, null);
+
+		doTest('SETTING: select-input-selected, select nothing - set null', function() {
+			wsYii2.FormHelper.setValue('select-input-selected', 'AL');
+			wsYii2.FormHelper.setValue('select-input-selected', null);
+			return wsYii2.FormHelper.getValue('select-input-selected', {forceNull: true});
+		}, null);
+
+		doTest('SETTING: select-input-notselected, set selected', function() {
+			wsYii2.FormHelper.setValue('select-input-notselected', 'AL');
+			return wsYii2.FormHelper.getValue('select-input-notselected');
+		}, 'AL');
+
+		doTest('SETTING: select-multiple-input-oneselected, select multiple', function() {
+			wsYii2.FormHelper.setValue('select-multiple-input-oneselected', ['AL', 'TN']);
+			return wsYii2.FormHelper.getValue('select-multiple-input-oneselected');
+		}, ['AL', 'TN']);
+
+		doTest('SETTING: select-multiple-input-multipleselected, select nothing - set empty array', function() {
+			wsYii2.FormHelper.setValue('select-multiple-input-multipleselected', []);
+			return wsYii2.FormHelper.getValue('select-multiple-input-multipleselected');
+		}, []);
+
+		doTest('SETTING: select-multiple-input-multipleselected, select nothing - set null', function() {
+			wsYii2.FormHelper.setValue('select-multiple-input-multipleselected', ['AL', 'TN']);
+			wsYii2.FormHelper.setValue('select-multiple-input-multipleselected', null);
+			return wsYii2.FormHelper.getValue('select-multiple-input-multipleselected');
+		}, []);
+
+		doTest('SETTING: select-multiple-input-multipleselected, select nothing - set empty string', function() {
+			wsYii2.FormHelper.setValue('select-multiple-input-multipleselected', ['AL', 'TN']);
+			wsYii2.FormHelper.setValue('select-multiple-input-multipleselected', '');
+			return wsYii2.FormHelper.getValue('select-multiple-input-multipleselected');
+		}, []);
+
+		doTest('SETTING: select-multiple-input-notselected, select one', function() {
+			wsYii2.FormHelper.setValue('select-multiple-input-notselected', ['AL']);
+			return wsYii2.FormHelper.getValue('select-multiple-input-notselected');
+		}, ['AL']);
+
+		doTest('SETTING: radio-input-checked - check nothing', function() {
+			wsYii2.FormHelper.setValue('radio-input-checked', null);
+			return wsYii2.FormHelper.getValue('radio-input-checked');
+		}, null);
+
+		doTest('SETTING: radio-input-notchecked - check one', function() {
+			wsYii2.FormHelper.setValue('radio-input-notchecked', 'Middle');
+			return wsYii2.FormHelper.getValue('radio-input-notchecked');
+		}, 'Middle');
+
+		doTest('SETTING: checkbox-one-input-checked, uncheck', function() {
+			wsYii2.FormHelper.setValue('checkbox-one-input-checked', null);
+			return wsYii2.FormHelper.getValue('checkbox-one-input-checked');
+		}, null);
+
+		doTest('SETTING: checkbox-one-input-notchecked, check one', function() {
+			wsYii2.FormHelper.setValue('checkbox-one-input-notchecked', 'First');
+			return wsYii2.FormHelper.getValue('checkbox-one-input-notchecked');
+		}, 'First');
+
+		doTest('SETTING: checkbox-multiple-input-checked, check none - set empty array', function() {
+			wsYii2.FormHelper.setValue('checkbox-multiple-input-checked', []);
+			return wsYii2.FormHelper.getValue('checkbox-multiple-input-checked');
+		}, []);
+
+		doTest('SETTING: checkbox-multiple-input-checked, check none - set null', function() {
+			wsYii2.FormHelper.setValue('checkbox-multiple-input-checked', ['First', 'Middle']);
+			wsYii2.FormHelper.setValue('checkbox-multiple-input-checked', null);
+			return wsYii2.FormHelper.getValue('checkbox-multiple-input-checked');
+		}, []);
+
+		doTest('SETTING: checkbox-multiple-input-notchecked, check multiple', function() {
+			wsYii2.FormHelper.setValue('checkbox-multiple-input-notchecked', ['First', 'Third']);
+			return wsYii2.FormHelper.getValue('checkbox-multiple-input-notchecked');
+		}, ['First', 'Third']);
+
+		doTest('SETTING: checkbox-multiple-input-notchecked, check one', function() {
+			wsYii2.FormHelper.setValue('checkbox-multiple-input-notchecked', ['Second']);
+			return wsYii2.FormHelper.getValue('checkbox-multiple-input-notchecked');
+		}, ['Second']);
+	}, 2000);
+});
+/* ]]> */
+</script>
+</head>
+<body>
+
+<form>
+
+<table class="table table-striped table-condensed table-bordered">
+<tr>
+	<td>text-input</td>
+	<td><input type="text" name="text-input" value="7625"></td>
+</tr>
+<tr>
+	<td>textarea-input</td>
+	<td><textarea name="textarea-input" cols="30" rows="10">Kongleveien 9999
+3000 Drammen</textarea></td>
+</tr>
+<tr>
+	<td>select-input-selected</td>
+	<td>
+		<select name="select-input-selected">
+			<option value=""></option>
+			<option value="AL">Alaska</option>
+			<option value="FL" selected>Florida</option>
+			<option value="TN">Tennessee</option>
+			<option value="CA" disabled>California</option>
+		</select>
+	</td>
+</tr>
+<tr>
+	<td>select-input-notselected</td>
+	<td>
+		<select name="select-input-notselected">
+			<option value=""></option>
+			<option value="AL">Alaska</option>
+			<option value="FL">Florida</option>
+			<option value="TN">Tennessee</option>
+			<option value="CA" disabled>California</option>
+		</select>
+	</td>
+</tr>
+<tr>
+	<td>select-multiple-input-oneselected</td>
+	<td>
+		<select multiple name="select-multiple-input-oneselected">
+			<option value="AL">Alaska</option>
+			<option value="FL" selected>Florida</option>
+			<option value="TN">Tennessee</option>
+			<option value="CA" disabled>California</option>
+		</select>
+	</td>
+</tr>
+<tr>
+	<td>select-multiple-input-multipleselected</td>
+	<td>
+		<select multiple name="select-multiple-input-multipleselected">
+			<option value="AL">Alaska</option>
+			<option value="FL" selected>Florida</option>
+			<option value="TN" selected>Tennessee</option>
+			<option value="CA" disabled>California</option>
+		</select>
+	</td>
+</tr>
+<tr>
+	<td>select-multiple-input-notselected</td>
+	<td>
+		<select multiple name="select-multiple-input-notselected">
+			<option value="AL">Alaska</option>
+			<option value="FL">Florida</option>
+			<option value="TN">Tennessee</option>
+			<option value="CA" disabled>California</option>
+		</select>
+	</td>
+</tr>
+<tr>
+	<td>radio-input-checked</td>
+	<td>
+		<input type="radio" name="radio-input-checked" value="First">
+		<input type="radio" name="radio-input-checked" value="Middle">
+		<input type="radio" name="radio-input-checked" value="Last" checked>
+	</td>
+</tr>
+<tr>
+	<td>radio-input-notchecked</td>
+	<td>
+		<input type="radio" name="radio-input-notchecked" value="First">
+		<input type="radio" name="radio-input-notchecked" value="Middle">
+		<input type="radio" name="radio-input-notchecked" value="Last">
+	</td>
+</tr>
+<tr>
+	<td>checkbox-one-input-checked</td>
+	<td>
+		<input type="checkbox" name="checkbox-one-input-checked" value="First" checked>
+	</td>
+</tr>
+<tr>
+	<td>checkbox-one-input-notchecked</td>
+	<td>
+		<input type="checkbox" name="checkbox-one-input-notchecked" value="First">
+	</td>
+</tr>
+<tr>
+	<td>checkbox-multiple-input-checked</td>
+	<td>
+		<input type="checkbox" name="checkbox-multiple-input-checked" value="First" checked>
+		<input type="checkbox" name="checkbox-multiple-input-checked" value="Second">
+		<input type="checkbox" name="checkbox-multiple-input-checked" value="Third" checked>
+	</td>
+</tr>
+<tr>
+	<td>checkbox-multiple-input-notchecked</td>
+	<td>
+		<input type="checkbox" name="checkbox-multiple-input-notchecked" value="First">
+		<input type="checkbox" name="checkbox-multiple-input-notchecked" value="Second">
+		<input type="checkbox" name="checkbox-multiple-input-notchecked" value="Third">
+	</td>
+</tr>
+</table>
+
+</form>
+
+<div id="tests"></div>
+
+</body>
+</html>

@@ -5,6 +5,140 @@ if (typeof wsYii2 == 'undefined') {
 wsYii2.FormHelper = {
 
 	/**
+	 * Get form input value(s) of any type of input
+	 *
+	 * @param {string|object} inputName - Name of form field or jQuery object of the element
+	 * @param {object} options : (opt.) Possible options:
+	 *   - `forceArray` : set true to force value(s) to be returned in an array (good for checkboxes)
+	 *   - `forceNull` : set true to return for returning null instead of empty strings when nothing has been selected (forceArray has priority)
+	 *   - `emptyString` : set true to return empty strings instead of null when nothing has been selected (has priority over forceNull)
+	 *
+	 * @return string|array|null - The form field value (if form field was not found return value will be undefined)
+	 */
+	getValue: function(inputName, options) {
+		var $inputElement, value;
+		if (typeof options == 'undefined') options = {};
+
+		if (typeof inputName === 'string') {
+			$inputElement = $(':input[name="' + inputName + '"]');
+		} else {
+			$inputElement = $(inputName);
+		}
+
+		if ($inputElement.length >= 1) {
+			// console.log('Element '+ inputName +' type: '+ $inputElement.attr('type'));
+			switch ($inputElement.attr('type')) {
+			case 'checkbox':
+				if ($inputElement.length > 1) {
+					value = [];
+					$inputElement.each(function() {
+						if ($(this).prop('checked') && !$(this).prop('disabled')) {
+							value.push($(this).val());
+						}
+					});
+				} else {
+					if ($inputElement.is(':checked:not(:disabled)')) {
+						value = $inputElement.val();
+					} else {
+						value = null;
+					}
+				}
+				break;
+			case 'radio':
+				var fieldExists = ($inputElement.length > 0 ? true : false);
+				value = $inputElement.filter(':checked:not(:disabled)').val();
+				if (typeof value == 'undefined' && fieldExists) {
+					value = null;
+				}
+				break;
+			default:
+				value = $inputElement.val();
+				break;
+			}
+
+			if (options.forceArray) {
+				if (value === null || value === '') {
+					value = [];
+				} else if (!Array.isArray(value)) {  //source: https://stackoverflow.com/questions/4775722/how-to-check-if-an-object-is-an-array
+					value = [value];
+				}
+			} else if (options.emptyString) {
+				if (value === null) {
+					value = '';
+				}
+			} else if (options.forceNull) {
+				if (value === '') {
+					value = null;
+				}
+			}
+			return value;
+		} else {
+			console.log('Element '+ inputName +' not found');
+		}
+	},
+
+	/**
+	 * Set form input value(s) of any type of input
+	 *
+	 * @param {string|object} inputName - Name of form field or jQuery object of the element
+	 *
+	 * @return {object|null} - The element as a jQuery object
+	 */
+	setValue: function(inputName, value) {
+		var $inputElement;
+
+		if (typeof inputName === 'string') {
+			$inputElement = $(':input[name="' + inputName + '"]');
+		} else {
+			$inputElement = $(inputName);
+		}
+
+		if ($inputElement.length >= 1) {
+			switch ($inputElement.attr('type')) {
+			case 'checkbox':
+				$inputElement.each(function (i) {
+					if (Array.isArray(value)) {
+						if (value.length == 0) {
+							$(this).attr('checked', false);
+						} else {
+							var currElement = this, setValue = false;
+							$.each(value, function(indx, currValue) {
+								if ($(currElement).val() == currValue) {
+									setValue = true;
+									return false;
+								}
+							});
+							$(this).attr('checked', setValue);
+						}
+					} else {
+						if ($(this).val() == value) {
+							$(this).attr('checked', true);
+						} else {
+							$(this).attr('checked', false);
+						}
+					}
+				});
+				break;
+			case 'radio':
+				$inputElement.each(function (i) {
+					if ($(this).val() == value) {
+						$(this).attr('checked', true);
+					} else {
+						$(this).attr('checked', false);
+					}
+				});
+				break;
+			default:
+				$inputElement.val(value);
+				break;
+			}
+			return $inputElement;
+		} else {
+			return null;
+		}
+	},
+
+	/**
 	 * Load ActiveForm with new model attributes via Javascript
 	 *
 	 * Form fields must have been named like this: <input name="Contact[firstname]"> <input name="Contact[lastname]">
@@ -62,7 +196,7 @@ wsYii2.FormHelper = {
 	formToObject: function(formSelector, onlyChanged) {
 		var data = $(formSelector).serializeArray().reduce(function(m,o){ m[o.name] = o.value; return m;}, {});
 
-		// Add Select2 widgets where nothing is selected - serializeArray() will no include those!
+		// Add Select2 widgets where nothing is selected - serializeArray() will not include those!
 		$(formSelector).find('select.select2-hidden-accessible').each(function(s2indv, s2val) {
 			if ($(this).select2('data').length == 0) {
 				data[ $(this).attr('name') ] = '';
@@ -71,6 +205,7 @@ wsYii2.FormHelper = {
 
 		if (onlyChanged) {
 alert('This part of the method (only returning changed values) has not been implemented yet. Returning all values for now.');
+// NOTE: should we maybe rather store the form state before changes are made and then compare that instead of using defaultValues and defaultChecked??
 return data;
 			$.each(data, function(indx, val) {
 				var defaultVal;
