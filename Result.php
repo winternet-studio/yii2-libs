@@ -38,7 +38,13 @@ class Result extends Component {
 		}
 	}
 
-	public function addError($message, $namedError = null) {
+	/**
+	 * @param string $message
+	 * @param string $namedError 
+	 * @param array $options : Associative array with any of these options:
+	 *   - `prepend` : set true to set the error as the first message instead of adding it to the end of the list
+	 */
+	public function addError($message, $namedError = null, $options = []) {
 		$this->setStatus('error');
 
 		// Handle arrays in case we by mistake pass that
@@ -58,9 +64,17 @@ class Result extends Component {
 		}
 
 		if ($namedError != null) {
-			$this->errorMessages[$namedError][] = $message;
+			if ($options['prepend'] && is_array($this->errorMessages[$namedError]) && !empty($this->errorMessages[$namedError])) {
+				array_unshift($this->errorMessages[$namedError], $message);
+			} else {
+				$this->errorMessages[$namedError][] = $message;
+			}
 		} else {
-			$this->errorMessages['_generic'][] = $message;
+			if ($options['prepend'] && is_array($this->errorMessages['_generic']) && !empty($this->errorMessages['_generic'])) {
+				array_unshift($this->errorMessages['_generic'], $message);
+			} else {
+				$this->errorMessages['_generic'][] = $message;
+			}
 		}
 	}
 
