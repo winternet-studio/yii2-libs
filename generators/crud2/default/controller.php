@@ -180,7 +180,10 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 	 * @return mixed
 	 */
 	public function actionDelete(<?= $actionParams ?>) {
-		$this->findModel(<?= $actionParams ?>)->delete();
+		$model = $this->findModel(<?= $actionParams ?>);
+		if (!$model->delete()) {
+			\Yii::$app->system->error('Cannot delete record because: '. implode(' ', $model->getErrorSummary(true)), ['Errors' => $model->getErrors(), 'Model' => $model->toArray() ], ['expire' => 2]);
+		}
 
 		if (Yii::$app->params['isApi']) {
 			return ['status' => 'ok'];
