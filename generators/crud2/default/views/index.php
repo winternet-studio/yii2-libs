@@ -27,7 +27,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 	<h1><?= "<?= " ?>Html::encode($this->title) ?></h1>
 <?php if(!empty($generator->searchModelClass)): ?>
-<?= "    <?php " . ($generator->indexWidgetType === 'grid' ? "// " : "") ?>echo $this->render('_search', ['model' => $searchModel, 'event' => $event, 'filterApplied' => $filterApplied]); ?>
+<?= "    <?php " . ($generator->indexWidgetType === 'grid' ? "// " : "") ?>echo $this->render('_search', ['model' => $searchModel, 'filterApplied' => $filterApplied]); ?>
 <?php endif; ?>
 
 	<p class="pull-right">
