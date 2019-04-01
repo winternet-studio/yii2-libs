@@ -36,7 +36,7 @@ $form = ActiveForm::begin([
 
 FormHelper::WarnLeavingUnsaved($this, $form);
 
-$editAttribs = $model->activeAttributes();
+$editAttribs = $model->safeAttributes();
 $viewAttribs = $model->viewable();
 $hints = $model->attributeHints();
 $this->registerCss(ModelHelper::requiredAttributesCss($model));
