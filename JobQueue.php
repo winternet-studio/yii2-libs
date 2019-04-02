@@ -245,7 +245,7 @@ class JobQueue extends Component {
 			if ($params['noConcurrentExecution']) {
 				$indic_file = \Yii::getAlias('@app/runtime/WS-JobQueue-incron-inprogress.tmp');
 
-				// Cancel setting at command if one is already pending
+				// Cancel touching file if an execution is already in progress
 				if (file_exists($indic_file)) {
 					$skip_touch = true;
 				} else {
