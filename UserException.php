@@ -325,7 +325,7 @@ class UserException extends \yii\base\UserException {
 				Yii::$app->log->targets = [];  //don't log it anywhere
 			}
 			// TEST: how will this work in CLI mode? And should we set an exit code?
-			throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg .' <!--WS-->', $this->errorCode);
+			throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg . ($databaseTable ? ' <!--WS-->' : ''), $this->errorCode);
 		} else {
 			if (!$silent) {
 				// TODO: show error
