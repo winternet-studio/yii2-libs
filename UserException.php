@@ -144,7 +144,11 @@ class UserException extends \yii\base\UserException {
 			$showmsg = "\n". $msg_string;
 			if (YII_DEBUG && YII_ENV == 'dev') {
 				if (!empty($arr_internal_info)) {
-					$showmsg .= "\n\n". VarDumper::dumpAsString($arr_internal_info, 10, false) ."\n";
+					if (is_string($arr_internal_info)) {
+						$showmsg .= "\n\n". $arr_internal_info ."\n";
+					} else {
+						$showmsg .= "\n\n". VarDumper::dumpAsString($arr_internal_info, 10, false) ."\n";
+					}
 				}
 			}
 			// $showmsg .= $errordata;  //in CLI mode I think this is pretty much similar to what Yii already itself writes to the output...
@@ -161,7 +165,11 @@ class UserException extends \yii\base\UserException {
 			$showmsg = '<b class="error-msg">'. $msg_stringHTML .'</b>';
 			if (YII_DEBUG && YII_ENV == 'dev') {
 				if (!empty($arr_internal_info)) {
-					$showmsg .= '<br><br><pre class="error-internal-info"><div>'. json_encode($arr_internal_info, JSON_PRETTY_PRINT) .'</div></pre>';
+					if (is_string($arr_internal_info)) {
+						$showmsg .= '<br><br><pre class="error-internal-info"><div>'. $arr_internal_info .'</div></pre>';
+					} else {
+						$showmsg .= '<br><br><pre class="error-internal-info"><div>'. json_encode($arr_internal_info, JSON_PRETTY_PRINT) .'</div></pre>';
+					}
 				} else {
 					$showmsg .= '<br>';
 				}
@@ -211,7 +219,7 @@ class UserException extends \yii\base\UserException {
 					[
 						'code' => $this->errorCode,
 						'msg' => $msg_string,
-						'details' => (!empty($arr_internal_info) ? $this->jsonEncodeCleaned($arr_internal_info) : null),
+						'details' => (!empty($arr_internal_info) ?  (is_string($arr_internal_info) ? $arr_internal_info : $this->jsonEncodeCleaned($arr_internal_info))  : null),
 						'timestamp' => gmdate('Y-m-d H:i:s', $err_timestamp),
 						'url' => $url,
 						'request' => $this->jsonEncodeCleaned([
@@ -256,7 +264,11 @@ class UserException extends \yii\base\UserException {
 					$filemsg .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 				}
 				if (!empty($arr_internal_info)) {
-					$filemsg .= "\r\n\r\nInternal Error Details: ". json_encode($arr_internal_info, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+					if (is_string($this->jsonEncodeCleaned($arr_internal_info))) {
+						$filemsg .= "\r\n\r\nInternal Error Details: ". $arr_internal_info;
+					} else {
+						$filemsg .= "\r\n\r\nInternal Error Details: ". json_encode($arr_internal_info, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+					}
 				}
 				if ($errordata) {
 					$filemsg .= "\r\n\r\nStack Trace:\r\n". $errordata;
@@ -313,7 +325,7 @@ class UserException extends \yii\base\UserException {
 				Yii::$app->log->targets = [];  //don't log it anywhere
 			}
 			// TEST: how will this work in CLI mode? And should we set an exit code?
-			throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg, $this->errorCode);
+			throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg .' <!--WS-->', $this->errorCode);
 		} else {
 			if (!$silent) {
 				// TODO: show error
