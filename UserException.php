@@ -80,6 +80,7 @@ class UserException extends \yii\base\UserException {
 		$err_timestamp = time();
 		$this->errorCode = $err_timestamp;
 		$err_timestamp_read = gmdate('Y-m-d H:i:s', $err_timestamp) .' UTC';
+		$ipAddress = Yii::$app->request->getUserIP();
 
 		$errordata = '';
 
@@ -223,7 +224,7 @@ class UserException extends \yii\base\UserException {
 						'timestamp' => gmdate('Y-m-d H:i:s', $err_timestamp),
 						'url' => $url,
 						'request' => $this->jsonEncodeCleaned([
-							'IP' => $_SERVER['REMOTE_ADDR'] . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : ''),
+							'IP' => $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : ''),
 							$_SERVER['REQUEST_METHOD'] => (!empty($_POST) ? $_POST : null),
 							'Referer' => $_SERVER['HTTP_REFERER'],
 							'User Agent' => $_SERVER['HTTP_USER_AGENT'],
@@ -259,7 +260,7 @@ class UserException extends \yii\base\UserException {
 				$filemsg .= "\r\nError Code: ". $this->errorCode;
 				$filemsg .= "\r\nURL: ". $_SERVER['REQUEST_METHOD'] ." ". $_SERVER['REQUEST_SCHEME'] ."://". $_SERVER['HTTP_HOST'] . $url;
 				$filemsg .= "\r\nReferer: ". $_SERVER['HTTP_REFERER'];
-				$filemsg .= "\r\nIP: ". $_SERVER['REMOTE_ADDR'] . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
+				$filemsg .= "\r\nIP: ". $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
 				if (!empty($_POST)) {
 					$filemsg .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 				}
