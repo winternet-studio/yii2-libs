@@ -80,7 +80,11 @@ class UserException extends \yii\base\UserException {
 		$err_timestamp = time();
 		$this->errorCode = $err_timestamp;
 		$err_timestamp_read = gmdate('Y-m-d H:i:s', $err_timestamp) .' UTC';
-		$ipAddress = Yii::$app->request->getUserIP();
+		if (PHP_SAPI == 'cli') {
+			$ipAddress = 'CLI '. Yii::$app->request->getScriptFile() .' '. json_encode(Yii::$app->request->getParams(), JSON_UNESCAPED_SLASHES);
+		} else {
+			$ipAddress = Yii::$app->request->getUserIP();
+		}
 
 		$errordata = '';
 
