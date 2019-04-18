@@ -175,7 +175,7 @@ class Result extends Component {
 	/**
 	 * Get a flat array of all errors
 	 *
-	 * Eg.: `['Some error', 'Another error', 'firstname' => 'Too short.', 'lastname' => 'Too long.']`
+	 * Eg.: `['Some error.', 'Another error.', 'firstname' => 'Too short.', 'lastname' => 'Too long.']`
 	 */
 	public function getErrorsFlat() {
 		if (!empty($this->errorMessages)) {  // make a flat array
@@ -196,6 +196,13 @@ class Result extends Component {
 			return $output;
 		}
 		return [];
+	}
+
+	/**
+	 * Get a string with all the errors, concatenated with a space
+	 */
+	public function getErrorsString() {
+		return implode(' ', $this->getErrorsFlat());
 	}
 
 	public function getNotices() {
