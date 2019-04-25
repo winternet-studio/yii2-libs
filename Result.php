@@ -40,7 +40,7 @@ class Result extends Component {
 
 	/**
 	 * @param string $message
-	 * @param string $namedError 
+	 * @param string $namedError
 	 * @param array $options : Associative array with any of these options:
 	 *   - `prepend` : set true to set the error as the first message instead of adding it to the end of the list
 	 */
@@ -251,7 +251,12 @@ class Result extends Component {
 	}
 
 
-	public function output($options = []) {  //if I change the structure one day a new method could maybe be called toArray()...
+	/**
+	 * Format result for output
+	 *
+	 * LEGACY method. Use response() instead.
+	 */
+	public function output($options = []) {
 		if (count($this->errorMessages) == 0) {
 			$output = array(
 				'status' => $this->status,
@@ -271,6 +276,52 @@ class Result extends Component {
 		foreach ($this->otherInformation as $key => $value) {
 			$output[$key] = $value;
 		}
+		return $output;
+	}
+
+	/**
+	 * Format result for a response
+	 *
+	 * In Javascript use `Object.keys(array).forEach(function(key) { ... })` for iterating through the errors and notices.
+	 */
+	public function response() {
+		/*
+		NOTES:
+		- decided not to go for the full blown "envelope" style where all below would be put under a "result" property and everything else under a "data" property. Reasons being:
+			- the axios HTTP client already put this entire response body under a "data" property, so if we also add "data" one would have to write response.data.data.someThing - not too beautiful.
+			- if we really need all other information gathered under one property we could just manually do that when assigning the data.
+		- decided to call this method response() instead of toArray() or return()
+		*/
+		if (count($this->errorMessages) == 0) {
+			$output = [
+				'status' => $this->status,
+				'notices' => $this->resultMessages,
+				'errors' => [],
+				'errorsItemized' => [],
+			];
+		} else {
+			$this->setStatus('error');
+			$output = [
+				'status' => $this->status,
+				'notices' => [],
+				'errors' => $this->getErrorsFlat(),  // flat array, can have a mix of integer and string/named keys
+				'errorsItemized' => $this->errorMessages,  // not flat, has named keys which then always have an array of values
+			];
+		}
+		foreach ($this->otherInformation as $key => $value) {
+			$output[$key] = $value;
+		}
+
+		Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON]['prettyPrint'] = (defined('YII_DEBUG') ? YII_DEBUG : false); // use "pretty" output in debug mode
+
+		/*
+		DECIDED NOT TO DO THE FOLLOWING AFTERALL BECAUSE:
+		- if other information is added that would also be force encoded as objects and that might not be desirable
+		- Object.keys(array).forEach(function(key) { ... }) works fine on arrays as well! (since arrays are just a special type of objects)
+		*/
+		// For JSON output enforce encoding arrays as objects so the variable types will always be the same
+		// Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON]['encodeOptions'] = JSON_FORCE_OBJECT;
+
 		return $output;
 	}
 }
