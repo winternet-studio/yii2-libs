@@ -283,6 +283,8 @@ class Result extends Component {
 	 * Format result for a response
 	 *
 	 * In Javascript use `Object.keys(array).forEach(function(key) { ... })` for iterating through the errors and notices.
+	 *
+	 * And if you just need all errors joined in a string you can do `Object.values(errors).join(' ')`.
 	 */
 	public function response() {
 		/*
