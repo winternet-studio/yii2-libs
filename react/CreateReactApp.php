@@ -8,13 +8,26 @@ use yii\base\Component;
  * This is used to deal with create-react-app
  */
 class CreateReactApp extends Component {
-	public $path = null;
+	public $reactSourcePath = null;
+	public $reactAssetDestPathFs = null;
+	public $reactAssetDestPathWeb = null;
+	public $developmentPort = 3000;
+	public $isDev = (YII_ENV === 'dev' ? true : false);
 
 	/**
-	 * @param string $path : Absolute path to the create-react-app folder that contains the package.json file
+	 * @param string $reactSourcePath : Absolute path to the create-react-app folder that contains the package.json file
+	 * @param string $reactAssetDestPathFs : Absolute file system path to where React assets should be put, eg. `/var/www/yoursite.com/web/react-assets`
+	 * @param string $reactAssetDestPathWeb : Absolute web path to where React assets should be put, eg. `/react-assets`
+	 * @param string $developmentPort : Specify alternative port of the development server if not 3000
 	 */
-	function __construct($path) {
-		$this->path = rtrim($path, '/');
+	function __construct($reactSourcePath, $reactAssetDestPathFs, $reactAssetDestPathWeb, $developmentPort = null) {
+		$this->reactSourcePath = rtrim($reactSourcePath, '/');
+		$this->reactAssetDestPathFs = rtrim($reactAssetDestPathFs, '/');
+		$this->reactAssetDestPathWeb = rtrim($reactAssetDestPathWeb, '/');
+
+		if ($developmentPort) {
+			$this->developmentPort = $developmentPort;
+		}
 	}
 
 	/**
@@ -22,67 +35,112 @@ class CreateReactApp extends Component {
 	 */
 	public function getIndexPage($data) {
 		$view = Yii::$app->controller->getView();
-		$view->registerLinkTag(['rel' => 'manifest', 'href' => '%PUBLIC_URL%/manifest.json']);
-		$view->registerJs('window.pageData = '. json_encode($data), $view::POS_END);
+		// NOT PART OF THE REACT APP REALLY. $view->registerLinkTag(['rel' => 'manifest', 'href' => '%PUBLIC_URL%/manifest.json']);
 
 		$pageHtml = '
 			<noscript>You need to enable JavaScript to run this app.</noscript>
 			<div id="root"></div>
 		';
 
-		if (YII_ENV_DEV) {
-			// Render the page without the react scripts and inject that into the react development system (since React itself will inject the scripts)
-			$this->developmentInjection(Yii::$app->controller->renderContent($pageHtml));
+		if ($this->isDev) {
+			$devServerRunning = true;
 
-			// Get the compiled scripts to inject them into the HTML
-			$craConfig = json_decode(file_get_contents($this->path .'/package.json'));
-			$port = 3000;
-			if (preg_match("/PORT=(\\d+)/i", $craConfig->scripts->start, $match)) {
-				$port = $match[1];
+			try {
+				$timeout = 2;  //seconds
+				$result = fsockopen('localhost', $this->developmentPort, $errno, $errstr, $timeout);
+			} catch (\Exception $e) {
+				$devServerRunning = false;
 			}
-			$devServer = 'http://localhost:'. $port;
 
-			$devHtml = file_get_contents($devServer);
-			$reactScripts = $this->getReactScripts($devHtml);
-			foreach ($reactScripts as $reactScript) {
-				$view->registerJsFile($devServer . $reactScript .'?_='. microtime(true));
+			if ($devServerRunning) {
+				// Render the page without the react scripts and inject that into the react development system (since React itself will inject the scripts)
+				$this->developmentInjection(Yii::$app->controller->renderContent($pageHtml));
+
+				// Get the compiled scripts to inject them into the HTML
+				$craConfig = json_decode(file_get_contents($this->reactSourcePath .'/package.json'));
+				if (preg_match("/PORT=(\\d+)/i", $craConfig->scripts->start, $match)) {
+					$this->developmentPort = $match[1];
+				}
+				$devServer = 'http://localhost:'. $this->developmentPort;
+
+				$devHtml = file_get_contents($devServer);
+				$usingDevEnvironment = true;
+
+				$reactScripts = $this->extractReactDevScripts($devHtml);
+				foreach ($reactScripts as $reactScript) {
+					$view->registerJsFile($devServer . $reactScript .'?_='. microtime(true));
+				}
 			}
 		}
 
-		// Now render again, this time including the react scripts, for the Yii output
+		// Production environment
+		if (!$usingDevEnvironment) {
+			// Inject the production grade React scripts
+			foreach (\yii\helpers\FileHelper::findFiles($this->reactAssetDestPathFs .'/js') as $file) {
+				if (pathinfo($file, PATHINFO_EXTENSION) === 'map') continue;  //skip .map files
+
+				$view->registerJsFile($this->reactAssetDestPathWeb .'/js/'. basename($file) .'?_='. filemtime($file));
+			}
+			foreach (\yii\helpers\FileHelper::findFiles($this->reactAssetDestPathFs .'/css') as $file) {
+				if (pathinfo($file, PATHINFO_EXTENSION) === 'map') continue;  //skip .map files
+
+				$view->registerCssFile($this->reactAssetDestPathWeb .'/css/'. basename($file) .'?_='. filemtime($file));
+			}
+
+			// If on development machine indicate if we are using production files instead of development files
+			if ($this->isDev) {
+				$view->registerJs('$("body").append("<div style=\'position: fixed; display: inline-block; font-size: 11px; color: #7d6f03; font-weight: bold; left: 5px; bottom: 3px; padding: 0px 4px; background-color: #fbe129; border: 1px solid #ebd005; border-radius: 2px\'>React PROD</div>")');
+			}
+		}
+
+		// Render the final Yii output
+		$view->registerJs('window.pageData = '. json_encode($data), $view::POS_END);
 		return Yii::$app->controller->renderContent($pageHtml);
 	}
 
+	/**
+	 * Inject Yii page output into React development index.html
+	 *
+	 * @param string $html : HTML generated by Yii
+	 */
 	public function developmentInjection($html) {
 		$this->removeYiiDebuggerToolbar($html);
 
-		file_put_contents($this->path .'/public/index.html', $html);
+		file_put_contents($this->reactSourcePath .'/public/index.html', $html);
 
 		return $html;
 	}
 
+	/**
+	 * Remove Yii debugger toolbar from HTML
+	 */
 	public function removeYiiDebuggerToolbar(&$html) {
 		// Remove <div>
 		$html = preg_replace('|<div id="yii-debug-toolbar".*</div>|siU', '', $html);
 
 		// Remove <style>
-		preg_match_all("|<style.*</style>|siU", $html, $styleMatches, PREG_SET_ORDER);
-		foreach ($styleMatches as $style) {
-			if (stripos($style[0], 'yii-debug') !== false) {
-				$html = str_replace($style[0], '', $html);
+		if (preg_match_all("|<style.*</style>|siU", $html, $styleMatches, PREG_SET_ORDER)) {
+			foreach ($styleMatches as $style) {
+				if (stripos($style[0], 'yii-debug') !== false) {
+					$html = str_replace($style[0], '', $html);
+				}
 			}
 		}
 
 		// Remove <script>
-		preg_match_all("|<script.*</script>|siU", $html, $scriptMatches, PREG_SET_ORDER);
-		foreach ($scriptMatches as $script) {
-			if (stripos($script[0], 'yii-debug') !== false) {
-				$html = str_replace($script[0], '', $html);
+		if (preg_match_all("|<script.*</script>|siU", $html, $scriptMatches, PREG_SET_ORDER)) {
+			foreach ($scriptMatches as $script) {
+				if (stripos($script[0], 'yii-debug') !== false) {
+					$html = str_replace($script[0], '', $html);
+				}
 			}
 		}
 	}
 
-	public function getReactScripts($html) {
+	/**
+	 * Extract the development scripts from React development server
+	 */
+	public function extractReactDevScripts($html) {
 		$scripts = [];
 
 		preg_match_all("|<script.*</script>|siU", $html, $scriptMatches, PREG_SET_ORDER);
