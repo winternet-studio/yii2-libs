@@ -33,7 +33,7 @@ class CreateReactApp extends Component {
 	/**
 	 * @param mixed $data : Data that will be passed on to React through `window.pageData` in Javascript
 	 */
-	public function getIndexPage($data) {
+	public function getIndexPage($data = []) {
 		$view = Yii::$app->controller->getView();
 		// NOT PART OF THE REACT APP REALLY. $view->registerLinkTag(['rel' => 'manifest', 'href' => '%PUBLIC_URL%/manifest.json']);
 
