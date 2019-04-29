@@ -81,11 +81,24 @@ class CreateReactApp extends Component {
 
 				$view->registerJsFile($this->reactAssetDestPathWeb .'/js/'. basename($file) .'?_='. filemtime($file));
 			}
+			$cssAssets = [];
 			foreach (\yii\helpers\FileHelper::findFiles($this->reactAssetDestPathFs .'/css') as $file) {
 				if (pathinfo($file, PATHINFO_EXTENSION) === 'map') continue;  //skip .map files
 
-				$view->registerCssFile($this->reactAssetDestPathWeb .'/css/'. basename($file) .'?_='. filemtime($file));
+				// Only collect CSS scripts to be inserted because we have to make sure they are inserted last
+				$cssAssets[] = $this->reactAssetDestPathWeb .'/css/'. basename($file) .'?_='. filemtime($file);
 			}
+
+			if (!empty($cssAssets)) {
+				// Just before we begin rendering the page register CSS files as being dependent on any other registered asset so that it will come last since it should always have the highest priority since it is the most specific one
+				$view->on(\yii\web\View::EVENT_BEGIN_PAGE, function($event) use (&$cssAssets) {
+					$alreadyRegisteredAssetBundles = array_keys($event->sender->assetBundles);
+					foreach ($cssAssets as $cssAsset) {
+						$event->sender->registerCssFile($cssAsset, ['depends' => $alreadyRegisteredAssetBundles]);
+					}
+				});
+			}
+
 
 			// If on development machine indicate if we are using production files instead of development files
 			if ($this->isDev) {
