@@ -882,3 +882,49 @@ appJS.systemMsg = {
 		}
 	}
 };
+
+
+
+
+
+/* ------------- Other common utilities ------------- */
+
+/**
+ * Set a timeout but only execute it when browser tab has focused
+ *
+ * NOTE: as is this cannot coexist together with other `window.onblur` and `window.onfocus` handlers.
+ * Tried using `window.addEventListener('blur')` but it didn't work, which is confirmed by {@link https://stackoverflow.com/questions/11955774/javascript-window-addeventlistenerblur-wont-work Javascript, window.addEventListener('blur') won't work}
+ *
+ * @param {callable} callback : Function to call on timeout
+ * @param {integer} duration : Milliseconds after which the earliest possible call to the function should be.
+ * @return {void}
+ */
+appJS.setTimeoutFocusDependent = function(callback, duration) {
+	var hasFocus = true;
+	var skippedDueToNotFocused = false;
+
+	if (window.onblur || window.onfocus) {
+		alert('Cant set focus-dependent timeout because another onblur or onfocus handler has already been set.');
+	}
+
+	window.onblur = function() {
+		hasFocus = false;
+	};
+	window.onfocus = function() {
+		if (skippedDueToNotFocused) {
+			callback();
+			window.onblur = null;
+			window.onfocus = null;
+			return;
+		}
+		hasFocus = true;
+	};
+
+	setTimeout(function() {
+		if (hasFocus) {
+			callback();
+		} else {
+			skippedDueToNotFocused = true;
+		}
+	}, duration);
+};
