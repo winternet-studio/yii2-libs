@@ -84,7 +84,7 @@ class Result extends Component {
 			$this->addAllNamedErrors($arrayMessages);
 		} else {
 			$this->setStatus('error');
-			$this->errorMessages['_generic'] = array_merge($this->errorMessages['_generic'], $arrayMessages);
+			$this->errorMessages['_generic'] = array_merge( (array) $this->errorMessages['_generic'], $arrayMessages);
 		}
 	}
 
