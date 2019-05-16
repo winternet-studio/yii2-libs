@@ -87,7 +87,7 @@ appJS.ajax = function(parms) {
 	if (typeof parms.error == 'undefined') {
 		var titleText = 'Sorry, we ran into a problem...';
 		if (appJS.translateText !== null) {
-			titleText = appJS.translateText('Sorry, we ran into a problem');
+			titleText = appJS.translateText('Sorry, we ran into a problem', null, {skipNotif: true});
 		} else if (typeof getphp != 'undefined') {
 			var vars = getphp();
 			if (typeof vars['Sorry, we ran into a problem'] !== 'undefined') {
