@@ -6,6 +6,8 @@ use yii\base\Component;
 
 /**
  * This Yii component can be used to collect errors and notices (result messages) in methods/functions
+ *
+ * Note: It does not require to be used within a Yii application.
  */
 class Result extends Component {
 
@@ -314,15 +316,17 @@ class Result extends Component {
 			$output[$key] = $value;
 		}
 
-		Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON]['prettyPrint'] = (defined('YII_DEBUG') ? YII_DEBUG : false); // use "pretty" output in debug mode
+		if (@constant('YII_BEGIN_TIME')) {
+			Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON]['prettyPrint'] = (defined('YII_DEBUG') ? YII_DEBUG : false); // use "pretty" output in debug mode
 
-		/*
-		DECIDED NOT TO DO THE FOLLOWING AFTERALL BECAUSE:
-		- if other information is added that would also be force encoded as objects and that might not be desirable
-		- Object.keys(array).forEach(function(key) { ... }) works fine on arrays as well! (since arrays are just a special type of objects)
-		*/
-		// For JSON output enforce encoding arrays as objects so the variable types will always be the same
-		// Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON]['encodeOptions'] = JSON_FORCE_OBJECT;
+			/*
+			DECIDED NOT TO DO THE FOLLOWING AFTERALL BECAUSE:
+			- if other information is added that would also be force encoded as objects and that might not be desirable
+			- Object.keys(array).forEach(function(key) { ... }) works fine on arrays as well! (since arrays are just a special type of objects)
+			*/
+			// For JSON output enforce encoding arrays as objects so the variable types will always be the same
+			// Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON]['encodeOptions'] = JSON_FORCE_OBJECT;
+		}
 
 		return $output;
 	}
