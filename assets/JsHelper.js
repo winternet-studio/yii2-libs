@@ -665,7 +665,7 @@ appJS.showModal = function(parms) {
 			} else {
 				$firstInput.focus().select();
 				$firstInput.on('keyup.JsHelperModal', function(ev) {
-					if (ev.keyCode == 13) {
+					if (ev && ev.keyCode == 13) {  //it happened that ev was undefined when I opened a modal and then just click OK...! Therefore check ev
 						var $btn = $(modalSelector).find('.btn-yes, .btn-ok');
 						if ($btn.length > 0) {
 							$btn.trigger('click');
