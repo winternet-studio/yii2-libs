@@ -178,7 +178,7 @@ appJS.enableSubmit = function() {
  *   - {object} params - Object with parameters to send to the webservice
  *   - {string|object} responseFormat - How to interpret the data being returned from the webservice. Available options:
  *   	- `nothing` : don't do any postprocessing as nothing is being returned, or the returned should only be processed by post-processing function
- *   	- `resultError`       : the following fields are returned in an array: `status` (with `ok` or `error`), `err_msg` (array), `result_msg` (array)
+ *   	- `resultError`       : the following fields are returned in an array: `status` (with `ok` or `error`), `err_msg` or `errors` (array), `result_msg` or `notices` (array)
  *   	- `resultErrorQuiet` : same as above but status will only be given if there are specific messages to go along with it
  *   	- `resultOnly` : like `resultError` but use the `errorCallback:` in postActions to handle ALL aspects of dealing with errors (= error msgs not automatically shown)
  *   	- `resultOnlyQuiet` : like 'resultOnly' but with the difference described in `resultErrorQuiet`
@@ -336,18 +336,20 @@ appJS.doAjax = function(args) {
 
 			if (f == 'resultError' || f == 'resultErrorQuiet' || f == 'resultOnly' || f == 'resultOnlyQuiet') {
 				var isQuiet = (f == 'resultErrorQuiet' || f == 'resultOnlyQuiet' ? true : false);
+				var errors = (typeof rsp.err_msg != 'undefined' ? rsp.err_msg : rsp.errors);
+				var notices = (typeof rsp.result_msg != 'undefined' ? rsp.result_msg : rsp.notices);
 				if (rsp.status == 'ok') {
-					var msgCount = rsp.result_msg.length;
+					var msgCount = rsp.notices.length;
 					if (msgCount == 0) {  //check if it's an object with properties (= text keys) instead of an array (= numeric keys)
-						msgCount = Object.keys(rsp.result_msg).length;
+						msgCount = Object.keys(rsp.notices).length;
 					}
 					if (!isQuiet || msgCount > 0) {
 						var resultMsg = '<span class="result-text success-text">'+ args.options.textSuccess;
 						if (msgCount > 0) {
 							resultMsg += ' '+ args.options.textPleaseNote +':</span><br><br><span class="messages result-messages"><ul>';
-							for (i in rsp.result_msg) {
-								if (rsp.result_msg.hasOwnProperty(i)) {
-									resultMsg += '<li>'+ rsp.result_msg[i] +'</li>';
+							for (i in rsp.notices) {
+								if (rsp.notices.hasOwnProperty(i)) {
+									resultMsg += '<li>'+ rsp.notices[i] +'</li>';
 								}
 							}
 							resultMsg += '</ul></span>';
@@ -367,9 +369,9 @@ appJS.doAjax = function(args) {
 					success = false;
 					if (f != 'resultOnly' && f != 'resultOnlyQuiet') {
 						var errMsg = '<span class="result-text error-text">'+ args.options.textErrorBecause +'</span><br><br><span class="messages error-messages"><ul>';
-						for (i in rsp.err_msg) {
-							if (rsp.err_msg.hasOwnProperty(i)) {
-								errMsg += '<li>'+ rsp.err_msg[i] +'</li>';
+						for (i in errors) {
+							if (errors.hasOwnProperty(i)) {
+								errMsg += '<li>'+ errors[i] +'</li>';
 							}
 						}
 						errMsg += '</ul></span>';
@@ -738,7 +740,7 @@ appJS.showModal = function(parms) {
 /**
  * Display a result message from an operation based on a standard response format from the server
  *
- * @param {object} arrResult - Result from the server (with properties `status`, `err_msg`, `result_msg`)
+ * @param {object} arrResult - Result from the server (with properties `status`, `err_msg`, `result_msg` and optionally `err_msg_ext` - or `status`, `errors`, `notices` and optionally `errorsItemized`)
  * @param {string} okMessageHtml - Message to show if successful
  * @param {string} errorMessageHtml - Message to show in case of error(s)
  * @param {object} options - Any of these properties:
@@ -747,14 +749,23 @@ appJS.showModal = function(parms) {
  */
 appJS.formatStdResult = function(arrResult, okMessageHtml, errorMessageHtml, options) {
 	if (typeof options == 'undefined') options = {};
-	var html = '', i, shown = [];
+	var html = '', i, errors, notices, shown = [];
+	if (typeof arrResult.err_msg !== 'undefined' || typeof arrResult.result_msg !== 'undefined') {
+		errors = arrResult.err_msg;
+		errorsItemized = arrResult.err_msg_ext;
+		notices = arrResult.result_msg;
+	} else {
+		errors = arrResult.errors;
+		errorsItemized = arrResult.errorsItemized;
+		notices = arrResult.notices;
+	}
 	if (arrResult.status == 'ok') {
 		html = '<div class="std-func-result ok">'+ okMessageHtml;
-		if (arrResult.result_msg.length > 0) {
+		if (notices.length > 0) {
 			html += ' <span class="pls-note">'+ (options.textPleaseNote ? options.textPleaseNote : 'Please note') +':<span><ul>';
-			for (i in arrResult.result_msg) {
-				if (arrResult.result_msg.hasOwnProperty(i)) {
-					html += '<li>'+ arrResult.result_msg[i] +'</li>';
+			for (i in notices) {
+				if (notices.hasOwnProperty(i)) {
+					html += '<li>'+ notices[i] +'</li>';
 				}
 			}
 			html += '</ul>';
@@ -762,18 +773,18 @@ appJS.formatStdResult = function(arrResult, okMessageHtml, errorMessageHtml, opt
 		html += '</div>';
 	} else {
 		html = '<div class="std-func-result error">'+ errorMessageHtml +'<ul>';
-		for (i in arrResult.err_msg) {
-			if (arrResult.err_msg.hasOwnProperty(i)) {
-				html += '<li>'+ arrResult.err_msg[i] +'</li>';
-				shown.push(arrResult.err_msg[i]);
+		for (i in errors) {
+			if (errors.hasOwnProperty(i)) {
+				html += '<li>'+ errors[i] +'</li>';
+				shown.push(errors[i]);
 			}
 		}
-		if (typeof arrResult.err_msg_ext != 'undefined') {
-			for (i in arrResult.err_msg_ext) {
-				if (arrResult.err_msg_ext.hasOwnProperty(i)) {
-					for (var j in arrResult.err_msg_ext[i]) {
-						if (arrResult.err_msg_ext[i].hasOwnProperty(j) && $.inArray(arrResult.err_msg_ext[i][j], shown) == -1) {
-							html += '<li>'+ arrResult.err_msg_ext[i][j] +'</li>';
+		if (typeof errorsItemized != 'undefined' && errorsItemized) {
+			for (i in errorsItemized) {
+				if (errorsItemized.hasOwnProperty(i)) {
+					for (var j in errorsItemized[i]) {
+						if (errorsItemized[i].hasOwnProperty(j) && $.inArray(errorsItemized[i][j], shown) == -1) {
+							html += '<li>'+ errorsItemized[i][j] +'</li>';
 						}
 					}
 				}
