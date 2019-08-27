@@ -135,7 +135,11 @@ appJS.cancelClickHandler = function(e) {
 };
 appJS.disableSubmit = function(selector) {
 	appJS.disableSubmitSelector = selector;
-	appJS.disableSubmitElements = [];
+
+	if (typeof appJS.disableSubmitElements === 'undefined') {
+		appJS.disableSubmitElements = [];
+	}
+
 	$(appJS.disableSubmitSelector).each(function() {
 		var $this = $(this);
 		// $(this).html($(this).html() +' X');  //debug code
@@ -147,6 +151,7 @@ appJS.disableSubmit = function(selector) {
 		$this.on('click', appJS.cancelClickHandler).addClass('click-disabled');
 		appJS.disableSubmitElements.push($this);
 	});
+	console.info('Click disabled for '+ appJS.disableSubmitElements.length +' elements ('+ selector +')');
 };
 appJS.enableSubmit = function() {
 	if (typeof appJS.disableSubmitElements == 'undefined') return;
