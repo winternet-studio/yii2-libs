@@ -80,8 +80,11 @@ class UserException extends \yii\base\UserException {
 		$err_timestamp = time();
 		$this->errorCode = $err_timestamp;
 		$err_timestamp_read = gmdate('Y-m-d H:i:s', $err_timestamp) .' UTC';
-		if (PHP_SAPI == 'cli') {
-			$ipAddress = 'CLI '. Yii::$app->request->getScriptFile() .' '. json_encode(Yii::$app->request->getParams(), JSON_UNESCAPED_SLASHES);
+		if (Yii::$app->request->isConsoleRequest) {
+			$ipAddress = 'CLI '. Yii::$app->request->getScriptFile();
+			if (Yii::$app->request instanceof \yii\console\Request) {
+				$ipAddress .= ' '. json_encode(Yii::$app->request->getParams(), JSON_UNESCAPED_SLASHES);  //when running tests I experience it using yii\web\Request instead of yii\console\Request and in that case getParams() doesn't exist!
+			}
 		} else {
 			$ipAddress = Yii::$app->request->getUserIP();
 		}
@@ -108,16 +111,20 @@ class UserException extends \yii\base\UserException {
 								$arr_args = array();
 								foreach ($b['args'] as $xarg) {
 									if (is_array($xarg) || is_object($xarg)) {
-										try {
-											$vartmp = @var_export($xarg, true);
-											$vartmp = str_replace('array (', ' array(', $vartmp);
-										} catch (\Exception $e) {
-											// use print_r instead when variable has circular references (which var_export does not handle)
-											$vartmp = print_r($xarg, true);
-										}
-										// for very large variables (like objects) only dump the first and last part of the variable
-										if (strlen($vartmp) > 2000) {
-											$vartmp = rtrim(substr($vartmp, 0, 2000)) . PHP_EOL . PHP_EOL .'...[LONG DUMP TRIMMED]...'. PHP_EOL . PHP_EOL . rtrim(substr($vartmp, -2000)) . PHP_EOL;
+										if (YII_ENV_TEST) {  // During tests use of var_export() and print_r() resulted in memory exhausted
+											$vartmp = 'N/A';
+										} else {
+											try {
+												$vartmp = @var_export($xarg, true);
+												$vartmp = str_replace('array (', ' array(', $vartmp);
+											} catch (\Exception $e) {
+												// use print_r instead when variable has circular references (which var_export does not handle)
+												$vartmp = print_r($xarg, true);
+											}
+											// for very large variables (like objects) only dump the first and last part of the variable
+											if (strlen($vartmp) > 2000) {
+												$vartmp = rtrim(substr($vartmp, 0, 2000)) . PHP_EOL . PHP_EOL .'...[LONG DUMP TRIMMED]...'. PHP_EOL . PHP_EOL . rtrim(substr($vartmp, -2000)) . PHP_EOL;
+											}
 										}
 										$arr_args[] = $vartmp;
 									} else {
@@ -145,7 +152,7 @@ class UserException extends \yii\base\UserException {
 			$msg_stringHTML = $msg_string;
 		}
 
-		if (PHP_SAPI == 'cli') {
+		if (Yii::$app->request->isConsoleRequest) {
 			$showmsg = "\n". $msg_string;
 			if (YII_DEBUG && YII_ENV == 'dev') {
 				if (!empty($arr_internal_info)) {
