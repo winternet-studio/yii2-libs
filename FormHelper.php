@@ -269,20 +269,22 @@ form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be de
 				}
 
 				if ($options['multipleModels']) {
-					foreach ($postData[$formName] as $currModelIndex => $currModelValues) {
-						if ($postData[$formName][$currModelIndex][$attribute]) {
-							$timestamp = Common::changeTimezone($postData[$formName][$currModelIndex][$attribute], $userTimeZone, 'UTC', $options['format']);
+					if (is_array($postData[$formName])) {
+						foreach ($postData[$formName] as $currModelIndex => $currModelValues) {
+							if ($postData[$formName][$currModelIndex][$attribute]) {
+								$timestamp = Common::changeTimezone($postData[$formName][$currModelIndex][$attribute], $userTimeZone, 'UTC', $options['format']);
 
-							if (!$options['customPostData']) {
-								// Set standard $_POST variable
-								$_POST[$formName][$currModelIndex][$attribute] = $timestamp;
+								if (!$options['customPostData']) {
+									// Set standard $_POST variable
+									$_POST[$formName][$currModelIndex][$attribute] = $timestamp;
 
-								// Set Yii's bodyParams so that ->request->post() works
-								$post = \Yii::$app->request->getBodyParams();
-								$post[$formName][$currModelIndex][$attribute] = $timestamp;
-								\Yii::$app->request->setBodyParams($post);
-							} else {
-								$postData[$formName][$currModelIndex][$attribute] = $timestamp;
+									// Set Yii's bodyParams so that ->request->post() works
+									$post = \Yii::$app->request->getBodyParams();
+									$post[$formName][$currModelIndex][$attribute] = $timestamp;
+									\Yii::$app->request->setBodyParams($post);
+								} else {
+									$postData[$formName][$currModelIndex][$attribute] = $timestamp;
+								}
 							}
 						}
 					}
