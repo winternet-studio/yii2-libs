@@ -47,6 +47,7 @@ class UserException extends \yii\base\UserException {
 	 * ```
 	 */
 	function __construct($msg, $arrayInternalInfo = [], $options = []) {
+		$this->message = $msg;
 		$this->internalInfo = $arrayInternalInfo;
 
 		// Handle options
@@ -348,7 +349,9 @@ class UserException extends \yii\base\UserException {
 				Yii::$app->log->targets = [];  //don't log it anywhere
 			}
 			if (Yii::$app->request->isConsoleRequest) {
-				// In CLI mode we don't want to throw an HttpException at least... do we want to throw something else?
+				// In CLI mode we don't want to convert the exception to an HttpException, so just throw this
+				// In SystemError.php we don't throw the exception, we only create it. So it's important to throw it here - otherwise the script will continue to run.
+				throw $this;
 			} else {
 				throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg . ($databaseTable ? ' <!--WS-->' : ''), $this->errorCode, $this);
 			}
