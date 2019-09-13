@@ -343,8 +343,11 @@ class UserException extends \yii\base\UserException {
 			if (!$register) {
 				Yii::$app->log->targets = [];  //don't log it anywhere
 			}
-			// TEST: how will this work in CLI mode? And should we set an exit code?
-			throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg . ($databaseTable ? ' <!--WS-->' : ''), $this->errorCode);
+			if (Yii::$app->request->isConsoleRequest) {
+				// In CLI mode we don't want to throw an HttpException at least... do we want to throw something else?
+			} else {
+				throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg . ($databaseTable ? ' <!--WS-->' : ''), $this->errorCode, $this);
+			}
 		} else {
 			if (!$silent) {
 				// TODO: show error
