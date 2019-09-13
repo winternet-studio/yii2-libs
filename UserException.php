@@ -9,11 +9,13 @@ use yii\web\Response;
 class UserException extends \yii\base\UserException {
 	public $errorCode;
 
+	private $internalInfo = [];
+
 	/**
 	 * Raise an error, with option to continue or not, plus many other options
 	 *
 	 * @param string $msg
-	 * @param array $arr_internal_info : Associative array with any extra information you want to log together with this error. This info is NOT shown to the end user.
+	 * @param array $arrayInternalInfo : Associative array with any extra information you want to log together with this error. This info is NOT shown to the end user.
 	 * @param array $options : Associative array with any of these options:
 	 *   - `silent` : Default: false
 	 *   - `register` : Default: true
@@ -44,7 +46,9 @@ class UserException extends \yii\base\UserException {
 	 * 	);
 	 * ```
 	 */
-	function __construct($msg, $arr_internal_info = [], $options = []) {
+	function __construct($msg, $arrayInternalInfo = [], $options = []) {
+		$this->internalInfo = $arrayInternalInfo;
+
 		// Handle options
 		//  set default
 		$silent = false;
@@ -155,11 +159,11 @@ class UserException extends \yii\base\UserException {
 		if (Yii::$app->request->isConsoleRequest) {
 			$showmsg = "\n". $msg_string;
 			if (YII_DEBUG && YII_ENV == 'dev') {
-				if (!empty($arr_internal_info)) {
-					if (is_string($arr_internal_info)) {
-						$showmsg .= "\n\n". $arr_internal_info ."\n";
+				if (!empty($this->internalInfo)) {
+					if (is_string($this->internalInfo)) {
+						$showmsg .= "\n\n". $this->internalInfo ."\n";
 					} else {
-						$showmsg .= "\n\n". VarDumper::dumpAsString($arr_internal_info, 10, false) ."\n";
+						$showmsg .= "\n\n". VarDumper::dumpAsString($this->internalInfo, 10, false) ."\n";
 					}
 				}
 			}
@@ -176,11 +180,11 @@ class UserException extends \yii\base\UserException {
 		} else {
 			$showmsg = '<b class="error-msg">'. $msg_stringHTML .'</b>';
 			if (YII_DEBUG && YII_ENV == 'dev') {
-				if (!empty($arr_internal_info)) {
-					if (is_string($arr_internal_info)) {
-						$showmsg .= '<br><br><pre class="error-internal-info"><div>'. $arr_internal_info .'</div></pre>';
+				if (!empty($this->internalInfo)) {
+					if (is_string($this->internalInfo)) {
+						$showmsg .= '<br><br><pre class="error-internal-info"><div>'. $this->internalInfo .'</div></pre>';
 					} else {
-						$showmsg .= '<br><br><pre class="error-internal-info"><div>'. json_encode($arr_internal_info, JSON_PRETTY_PRINT) .'</div></pre>';
+						$showmsg .= '<br><br><pre class="error-internal-info"><div>'. json_encode($this->internalInfo, JSON_PRETTY_PRINT) .'</div></pre>';
 					}
 				} else {
 					$showmsg .= '<br>';
@@ -237,7 +241,7 @@ class UserException extends \yii\base\UserException {
 					[
 						'code' => $this->errorCode,
 						'msg' => $msg_string,
-						'details' => (!empty($arr_internal_info) ?  (is_string($arr_internal_info) ? $arr_internal_info : $this->jsonEncodeCleaned($arr_internal_info))  : null),
+						'details' => (!empty($this->internalInfo) ?  (is_string($this->internalInfo) ? $this->internalInfo : $this->jsonEncodeCleaned($this->internalInfo))  : null),
 						'timestamp' => gmdate('Y-m-d H:i:s', $err_timestamp),
 						'url' => $url,
 						'request' => $this->jsonEncodeCleaned([
@@ -282,11 +286,11 @@ class UserException extends \yii\base\UserException {
 				if (!empty($_POST)) {
 					$filemsg .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 				}
-				if (!empty($arr_internal_info)) {
-					if (is_string($this->jsonEncodeCleaned($arr_internal_info))) {
-						$filemsg .= "\r\n\r\nInternal Error Details: ". $arr_internal_info;
+				if (!empty($this->internalInfo)) {
+					if (is_string($this->jsonEncodeCleaned($this->internalInfo))) {
+						$filemsg .= "\r\n\r\nInternal Error Details: ". $this->internalInfo;
 					} else {
-						$filemsg .= "\r\n\r\nInternal Error Details: ". json_encode($arr_internal_info, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+						$filemsg .= "\r\n\r\nInternal Error Details: ". json_encode($this->internalInfo, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 					}
 				}
 				if ($errordata) {
@@ -358,7 +362,11 @@ class UserException extends \yii\base\UserException {
 		}
 	}
 
-	function jsonEncodeCleaned($variable) {
+	public function getInternalInfo() {
+		return $this->internalInfo;
+	}
+
+	public function jsonEncodeCleaned($variable) {
 		return trim(str_replace("\n    ", "\n", json_encode($variable, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)), "{}\r\n");
 	}
 }
