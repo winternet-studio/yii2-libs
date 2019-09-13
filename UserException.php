@@ -197,6 +197,12 @@ class UserException extends \yii\base\UserException {
 		// Store in file
 		// (this has better error stack information that Yii's own app.log - more argument values are shown)
 		if ($register) {
+			if (Yii::$app->request->isConsoleRequest) {
+				$host = ($_SERVER['USER'] ? $_SERVER['USER'] : $_SERVER['HOME']);  //CLI and arguments is recorded in $ipAddress
+			} else {
+				$host = Yii::$app->request->getHostInfo();
+			}
+
 			$url = $_SERVER['REQUEST_URI'];
 
 			if (Yii::$app->getComponents()['user']) {
@@ -236,6 +242,7 @@ class UserException extends \yii\base\UserException {
 						'url' => $url,
 						'request' => $this->jsonEncodeCleaned([
 							'IP' => $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : ''),
+							'Host' => $host,
 							$_SERVER['REQUEST_METHOD'] => (!empty($_POST) ? $_POST : null),
 							'Referer' => $_SERVER['HTTP_REFERER'],
 							'User Agent' => $_SERVER['HTTP_USER_AGENT'],
@@ -269,7 +276,7 @@ class UserException extends \yii\base\UserException {
 				$filemsg = "----------------------------------------------------------------------------- ". $err_timestamp_read ." -----------------------------------------------------------------------------\r\n\r\n";
 				$filemsg .= $msg_string ."\r\n";
 				$filemsg .= "\r\nError Code: ". $this->errorCode;
-				$filemsg .= "\r\nURL: ". $_SERVER['REQUEST_METHOD'] ." ". $_SERVER['REQUEST_SCHEME'] ."://". $_SERVER['HTTP_HOST'] . $url;
+				$filemsg .= "\r\nURL: ". $_SERVER['REQUEST_METHOD'] ." ". $host . $url;
 				$filemsg .= "\r\nReferer: ". $_SERVER['HTTP_REFERER'];
 				$filemsg .= "\r\nIP: ". $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
 				if (!empty($_POST)) {
