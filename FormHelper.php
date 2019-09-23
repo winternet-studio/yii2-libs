@@ -245,7 +245,7 @@ form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be de
 		$defaults = [
 			'format' => 'Y-m-d H:i:s',
 			'modifyModel' => false,
-			'multipleModels' => true,
+			'multipleModels' => false,
 			'customPostData' => null,
 			// NOT YET IMPLEMENTED. 'onlyAttributes' => [],
 			// NOT YET IMPLEMENTED. 'exclAttributes' => [],
