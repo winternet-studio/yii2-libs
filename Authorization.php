@@ -15,6 +15,10 @@ class Authorization extends Component {
 	 * @return array : Role names
 	 */
 	public static function effectiveRolesByUser($userID) {
+		if (!$userID) {
+			return [];
+		}
+
 		$roles = array_keys(Yii::$app->authManager->getRolesByUser($userID));  //source: https://stackoverflow.com/questions/25247675/how-to-get-user-role-in-yii2
 		$roles = array_filter($roles, function($role) use (&$userID) {
 			return Yii::$app->authManager->checkAccess($userID, $role);
