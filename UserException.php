@@ -17,10 +17,10 @@ class UserException extends \yii\base\UserException {
 	 * @param string $msg
 	 * @param array $arrayInternalInfo : Associative array with any extra information you want to log together with this error. This info is NOT shown to the end user.
 	 * @param array $options : Associative array with any of these options:
-	 *   - `silent` : Default: false
 	 *   - `register` : Default: true
 	 *   - `notify` : Default: false
 	 *   - `terminate` : Default: true
+	 *   - `silent` : Should error be silent if `terminate` is `false`? If set to false a Bootstrap alert will be echoed. Default: true
 	 *   - `severe` : Default: `ERROR`
 	 *   - `expire` : Default: false
 	 *   - `httpCode` : HTTP code for the response. Default: 500
@@ -52,10 +52,10 @@ class UserException extends \yii\base\UserException {
 
 		// Handle options
 		//  set default
-		$silent = false;
 		$register = true;
 		$notify = false;
 		$terminate = true;
+		$silent = true;
 		$severe = 'ERROR';
 		$expire = false;
 		$httpCode = 500;
@@ -68,10 +68,10 @@ class UserException extends \yii\base\UserException {
 			if (array_key_exists('severe', $options)) $options['severe'] = strtoupper( (string) $options['severe']);
 			if (isset($options['notify']) && $options['notify'] === true) $options['notify'] = 'developer';  //this ONLY happens if one mistakenly set notify to true instead of one of the values! This is a safety against that.
 
-			if (array_key_exists('silent', $options)) $silent = $options['silent'];
 			if (array_key_exists('register', $options)) $register = $options['register'];
 			if (array_key_exists('notify', $options) && ($options['notify'] == 'developer' || $options['notify'] == 'sysadmin' || $options['notify'] === false)) $notify = $options['notify'];
 			if (array_key_exists('terminate', $options)) $terminate = $options['terminate'];
+			if (array_key_exists('silent', $options)) $silent = $options['silent'];
 			if (isset($options['severe']) && $options['severe'] == 'WARNING' || $options['severe'] == 'ERROR' || $options['severe'] == 'CRITICAL ERROR') $severe = $options['severe'];
 			if (array_key_exists('expire', $options)) $expire = $options['expire'];
 			if (array_key_exists('httpCode', $options) && is_numeric($options['httpCode'])) $httpCode = $options['httpCode'];
@@ -82,9 +82,10 @@ class UserException extends \yii\base\UserException {
 		}
 
 
-		$err_timestamp = time();
-		$this->errorCode = $err_timestamp;
-		$err_timestamp_read = gmdate('Y-m-d H:i:s', $err_timestamp) .' UTC';
+		$errorTimestamp = time();
+		$errorTimestampRead = gmdate('Y-m-d H:i:s', $errorTimestamp) .' UTC';
+		$this->errorCode = $errorTimestamp;
+
 		if (Yii::$app->request->isConsoleRequest) {
 			$ipAddress = 'CLI '. Yii::$app->request->getScriptFile();
 			if (Yii::$app->request instanceof \yii\console\Request) {
@@ -94,109 +95,109 @@ class UserException extends \yii\base\UserException {
 			$ipAddress = Yii::$app->request->getUserIP();
 		}
 
-		$errordata = '';
+		$errorData = '';
 
 		$backtrace = debug_backtrace();
 		if ((!isset($GLOBALS['phpunit_is_running']) || !$GLOBALS['phpunit_is_running']) && is_array($backtrace)) {
-			$backtraces_count = count($backtrace);
-			if ($backtraces_count > 0) {
-				if ($backtraces_count == 1) {  //if only 1 entry the reference is always the same file as in URL
+			$backtracesCount = count($backtrace);
+			if ($backtracesCount > 0) {
+				if ($backtracesCount == 1) {  //if only 1 entry the reference is always the same file as in URL
 					//just write the line number
-					$errordata .= 'Line: '. $backtrace[0]['line'] ."\r\n";
+					$errorData .= 'Line: '. $backtrace[0]['line'] ."\r\n";
 				} else {  //more than one entry
 					//write the different files, lines, and functions and their arguments that were used
 					foreach ($backtrace as $key => $b) {
 						if ($key > 0) {
-							$errordata .= '* * * * * * *'. PHP_EOL;
+							$errorData .= '* * * * * * *'. PHP_EOL;
 						}
-						$errordata .= 'Level '. ($key+1) .': '. ltrim(str_replace(\Yii::$app->basePath, '', $b['file']), '\\') .'::'. $b['line'];
+						$errorData .= 'Level '. ($key+1) .': '. ltrim(str_replace(\Yii::$app->basePath, '', $b['file']), '\\') .'::'. $b['line'];
 						if ($key != 0) {  //the first entry will always reference to this function (system_error) so skip that
-							$errordata .= ' / '. $b['function'] .'(';
+							$errorData .= ' / '. $b['function'] .'(';
 							if (count($b['args']) > 0) {
-								$arr_args = array();
+								$arrArgs = array();
 								foreach ($b['args'] as $xarg) {
 									if (is_array($xarg) || is_object($xarg)) {
 										if (YII_ENV_TEST) {  // During tests use of var_export() and print_r() resulted in memory exhausted
-											$vartmp = 'N/A';
+											$varTemp = 'N/A';
 										} else {
 											try {
-												$vartmp = @var_export($xarg, true);
-												$vartmp = str_replace('array (', ' array(', $vartmp);
+												$varTemp = @var_export($xarg, true);
+												$varTemp = str_replace('array (', ' array(', $varTemp);
 											} catch (\Exception $e) {
 												// use print_r instead when variable has circular references (which var_export does not handle)
-												$vartmp = print_r($xarg, true);
+												$varTemp = print_r($xarg, true);
 											}
 											// for very large variables (like objects) only dump the first and last part of the variable
-											if (strlen($vartmp) > 2000) {
-												$vartmp = rtrim(substr($vartmp, 0, 2000)) . PHP_EOL . PHP_EOL .'...[LONG DUMP TRIMMED]...'. PHP_EOL . PHP_EOL . rtrim(substr($vartmp, -2000)) . PHP_EOL;
+											if (strlen($varTemp) > 2000) {
+												$varTemp = rtrim(substr($varTemp, 0, 2000)) . PHP_EOL . PHP_EOL .'...[LONG DUMP TRIMMED]...'. PHP_EOL . PHP_EOL . rtrim(substr($varTemp, -2000)) . PHP_EOL;
 											}
 										}
-										$arr_args[] = $vartmp;
+										$arrArgs[] = $varTemp;
 									} else {
-										$arr_args[] = var_export($xarg, true);
+										$arrArgs[] = var_export($xarg, true);
 									}
 								}
-								$errordata .= implode(', ', $arr_args);
+								$errorData .= implode(', ', $arrArgs);
 							}
-							$errordata .= ')';
+							$errorData .= ')';
 						}
-						$errordata .= "\r\n";
+						$errorData .= "\r\n";
 					}
 				}
 			}
 		}
 
 		if ($msg === null) {
-			$msg_string = $msg_stringHTML = 'NULL';
+			$messageString = $messageStringHtml = 'NULL';
 		} elseif (is_array($msg) || is_object($msg) || is_bool($msg)) {
-			//dumpAsString is nicer and more flexible. $msg_string = json_encode($msg, JSON_PRETTY_PRINT);
-			$msg_string = VarDumper::dumpAsString($msg, 10, false);
-			$msg_stringHTML = '<pre>'. VarDumper::dumpAsString($msg, 10, true) .'</pre>';
+			//dumpAsString is nicer and more flexible. $messageString = json_encode($msg, JSON_PRETTY_PRINT);
+			$messageString = VarDumper::dumpAsString($msg, 10, false);
+			$messageStringHtml = '<pre>'. VarDumper::dumpAsString($msg, 10, true) .'</pre>';
 		} else {
-			$msg_string = $msg;
-			$msg_stringHTML = $msg_string;
+			$messageString = $msg;
+			$messageStringHtml = $messageString;
 		}
 
 		if (Yii::$app->request->isConsoleRequest) {
-			$showmsg = "\n". $msg_string;
+			$showMessage = "\n". $messageString;
 			if (YII_DEBUG && YII_ENV == 'dev') {
 				if (!empty($this->internalInfo)) {
 					if (is_string($this->internalInfo)) {
-						$showmsg .= "\n\n". $this->internalInfo ."\n";
+						$showMessage .= "\n\n". $this->internalInfo ."\n";
 					} else {
-						$showmsg .= "\n\n". VarDumper::dumpAsString($this->internalInfo, 10, false) ."\n";
+						$showMessage .= "\n\n". VarDumper::dumpAsString($this->internalInfo, 10, false) ."\n";
 					}
 				}
 			}
-			// $showmsg .= $errordata;  //in CLI mode I think this is pretty much similar to what Yii already itself writes to the output...
+			// $showMessage .= $errorData;  //in CLI mode I think this is pretty much similar to what Yii already itself writes to the output...
 
 			if ($register) {  //code is useless if we don't register the error
-				$extramsg = "\nError Code: ". $this->errorCode ."\n";
+				$extraMessage = "\nError Code: ". $this->errorCode ."\n";
 			}
 		} elseif (in_array(Yii::$app->response->format, [Response::FORMAT_JSON, Response::FORMAT_JSONP, Response::FORMAT_XML])) {
-			$showmsg = $msg_stringHTML;
+			$showMessage = $messageStringHtml;
 			if ($register) {  //code is useless if we don't register the error
-				$showmsg .= ' Error Code: '. $this->errorCode;
+				$showMessage .= ' Error Code: '. $this->errorCode;
 			}
 		} else {
-			$showmsg = '<b class="error-msg">'. $msg_stringHTML .'</b>';
+			$showMessage = '<b class="error-msg">'. $messageStringHtml .'</b>';
 			if (YII_DEBUG && YII_ENV == 'dev') {
 				if (!empty($this->internalInfo)) {
 					if (is_string($this->internalInfo)) {
-						$showmsg .= '<br><br><pre class="error-internal-info"><div>'. $this->internalInfo .'</div></pre>';
+						$showMessage .= '<br><br><pre class="error-internal-info"><div>'. $this->internalInfo .'</div></pre>';
 					} else {
-						$showmsg .= '<br><br><pre class="error-internal-info"><div>'. json_encode($this->internalInfo, JSON_PRETTY_PRINT) .'</div></pre>';
+						$showMessage .= '<br><br><pre class="error-internal-info"><div>'. json_encode($this->internalInfo, JSON_PRETTY_PRINT) .'</div></pre>';
 					}
 				} else {
-					$showmsg .= '<br>';
+					$showMessage .= '<br>';
 				}
-				$errordatashow = str_replace(' / ', '<br>', Html::encode($errordata));
-				$showmsg .= '<br><pre class="error-stack"><div>'. str_replace("\r\n", '</div><div style="border-top: 1px solid #DEDEDE">', trim($errordatashow)) .'</div></pre>';
+				$errorDataShow = str_replace(' / ', '<br>', Html::encode($errorData));
+				$showMessage .= '<br><pre class="error-stack"><div>'. str_replace("\r\n", '</div><div style="border-top: 1px solid #DEDEDE">', trim($errorDataShow)) .'</div></pre>';
 			} else {
-				$showmsg .= '<br>';
+				$showMessage .= '<br>';
 			}
 
-			$extramsg = '<br><div>If webmaster needs to be notified <a href="#" onclick="alert(\'Sorry, this has not been implemented yet! Please manually send us the error code.\');return false;">click here</a>.'. ($this->errorCode ? '<br>Error Code: <b style="font-family: monospace; font-size: 105%">'. $this->errorCode .'</b>' : '') .'</div><!--Error Code: '. ($register ? $this->errorCode : 'none') .'-->';  //HTML comment so that it's easy to search for the code in the log file (it matches text in CLI version)
+			$extraMessage = '<br><div>If webmaster needs to be notified <a href="#" onclick="alert(\'Sorry, this has not been implemented yet! Please manually send us the error code.\');return false;">click here</a>.'. ($this->errorCode ? '<br>Error Code: <b style="font-family: monospace; font-size: 105%">'. $this->errorCode .'</b>' : '') .'</div><!--Error Code: '. ($register ? $this->errorCode : 'none') .'-->';  //HTML comment so that it's easy to search for the code in the log file (it matches text in CLI version)
 		}
 
 		// Store in file
@@ -215,21 +216,42 @@ class UserException extends \yii\base\UserException {
 					$userID = Yii::$app->user->getId();
 
 					// Automatically detect the name of the user!
-					$userinfo = Yii::$app->user->identity->toArray();
-					$username = '';
-					foreach ($userinfo as $fieldname => $fieldvalue) {
-						if (stripos($fieldname, 'name') !== false) {
-							$username .= $fieldvalue .' ';
+					$userUnfo = Yii::$app->user->identity->toArray();
+					$userName = '';
+					foreach ($userUnfo as $fieldName => $fieldValue) {
+						if (stripos($fieldName, 'name') !== false) {
+							$userName .= $fieldValue .' ';
 						}
 					}
-					$username = trim($username);
+					$userName = trim($userName);
 				}
 			}
 			if (!$userID) {
 				$userID = null;
 			}
-			if (!$username) {
-				$username = null;
+			if (!$userName) {
+				$userName = null;
+			}
+
+			$requestInfo = [
+				'IP' => $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : ''),
+				'Host' => $host,
+				$_SERVER['REQUEST_METHOD'] => (!empty($_POST) ? $_POST : null),
+				'Referer' => $_SERVER['HTTP_REFERER'],
+				'User Agent' => $_SERVER['HTTP_USER_AGENT'],
+			];
+			if (!$terminate) {
+				$requestInfo['Execution terminated'] = $terminate;
+				$requestInfo['Silent'] = $silent;
+			}
+			if ($notify) {
+				$requestInfo['Notified'] = $notify;
+			}
+			if ($severe !== 'ERROR') {
+				$requestInfo['Severity'] = $severe;
+			}
+			if ($httpCode != 500) {
+				$requestInfo['HTTP exit code'] = $httpCode;
 			}
 
 			if ($databaseTable) {
@@ -241,25 +263,19 @@ class UserException extends \yii\base\UserException {
 				$dbConn->createCommand("INSERT INTO `". $databaseTable ."` SET err_code = :code, err_msg = :msg, err_details = :details, err_timestamp = :timestamp, err_url = :url, err_request = :request, err_stack = :stack, err_userID = :userID, err_user_name = :user_name, err_expire_days = :expire_days",
 					[
 						'code' => $this->errorCode,
-						'msg' => $msg_string,
+						'msg' => $messageString,
 						'details' => (!empty($this->internalInfo) ?  (is_string($this->internalInfo) ? $this->internalInfo : $this->jsonEncodeCleaned($this->internalInfo))  : null),
-						'timestamp' => gmdate('Y-m-d H:i:s', $err_timestamp),
+						'timestamp' => gmdate('Y-m-d H:i:s', $errorTimestamp),
 						'url' => $url,
-						'request' => $this->jsonEncodeCleaned([
-							'IP' => $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : ''),
-							'Host' => $host,
-							$_SERVER['REQUEST_METHOD'] => (!empty($_POST) ? $_POST : null),
-							'Referer' => $_SERVER['HTTP_REFERER'],
-							'User Agent' => $_SERVER['HTTP_USER_AGENT'],
-						]),
-						'stack' => ($errordata ? $errordata : null),
+						'request' => $this->jsonEncodeCleaned($requestInfo),
+						'stack' => ($errorData ? $errorData : null),
 						'userID' => $userID,
-						'user_name' => $username,
+						'user_name' => $userName,
 						'expire_days' => ($expire ? $expire : null),
 					])->execute();
 
 				$errorID = $dbConn->getLastInsertID();
-				$filemsg = 'All details registered in database with error code '. $this->errorCode .' (errorID '. $errorID .').';
+				$fileLog = 'All details registered in database with error code '. $this->errorCode .' (errorID '. $errorID .').';
 
 				// Delete expired errors once per session
 				$session = Yii::$app->session;
@@ -278,29 +294,29 @@ class UserException extends \yii\base\UserException {
 					}
 				}
 			} else {
-				$filemsg = "----------------------------------------------------------------------------- ". $err_timestamp_read ." -----------------------------------------------------------------------------\r\n\r\n";
-				$filemsg .= $msg_string ."\r\n";
-				$filemsg .= "\r\nError Code: ". $this->errorCode;
-				$filemsg .= "\r\nURL: ". $_SERVER['REQUEST_METHOD'] ." ". $host . $url;
-				$filemsg .= "\r\nReferer: ". $_SERVER['HTTP_REFERER'];
-				$filemsg .= "\r\nIP: ". $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
+				$fileLog = "----------------------------------------------------------------------------- ". $errorTimestampRead ." -----------------------------------------------------------------------------\r\n\r\n";
+				$fileLog .= $messageString ."\r\n";
+				$fileLog .= "\r\nError Code: ". $this->errorCode;
+				$fileLog .= "\r\nURL: ". $_SERVER['REQUEST_METHOD'] ." ". $host . $url;
+				$fileLog .= "\r\nReferer: ". $_SERVER['HTTP_REFERER'];
+				$fileLog .= "\r\nIP: ". $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
 				if (!empty($_POST)) {
-					$filemsg .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+					$fileLog .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 				}
 				if (!empty($this->internalInfo)) {
 					if (is_string($this->jsonEncodeCleaned($this->internalInfo))) {
-						$filemsg .= "\r\n\r\nInternal Error Details: ". $this->internalInfo;
+						$fileLog .= "\r\n\r\nInternal Error Details: ". $this->internalInfo;
 					} else {
-						$filemsg .= "\r\n\r\nInternal Error Details: ". json_encode($this->internalInfo, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+						$fileLog .= "\r\n\r\nInternal Error Details: ". json_encode($this->internalInfo, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 					}
 				}
-				if ($errordata) {
-					$filemsg .= "\r\n\r\nStack Trace:\r\n". $errordata;
+				if ($errorData) {
+					$fileLog .= "\r\n\r\nStack Trace:\r\n". $errorData;
 				}
-				$filemsg .= "\r\n";
-				$filemsg .= "\r\nUserID: ". $userID;
-				$filemsg .= "\r\nUser name: ". $username;
-				file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/exceptions.log', $filemsg, FILE_APPEND);
+				$fileLog .= "\r\n";
+				$fileLog .= "\r\nUserID: ". $userID;
+				$fileLog .= "\r\nUser name: ". $userName;
+				file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/exceptions.log', $fileLog, FILE_APPEND);
 			}
 		}
 
@@ -309,38 +325,38 @@ class UserException extends \yii\base\UserException {
 			try {
 				// Defaults
 				if ($senderEmail) {
-					$sender_address = $senderEmail;
+					$senderAddress = $senderEmail;
 				} elseif (Yii::$app->params && Yii::$app->params['defaultEmailSenderAddress']) {
-					$sender_address = Yii::$app->params['defaultEmailSenderAddress'];
+					$senderAddress = Yii::$app->params['defaultEmailSenderAddress'];
 				} else {
-					$sender_address = 'info@'. Yii::$app->request->getHostName();  //resort to just a guess as the last option!
+					$senderAddress = 'info@'. Yii::$app->request->getHostName();  //resort to just a guess as the last option!
 					if (Yii::$app->getComponents()['mailer'] && Yii::$app->mailer->transport && Yii::$app->mailer->transport->getUsername()) {
 						$smptUsername = Yii::$app->mailer->transport->getUsername();
 						if ($smptUsername && filter_var($smptUsername, FILTER_VALIDATE_EMAIL)) {
-							$sender_address = $smptUsername;
+							$senderAddress = $smptUsername;
 						}
 					}
 				}
 				if ($notify == 'developer' && $developerEmail) {
-					$recipient_address = $developerEmail;
+					$recipientAddress = $developerEmail;
 				} else {
 					if ($adminEmail) {
-						$recipient_address = $adminEmail;
+						$recipientAddress = $adminEmail;
 					} elseif (Yii::$app->params && Yii::$app->params['adminEmail']) {
-						$recipient_address = Yii::$app->params['adminEmail'];
+						$recipientAddress = Yii::$app->params['adminEmail'];
 					} else {
-						$recipient_address = $sender_address;
+						$recipientAddress = $senderAddress;
 					}
 				}
 
 				Yii::$app->mailer->compose()
-					->setFrom($sender_address)
-					->setTo($recipient_address)
+					->setFrom($senderAddress)
+					->setTo($recipientAddress)
 					->setSubject($severe .' in '. Yii::$app->id .' (instant-notif)')
-					->setTextBody($filemsg . PHP_EOL . PHP_EOL . Common::getScriptReference())
+					->setTextBody($fileLog . PHP_EOL . PHP_EOL . Common::getScriptReference())
 					->send();
 			} catch (\Exception $e) {
-				@file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/failed_email.log', $e->getMessage() . PHP_EOL . PHP_EOL . $filemsg, FILE_APPEND);
+				@file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/failed_email.log', $e->getMessage() . PHP_EOL . PHP_EOL . $fileLog, FILE_APPEND);
 			}
 		}
 
@@ -353,14 +369,11 @@ class UserException extends \yii\base\UserException {
 				// In SystemError.php we don't throw the exception, we only create it. So it's important to throw it here - otherwise the script will continue to run.
 				throw $this;
 			} else {
-				throw new \yii\web\HttpException($httpCode, $showmsg . $extramsg . ($databaseTable ? ' <!--WS-->' : ''), $this->errorCode, $this);
+				throw new \yii\web\HttpException($httpCode, $showMessage . $extraMessage . ($databaseTable ? ' <!--WS-->' : ''), $this->errorCode, $this);
 			}
 		} else {
 			if (!$silent) {
-				// TODO: show error
-			}
-			if ($register) {
-				// TODO: log error if $register=true - well, currently we log it above in a file...! But that should probably be changed to a database and then ALWAYS disable Yii's own logging by setting targets to empty array!
+				echo '<div class="alert alert-danger ws-yii2-user-exception"></div>';
 			}
 		}
 	}
