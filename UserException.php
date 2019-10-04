@@ -17,12 +17,12 @@ class UserException extends \yii\base\UserException {
 	 * @param string $msg
 	 * @param array $arrayInternalInfo : Associative array with any extra information you want to log together with this error. This info is NOT shown to the end user.
 	 * @param array $options : Associative array with any of these options:
-	 *   - `register` : Default: true
-	 *   - `notify` : Default: false
-	 *   - `terminate` : Default: true
+	 *   - `register` : Boolean. Default: true
+	 *   - `notify` : Possible values: `developer` or `sysadmin`. Default: false
+	 *   - `terminate` : Boolean. Default: true
 	 *   - `silent` : Should error be silent if `terminate` is `false`? If set to false a Bootstrap alert will be echoed. Default: true
-	 *   - `severe` : Default: `ERROR`
-	 *   - `expire` : Default: false
+	 *   - `severe` : Suggested values: `ERROR`, `CRITICAL ERROR`, `WARNING`, `INFO`. Any value will actually be accepted. Default: `ERROR`
+	 *   - `expire` : Number of days after which the error expires and record deleted. Default: false
 	 *   - `httpCode` : HTTP code for the response. Default: 500
 	 *   - `senderEmail` : String `sample@email.com` or array `['sample@email.com' => 'John Doe']`. Default: none
 	 *   - `adminEmail` : String `sample@email.com` or array `['sample@email.com' => 'John Doe']`. Default: none
@@ -72,7 +72,7 @@ class UserException extends \yii\base\UserException {
 			if (array_key_exists('notify', $options) && ($options['notify'] == 'developer' || $options['notify'] == 'sysadmin' || $options['notify'] === false)) $notify = $options['notify'];
 			if (array_key_exists('terminate', $options)) $terminate = $options['terminate'];
 			if (array_key_exists('silent', $options)) $silent = $options['silent'];
-			if (isset($options['severe']) && $options['severe'] == 'WARNING' || $options['severe'] == 'ERROR' || $options['severe'] == 'CRITICAL ERROR') $severe = $options['severe'];
+			if (isset($options['severe'])) $severe = $options['severe'];
 			if (array_key_exists('expire', $options)) $expire = $options['expire'];
 			if (array_key_exists('httpCode', $options) && is_numeric($options['httpCode'])) $httpCode = $options['httpCode'];
 			if (array_key_exists('senderEmail', $options) && $options['senderEmail']) $senderEmail = $options['senderEmail'];
