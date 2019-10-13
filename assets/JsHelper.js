@@ -607,6 +607,12 @@ appJS.showModal = function(parms) {
 		this.initBaseAlertModal();
 		modalSelector = '#JsHelperBaseAlertModal';
 	}
+	if ($(modalSelector).length === 0) {
+		appJS.systemError(new Error('Custom modal '+ modalSelector +' has not been loaded.<br>Using default instead.'), {terminate: false});
+		modalSelector = '#JsHelperBaseAlertModal';  //fallback to default modal
+		appJS.initBaseAlertModal();   //ensure default modal it exists
+	}
+
 	if (typeof parms.modalOptions != 'undefined') modalOpts = $.extend({keyboard: true}, parms.modalOptions);  //keyboard:true = enable Esc keypress to close the modal
 	if (typeof parms.preventClose != 'undefined') modalOpts = $.extend(modalOpts, {keyboard: false, backdrop: 'static'});  //source: http://www.tutorialrepublic.com/faq/how-to-prevent-bootstrap-modal-from-closing-when-clicking-outside.php
 
@@ -869,6 +875,60 @@ appJS.initBasePromptModal = function(msg, options) {
 
 
 /* ------------- Javascript messaging section ------------- */
+
+/**
+ * Show a system error
+ *
+ * Usage example: `appJS.systemError(new Error('Custom modal has not been loaded.<br>Using default instead.'), {terminate: false});`
+ * Need to instantiate Error() there in order to get the line number.
+ *
+ * @param {Error} ErrorObject
+ * @param {object} options - Available options:
+ *   - `title` : set a title for the error
+ *   - `terminate` : set to false to running Javascript after this error
+ */
+appJS.systemError = function(ErrorObject, options) {
+	if (typeof options === 'undefined') options = {};
+	if (typeof options.terminate === 'undefined') options.terminate = true;
+
+	if (options.terminate) {
+		window.onerror = function(message, url, line, column, ErrorObj) {
+			return appJS.errorHandler(message, url, line, column, ErrorObj.stack, ErrorObj, options);
+		};
+
+		// Javascript Error() docs: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error
+		throw ErrorObject;  //at least in Chrome we can't get lineNumber property until the error is thrown
+	} else {
+		// Some information will not be available when continuing - and eg. lineNumber is currently not available in Chrome (but it's not so important since the file usually is minified anyway)
+		// See also https://stackoverflow.com/questions/1340872/how-to-get-javascript-caller-function-line-number-how-to-get-javascript-caller
+		appJS.errorHandler(ErrorObject.message, ErrorObject.fileName, ErrorObject.lineNumber, null, ErrorObject.stack, ErrorObject, options);
+	}
+};
+
+/**
+ * Error handler - DO NOT CALL DIRECTLY
+ *
+ * You should always be calling appJS.systemError().
+ *
+ * You might want to override this function in a site's global Javascript to call the backend and send us the message.
+ *
+ * @param {string} message
+ * @param {object} options - Options from appJS.systemError()
+ * @param {string} url
+ * @param {integer} line
+ * @param {integer} column
+ * @param {Error} ErrorObject
+ */
+appJS.errorHandler = function(message, url, line, column, stack, ErrorObject, options) {
+	if (!options.title) {
+		options.title = 'Oops, something went wrong...';
+	}
+	var html = '<strong>'+ options.title +'</strong><div style="padding: 15px">'+ ErrorObject.message +'</div>Please let us know.';
+	var $error = $('<div />').html(html)
+		.css({position: 'absolute', top: '20px', left: '20px', backgroundColor: '#ffd800', padding: '20px', zIndex: 10000, borderRadius: '1px'});
+	$('body').append($error);
+};
+
 
 appJS.systemMsg = {
 	maxMsgs: 3,
