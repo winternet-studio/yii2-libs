@@ -279,7 +279,7 @@ class UserException extends \yii\base\UserException {
 
 				// Delete expired errors once per session
 				$session = Yii::$app->session;
-				if ($session) {
+				if ($session && !Yii::$app->request->isConsoleRequest) {  //will get message if run in CLI: "session_set_cookie_params(): Cannot change session cookie parameters when headers already sent"
 					try {
 						if (!$session->get('wsErrorsCleared')) {
 							$dbConn->createCommand("DELETE FROM `". $databaseTable ."` WHERE err_expire_days IS NOT NULL AND TO_DAYS(err_timestamp) + err_expire_days < TO_DAYS(NOW())")->execute();
