@@ -941,6 +941,19 @@ appJS.systemMsg = {
 		var time = JSON.stringify(new Date()).substr(12).replace('"', '').replace('Z', '');
 		console.info(''+ appJS.systemMsg.counter +'. '+ time +' '+ msg);
 		var $msg = $(appJS.systemMsg.selector);
+
+		// Add container if none found!
+		if ($msg.length === 0) {
+			$msg = $('<div />').addClass('system-msg').css({
+				position: 'fixed',
+				bottom: '10px',
+				right: '10px',
+				'pointer-events': 'none',
+				'z-index': 20000
+			});
+			$('body').append($msg);
+		}
+
 		var $div = $('<div class="msg" style="color:#a9730e"><span style="font-size:80%;background-color:#a9730e;color:white;border-radius:2px">&nbsp;'+ appJS.systemMsg.counter +'&nbsp;</span> <span style="text-align:left;font-family: monospace">'+ time +'</span> &nbsp;'+ msg +'</div>');
 		$msg.append($div);
 		if ($msg.find('.msg').length > appJS.systemMsg.maxMsgs) {
