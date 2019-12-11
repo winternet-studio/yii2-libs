@@ -128,7 +128,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		$model->applyUserScenario();
 
 		// Form submission
-		if (Yii::$app->request->isAjax || Yii::$app->params['isApi']) {
+		if ((Yii::$app->request->isAjax && !Yii::$app->request->isPjax) || Yii::$app->params['isApi']) {
 			Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 			$model->load(Yii::$app->request->post());
 			if (!$_POST['ajax']) $model->save();  //don't save when AJAX validation is done due to enableAjaxValidation=true
@@ -155,7 +155,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		$model = $this->findModel(<?= $actionParams ?>);
 
 		// Form submission
-		if (Yii::$app->request->isAjax || Yii::$app->params['isApi']) {
+		if ((Yii::$app->request->isAjax && !Yii::$app->request->isPjax) || Yii::$app->params['isApi']) {
 			$model->load(Yii::$app->request->post());
 			$model->validate();
 			if (!$_POST['ajax']) $model->save();  //don't save when AJAX validation is done due to enableAjaxValidation=true
