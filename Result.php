@@ -330,4 +330,43 @@ class Result extends Component {
 
 		return $output;
 	}
+
+
+	/**
+	 * Display the result message in HTML
+	 *
+	 * There is also a Javascript version in JsHelper.js
+	 *
+	 * @param string okMessageHtml : Message to show if successful
+	 * @param string errorMessageHtml : Message to show in case of error(s)
+	 * @param object options : Any of these properties:
+	 * 	 - `textPleaseNote` : text to append to the OK message if there are any result messages needed to be shown (defaults to "Please note" followed by a colon)
+	 * @return string : HTML code
+	 */
+	public function outputHtml($okMessageHtml = null, $errorMessageHtml = null, $options = []) {
+		if (!$okMessageHtml) {
+			$okMessageHtml = 'The operation completed successfully.';
+		}
+		if (!$errorMessageHtml) {
+			$errorMessageHtml = 'Sorry, we could not complete the operation because:';
+		}
+		if ($this->status === 'ok') {
+			$html = '<div class="alert alert-success std-func-result ok">'. $okMessageHtml;
+			if (!empty($this->resultMessages)) {
+				$html .= ' <span class="pls-note">'. ($options['textPleaseNote'] ? $options['textPleaseNote'] : 'Please note') .':<span><ul>';
+				foreach ($this->resultMessages as $notice) {
+					$html .= '<li>'. $notice .'</li>';
+				}
+				$html .= '</ul>';
+			}
+			$html .= '</div>';
+		} else {
+			$html = '<div class="alert alert-danger std-func-result error">'. $errorMessageHtml .'<ul>';
+			foreach ($this->getErrorsFlat() as $error) {  //eventually we maybe want to do something special for itemized messages instead of just using the flat array
+				$html .= '<li>'. $error .'</li>';
+			}
+			$html .= '</ul></div>';
+		}
+		return $html;
+	}
 }

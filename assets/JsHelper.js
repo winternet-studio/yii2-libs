@@ -751,6 +751,8 @@ appJS.showModal = function(parms) {
 /**
  * Display a result message from an operation based on a standard response format from the server
  *
+ * There is also a PHP version in the Result() class called htmlOutput().
+ *
  * @param {object} arrResult - Result from the server (with properties `status`, `err_msg`, `result_msg` and optionally `err_msg_ext` - or `status`, `errors`, `notices` and optionally `errorsItemized`)
  * @param {string} okMessageHtml - Message to show if successful
  * @param {string} errorMessageHtml - Message to show in case of error(s)
