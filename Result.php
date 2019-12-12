@@ -316,7 +316,7 @@ class Result extends Component {
 			$output[$key] = $value;
 		}
 
-		if (@constant('YII_BEGIN_TIME')) {
+		if (@constant('YII_BEGIN_TIME') && !Yii::$app->request->isConsoleRequest) {
 			Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON]['prettyPrint'] = (defined('YII_DEBUG') ? YII_DEBUG : false); // use "pretty" output in debug mode
 
 			/*
