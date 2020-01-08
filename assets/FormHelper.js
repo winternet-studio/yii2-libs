@@ -239,6 +239,92 @@ TODO:
 	},
 
 	/**
+	 * Apply the server-side generated errors to the form fields
+	 *
+	 * @param {HTMLElement} form
+	 * @param {object} rsp : response object from the AJAX request
+	 */
+	applyServerSideErrors: function(form, rsp) {
+		var errorCount = 0, errors = [];
+		if (typeof rsp.err_msg_ext != 'undefined') {
+			errors = rsp.err_msg_ext;
+		} else if (typeof rsp.errorsItemized != 'undefined') {
+			errors = rsp.errorsItemized;
+		}
+		if (errors !== null) {
+			// NOTE: the lonelyErrors are errors that have IDs that do not match anything in Yii's ActiveForm, so show those errors in a modal instead
+			var lonelyErrors = [];
+			Object.keys(errors).forEach(function(errorName) {  //example errorName: `customer-cust_address`
+				errorCount++;
+				if (typeof form.yiiActiveForm('find', errorName) === 'undefined') {
+					lonelyErrors.push([errorName, errors[errorName][0]]);
+				}
+			});
+			if (lonelyErrors.length > 0) {
+				var html = [];
+				for (var i = 0; i < lonelyErrors.length; i++) {
+					html.push('<li>'+ lonelyErrors[i][0].replace(/^[a-z]+\-/, '') +': '+ lonelyErrors[i][1] + '</li>');
+				}
+				if (typeof appJS.showModal != 'undefined') {
+					appJS.showModal({title: 'Errors', html: '<ul>'+ html.join('<br>') +'</ul>' });
+				} else {
+					alert('Errors:\n\n'+ html.join('\n').replace(/<li>/g, '- ').replace(/<\/li>/, ''));
+				}
+			}
+		}
+		// NOTE: errorCount MUST be determined before form.yiiActiveForm() because it modifies the `errors` variable! NOTE: updateMessages should always be called so that in case there are no errors any previously set errors are cleared.
+		form.yiiActiveForm('updateMessages', errors, true);
+
+		return {
+			errorCount: errorCount
+		};
+	},
+
+	/**
+	 * Disable submit button temporarily to avoid double submission
+	 *
+	 * @param {string} selector : jQuery selector (or instance) for the submit button being clicked
+	 * @param {string} attachTo : Set `click` to bind to the submit button's click event, or `form` to bind to the form's submit event
+	 * @param {object} options : Available options:
+	 *   - `delayMs` : milliseconds to delay the event binding (eg. in case other code would delete the event binding)
+	 */
+	prohibitDoubleSubmit: function(selector, attachTo, options) {
+		if (!options) options = {};
+
+		var $submitButton = $(selector);
+
+		var eventFunction = function(ev) {
+			// Disable submit button temporarily
+			if (wsYii2.FormHelper._blockSubmit) {  //somehow it's not enough to set button as disabled (two quick double clicks can submit the form twice)
+				ev.preventDefault();
+			}
+
+			wsYii2.FormHelper._blockSubmit = true;
+			$submitButton.prop('disabled', true);
+			setTimeout(function() {
+				$submitButton.prop('disabled', false);
+				wsYii2.FormHelper._blockSubmit = false;
+			}, 3000);
+		};
+
+		var bindEvents = function() {
+			if (attachTo === 'submit') {
+				$submitButton.closest('form').on('submit.wsyii2-nodbl', eventFunction);
+			} else {
+				$submitButton.on('click.wsyii2-nodbl', eventFunction);
+			}
+		};
+
+		if (options.delayMs) {
+			setTimeout(function() {
+				bindEvents();
+			}, options.delayMs);
+		} else {
+			bindEvents();
+		}
+	},
+
+	/**
 	 * Object for highlighting errors on a form using Bootstrap tabs
 	 */
 	HighlightTabbedFormErrors: {

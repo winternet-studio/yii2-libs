@@ -11,55 +11,36 @@ class FormHelper extends Component {
 	 *
 	 * @param array $options Associative array with any of these keys:
 	 * - 'form' : ActiveForm object
-	 * - 'view' : View object. Required for automatic handling of form using Bootstrap Tabs
+	 * - 'view' : View object (normally automatically determined)
 	 * - 'on_error' : name of callback function when submission caused some errors
 	 * - 'on_success' : name of callback function when submission succeeded
 	 * - 'on_successJS' : Javascript code to execute on success. Available variables are: rsp, form, errorCount
 	 * - 'on_complete' : name of callback function that will always be called
 	 * - 'on_completeJS' : Javascript code to execute on complete. Available variables are: rsp, form, errorCount
-	 * 
+	 *
 	 * @return JsExpression Javascript code
 	 **/
 	public static function processAjaxSubmit($options = []) {
 		$js = "function(rsp) {";
 		if ($options['form']) {
-			// Apply the server-side generated errors to the form fields
-			// NOTE: the lonelyErrors are errors that have IDs that do not match anything in Yii's ActiveForm, so show those errors in a modal instead
-			// TODO: move most of this JS code into FormHelper.js
-			$js .= "var form = $(_clickedButton).parents('form');
-var errorCount = 0, a = [];
-if (typeof rsp.err_msg_ext != 'undefined') {
-	var lonelyErrrors = [];
-	for (var x in rsp.err_msg_ext) {
-		if (rsp.err_msg_ext.hasOwnProperty(x)){
-			errorCount++;
-			if (typeof form.yiiActiveForm('find', x) == 'undefined') {
-				lonelyErrrors.push([x, rsp.err_msg_ext[x][0]]);
+			if (!$options['view']) {
+				$options['view'] = Yii::$app->controller->getView();
+				if (!$options['view']) {
+					new \winternet\yii2\UserException('Failed to automatically determine the view.');
+				}
 			}
-		}
-	}
-	if (lonelyErrrors.length > 0) {
-		var html = [];
-		for (var i = 0; i < lonelyErrrors.length; i++) {
-			html.push('<li>'+ lonelyErrrors[i][0].replace(/^[a-z]+\\-/, '') +': '+ lonelyErrrors[i][1] + '</li>');
-		}
-		if (typeof appJS.showModal != 'undefined') {
-			appJS.showModal({title: 'Errors', html: '<ul>'+ html.join('<br>') +'</ul>' });
-		} else {
-			alert('Errors:\\n\\n'+ html.join('\\n').replace(/<li>/g, '- ').replace(/<\\/li>/, ''));
-		}
-	}
-	a = rsp.err_msg_ext;
-}
-form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be determined before form.yiiActiveForm() because it modifies rsp.err_msg_ext! NOTE: updateMessages should always be called so that in case there are no error any previously set errors are cleared.
+			FormHelperAsset::register($options['view']);  //required for wsYii2 to be available
 
-			if ($options['view']) {
-				FormHelperAsset::register($options['view']);  //required for wsYii2 to be available
-				$js .= "wsYii2.FormHelper.HighlightTabbedFormErrors.checkForErrors('#". $options['form']->options['id'] ."');";  //always check if we are on a tabbed form and need to show the right tab
-			}
+			// Apply the server-side generated errors to the form fields
+			$js .= "var form = $(_clickedButton).parents('form');";  //_clickedButton is set by the package demogorgorn/yii2-ajax-submit-button that we use for handling the AJAX form submission
+			$js .= "var applyResult = wsYii2.FormHelper.applyServerSideErrors(form, rsp);";
+			$js .= "var errorCount = applyResult.errorCount;";
+
+			// Always check if we are on a tabbed form and need to show the right tab
+			$js .= "wsYii2.FormHelper.HighlightTabbedFormErrors.checkForErrors('#". $options['form']->options['id'] ."');";
 		} else {
 			$js .= "var form, errorCount;";
-			$js .= "if (rsp.err_msg) errorCount = rsp.err_msg.length;";
+			$js .= "if (rsp.err_msg) { errorCount = rsp.err_msg.length; } else if (rsp.errors) { errorCount = rsp.errors.length; }";
 		}
 
 		if ($options['on_complete']) {
@@ -82,18 +63,16 @@ form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be de
 		return str_replace('{currentForm}', "#". $form->options['id'], $js);
 	}
 
+	/**
+	 * Generate Javascript code for handling a failed Ajax request with a JSON response, eg. a 500 Internal Server Error
+	 *
+	 * @param array $options : Associative array with any of these keys:
+	 *   - `minimal` : set to true to generate very minimal code
+	 *   - `jsBefore` : extra Javascript code to execute before doing our normal stuff
+	 *   - `jsAfter`  : extra Javascript code to execute after doing our normal stuff
+	 * @return yii\web\JsExpression
+	 */
 	public static function processAjaxSubmitError($options = []) {
-		/*
-		DESCRIPTION:
-		- generate Javascript code for handling a failed Ajax request with a JSON response, eg. a 500 Internal Server Error
-		INPUT:
-		- $options : associative array with any of these keys:
-			- 'minimal' : set to true to generate very minimal code
-			- 'jsBefore' : extra Javascript code to execute before doing our normal stuff
-			- 'jsAfter'  : extra Javascript code to execute after doing our normal stuff
-		OUTPUT:
-		- Javascript expression
-		*/
 		if ($options['minimal']) {
 			$js = "function(r,t,e) {";
 			if ($options['jsBefore']) {
@@ -122,20 +101,21 @@ form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be de
 		return new \yii\web\JsExpression($js);
 	}
 
+	/**
+	 * Add errors from a Yii model to a standard result array
+	 *
+	 * The new key 'err_msg_ext' MUST then be used for processing it (because 'err_msg' might not contain all error messages).
+	 *
+	 * @param array|winternet\yii2\Result : Empty variable (null, false, whatever), Result instance, or an associative array in this format: ['status' => 'ok|error', 'result_msg' => [], 'err_msg' => []]
+	 * @param yii\base\model $model : A Yii model
+	 * @param array $options : Associative array with any of these keys:
+	 *   - `add_existing` : add the existing 'err_msg' array entries to 'err_msg_ext'
+	 * @return array||winternet\yii2\Result : Result instance or Associative array in the format of $result but with the new key 'err_msg_ext'
+	 */
 	public static function addResultErrors($result, &$model, $options = []) {
-		/*
-		DESCRIPTION:
-		- add errors from a Yii model to a standard result array
-		- the new key 'err_msg_ext' MUST then be used for processing it (because 'err_msg' might not contain all error messages)
-		INPUT:
-		- $result : empty variable (null, false, whatever) or an associative array in this format: ['status' => 'ok|error', 'result_msg' => [], 'err_msg' => []]
-		- $model : a Yii model
-		- $options : associative array with any of these keys: 
-			- 'add_existing' : add the existing 'err_msg' array entries to 'err_msg_ext'
-		OUTPUT:
-		- associative array in the format of $result but with the new key 'err_msg_ext'
-		*/
-		if (!is_array($result)) {
+		$usingResultClass = ($result && $result instanceof \winternet\yii2\Result ? true : false);
+
+		if (!is_array($result) && !$usingResultClass) {
 			$result = [
 				'status' => 'ok',
 				'result_msg' => [],
@@ -152,19 +132,27 @@ form.yiiActiveForm('updateMessages', a, true);";  // NOTE: errorCount MUST be de
 				$modelName = mb_strtolower(substr($modelName, strrpos($modelName, '\\')+1));
 			}
 
-			$result['err_msg_ext'][$modelName .'-'. mb_strtolower($attr) ] = $errors;
-		}
+			$attributeId = $modelName .'-'. mb_strtolower($attr);
 
-
-		if ($options['add_existing']) {
-			if (!empty($result['err_msg'])) {
-				$result['err_msg_ext']['_generic'] = $result['err_msg'];
+			if ($usingResultClass) {
+				$result->addNamedErrors($attributeId, $errors);
+			} else {
+				$result['err_msg_ext'][$attributeId] = $errors;
 			}
 		}
 
-		// Ensure correct status
-		if (!empty($result['err_msg']) || !empty($result['err_msg_ext'])) {
-			$result['status'] = 'error';
+
+		if (!$usingResultClass) {
+			if ($options['add_existing']) {
+				if (!empty($result['err_msg'])) {
+					$result['err_msg_ext']['_generic'] = $result['err_msg'];
+				}
+			}
+
+			// Ensure correct status
+			if (!empty($result['err_msg']) || !empty($result['err_msg_ext'])) {
+				$result['status'] = 'error';
+			}
 		}
 
 		return $result;
