@@ -340,7 +340,13 @@ TODO:
 			myself.checkForErrors(formSelector);
 		},
 
-		checkForErrors: function(formSelector) {
+		/**
+		 * @param {object} options : Available options:
+		 *   - `submitButtonTooltipText` : set custom text to use as the tooltip shown for a few seconds when the form contains errors. Default is "Please check the form."
+		 */
+		checkForErrors: function(formSelector, options) {
+			if (!options) options = {};
+
 			if (typeof formSelector == 'undefined') {
 				formSelector = 'body';
 			}
@@ -354,7 +360,7 @@ TODO:
 					var paneId = $tabPane.attr('id');
 					$form.find('.nav-tabs a[href="#'+ paneId +'"]').tab('show');
 				}
-				$form.find('input[type=submit], button[type=submit]').tooltip({trigger: 'manual', title: 'Please check the form.', container: 'body'});  //use container=body to make it not wrap inside element with little space
+				$form.find('input[type=submit], button[type=submit]').tooltip({trigger: 'manual', title: (options.submitButtonTooltipText ? options.submitButtonTooltipText : 'Please check the form.'), container: 'body'});  //use container=body to make it not wrap inside element with little space
 				$form.find('input[type=submit], button[type=submit]').tooltip('show');
 
 				var origBgColor = $('.tooltip-inner, .tooltip-arrow').css('background-color');

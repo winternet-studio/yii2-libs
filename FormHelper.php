@@ -17,6 +17,7 @@ class FormHelper extends Component {
 	 * - 'on_successJS' : Javascript code to execute on success. Available variables are: rsp, form, errorCount
 	 * - 'on_complete' : name of callback function that will always be called
 	 * - 'on_completeJS' : Javascript code to execute on complete. Available variables are: rsp, form, errorCount
+	 * - 'submitButtonTooltipText' : set custom text to use as the tooltip shown for a few seconds when the form contains errors (done by wsYii2.FormHelper.HighlightTabbedFormErrors.checkForErrors())
 	 *
 	 * @return JsExpression Javascript code
 	 **/
@@ -37,7 +38,7 @@ class FormHelper extends Component {
 			$js .= "var errorCount = applyResult.errorCount;";
 
 			// Always check if we are on a tabbed form and need to show the right tab
-			$js .= "wsYii2.FormHelper.HighlightTabbedFormErrors.checkForErrors('#". $options['form']->options['id'] ."');";
+			$js .= "wsYii2.FormHelper.HighlightTabbedFormErrors.checkForErrors('#". $options['form']->options['id'] ."', ". json_encode(['submitButtonTooltipText' => $options['submitButtonTooltipText']]) .");";
 		} else {
 			$js .= "var form, errorCount;";
 			$js .= "if (rsp.err_msg) { errorCount = rsp.err_msg.length; } else if (rsp.errors) { errorCount = rsp.errors.length; }";
