@@ -287,6 +287,7 @@ TODO:
 	 * @param {string} attachTo : Set `click` to bind to the submit button's click event, or `form` to bind to the form's submit event
 	 * @param {object} options : Available options:
 	 *   - `delayMs` : milliseconds to delay the event binding (eg. in case other code would delete the event binding)
+	 *   - `callbackOnContinue` : callback that will be executed when submission is allowed to continue. Is passed one argument that is the jQuery instance of the selector.
 	 */
 	prohibitDoubleSubmit: function(selector, attachTo, options) {
 		if (!options) options = {};
@@ -295,16 +296,25 @@ TODO:
 
 		var eventFunction = function(ev) {
 			// Disable submit button temporarily
+			var allowContinue = true;
 			if (wsYii2.FormHelper._blockSubmit) {  //somehow it's not enough to set button as disabled (two quick double clicks can submit the form twice)
 				ev.preventDefault();
+				allowContinue = false;
 			}
 
 			wsYii2.FormHelper._blockSubmit = true;
-			$submitButton.prop('disabled', true);
+			setTimeout(function() {
+				// Wait until after this callback has finished so that it is actually submitted the first time (when selector is of type=submit)
+				$submitButton.prop('disabled', true);
+			}, 1);
 			setTimeout(function() {
 				$submitButton.prop('disabled', false);
 				wsYii2.FormHelper._blockSubmit = false;
 			}, 3000);
+
+			if (allowContinue && options.callbackOnContinue) {
+				options.callbackOnContinue($submitButton);
+			}
 		};
 
 		var bindEvents = function() {
