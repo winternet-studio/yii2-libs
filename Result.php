@@ -8,6 +8,26 @@ use yii\base\Component;
  * This Yii component can be used to collect errors and notices (result messages) in methods/functions
  *
  * Note: It does not require to be used within a Yii application.
+ *
+ * Sample code:
+ * ```
+ * public function foo() {
+ * 	$result = new \winternet\yii2\Result();
+ *
+ * 	if (somethingGoesWrong) {
+ * 		$result->addError('Some message');
+ * 	}
+ *
+ * 	if ($result->noErrors()) {
+ * 		// continue with something
+ * 	}
+ *
+ * 	$result->addInfo('rowsAffected', $x);
+ *
+ * 	return $result;
+ * }
+ *
+ * ```
  */
 class Result extends Component {
 
