@@ -44,8 +44,8 @@ class GulpReload extends \yii\base\Module {
 //v1.
 const ws = new WebSocket('ws://<?= $this->websocketHost ?>:<?= $this->websocketPort . $this->websocketPath ?>');
 ws.addEventListener('error', err => {
-	console.error(err);
-	alert('Encountered some WebSocket error in the gulp live reload system');
+	console.error('Failed to connect to websocket server for the gulp live reload system');
+	// console.error(err);
 });
 ws.addEventListener('message', event => {
 	if (event.data === 'reload') {
