@@ -253,12 +253,79 @@ class Result extends Component {
 	}
 
 
+	/**
+	 * Add arbitrary information to the result
+	 *
+	 * This method will also overwrite any existing information for the given key.
+	 */
 	public function addInfo($key, $value) {
 		$this->otherInformation[$key] = $value;
 	}
 
 	public function getInfo($key) {
 		return $this->otherInformation[$key];
+	}
+
+	public function getAllInfo() {
+		return $this->otherInformation;
+	}
+
+	/**
+	 * Filter information so that only the given properties (or array keys) are retained, or apply a custom filter function
+	 *
+	 * If $arrayOrCallable is an array, objects will be converted to arrays.
+	 *
+	 * Useful for ensuring that a result with undesired information is not sent client-side.
+	 *
+	 * @param string $key : Key that was used in addInfo()
+	 * @param array|callback $arrayOrCallable : Array of property or array keys, or a callback function which takes the current value as first argument and which return the new info value to be stored
+	 */
+	public function filterInfo($key, $arrayOrCallable) {
+		if (is_array($arrayOrCallable)) {
+			if (!isset($this->otherInformation[$key]) || !$this->otherInformation[$key]) {
+				// do nothing
+			} elseif (is_object($this->otherInformation[$key]) || is_array($this->otherInformation[$key])) {
+				if (is_object($this->otherInformation[$key])) {
+					if (@constant('YII_BEGIN_TIME') && $this->otherInformation[$key] instanceof \yii\base\Model) {
+						$this->otherInformation[$key] = $this->otherInformation[$key]->toArray($arrayOrCallable);
+					} else {
+						$this->otherInformation[$key] = get_object_vars($obj);
+					}
+				}
+				if (is_array($this->otherInformation[$key])) {
+					foreach ($this->otherInformation[$key] as $arrayKey => $arrayValue) {
+						if (!in_array($arrayKey, $arrayOrCallable, true)) {
+							unset($this->otherInformation[$key][$arrayKey]);
+						}
+					}
+				}
+			} else {
+				throw new \Exception('Result information is not an object or an array.');
+			}
+		} elseif (is_callable($arrayOrCallable)) {
+			if (!isset($this->otherInformation[$key]) || $this->otherInformation[$key] === null) {
+				// do nothing
+			} else {
+				$this->otherInformation[$key] = $arrayOrCallable($this->otherInformation[$key]);
+			}
+		} else {
+			throw new \Exception('Result  information is not an object or an array.');
+		}
+	}
+
+	/**
+	 * Filter result information so that only the keys specified are retained
+	 *
+	 * Useful for ensuring that a result with undesired keys are not sent client-side
+	 *
+	 * @param array $keys : Keys 
+	 */
+	public function filterAllInfo($keys) {
+		foreach ($this->otherInformation as $key => $value) {
+			if (!in_array($key, $keys, true)) {
+				unset($this->otherInformation[$key]);
+			}
+		}
 	}
 
 
@@ -333,7 +400,9 @@ class Result extends Component {
 			];
 		}
 		foreach ($this->otherInformation as $key => $value) {
-			$output[$key] = $value;
+			if (!in_array($key, ['status', 'notices', 'errors', 'errorsItemized'], true)) {  //protect these values
+				$output[$key] = $value;
+			}
 		}
 
 		if (@constant('YII_BEGIN_TIME') && !Yii::$app->request->isConsoleRequest) {
