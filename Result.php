@@ -29,7 +29,7 @@ use yii\base\Component;
  *
  * ```
  */
-class Result extends Component {
+class Result extends Component implements \JsonSerializable {
 
 	public $status = 'ok';
 
@@ -58,6 +58,14 @@ class Result extends Component {
 				}
 			}
 		}
+	}
+
+	public function jsonSerialize() {
+		return [
+			'status' => $this->status,
+			'errors' => $this->getErrors(),
+			'notices' => $this->getNotices(),
+		];
 	}
 
 	/**
