@@ -349,6 +349,27 @@ class Result extends Component implements \JsonSerializable {
 
 
 	/**
+	 * Merge another [Result] instance into this one
+	 *
+	 * @param winternet\yii2\Result $Result
+	 */
+	public function merge($Result) {
+		// Determine the final status
+		if ($Result->status === 'error') {
+			// error overrides anything else
+			$this->status = 'error';
+		} elseif ($this->status === 'ok' && $Result->status !== 'ok') {
+			// have custom status from $Result
+			$this->status = $Result->status;
+		}
+
+		$this->errorMessages = array_merge($this->errorMessages, $Result->getErrors());
+		$this->resultMessages = array_merge($this->resultMessages, $Result->getNotices());
+		$this->otherInformation = array_merge($this->otherInformation, $Result->getAllInfo());
+	}
+
+
+	/**
 	 * Format result for output
 	 *
 	 * LEGACY method. Use response() instead.
