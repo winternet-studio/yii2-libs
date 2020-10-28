@@ -33,7 +33,7 @@ class FormHelper extends Component {
 			FormHelperAsset::register($options['view']);  //required for wsYii2 to be available
 
 			// Apply the server-side generated errors to the form fields
-			$js .= "var form = $(_clickedButton).parents('form');";  //_clickedButton is set by the package demogorgorn/yii2-ajax-submit-button that we use for handling the AJAX form submission
+			$js .= "var form = $('#". $options['form']->getId() ."');";
 			$js .= "var applyResult = wsYii2.FormHelper.applyServerSideErrors(form, rsp);";
 			$js .= "var errorCount = applyResult.errorCount;";
 
