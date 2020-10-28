@@ -335,27 +335,58 @@ TODO:
 	},
 
 	/**
-	 * Object for highlighting errors on a form using Bootstrap tabs
+	 * Object for highlighting errors on a form
 	 */
-	HighlightTabbedFormErrors: {
+	HighlightFormErrors: {
 
-		init: function(formSelector) {
+		/**
+		 * @param {object} options - Same options as for checkForErrors()
+		 */
+		init: function(formSelector, options) {
 			var myself = this;
 
 			$(formSelector).on('afterValidate', function(ev) {
-				myself.checkForErrors(formSelector);
+				myself.checkForErrors(formSelector, options);
 			});
 
 			// Also check on initial page load in case it has been validated server-side and came back with errors
-			myself.checkForErrors(formSelector);
+			myself.checkForErrors(formSelector, options);
 		},
 
 		/**
-		 * @param {object} options : Available options:
+		 * @param {object} options - Available options:
+		 *   - `errorSelector` : set custom error CSS selector. Default is `.has-error´
+		 *   - `elementAttentionClass` : name of class that that should be applied to the first error element in order to bring attention to it - usually applying kind of CSS animation. Default is `highlight-form-element`. Example CSS:
+		 *     ```
+		 *     @keyframes element-blinking {
+		 *     	0% {
+		 *     		box-shadow: 0 0 0 10pt  rgba(195, 0, 0, 0.3);
+		 *     		background-color: rgba(195, 0, 0, 0.3);
+		 *     	}
+		 *     	100% {
+		 *     		box-shadow: inherit;
+		 *     		background-color: inherit;
+		 *     	}
+		 *     }
+		 *     .highlight-form-element input,
+		 *     .highlight-form-element select {
+		 *     	animation: element-blinking 1s 3;
+		 *     }
+		 *     ```
+		 *   - `removeClassAfter` : Number of milliseconds after which the class should be removed again. Set null to not remove it. Default is 4000 ms
+		 *   - `skipScroll` : don't scroll to the first error element
+		 *   - `skipFocus` : don't put cursor focus on the first error element
 		 *   - `submitButtonTooltipText` : set custom text to use as the tooltip shown for a few seconds when the form contains errors. Default is "Please check the form."
 		 */
 		checkForErrors: function(formSelector, options) {
-			if (!options) options = {};
+			options = $.extend({}, {
+				errorSelector: '.has-error',
+				elementAttentionClass: 'highlight-form-element',
+				removeClassAfter: 4000,
+				skipScroll: false,
+				skipFocus: false,
+				submitButtonTooltipText: null
+			}, options);
 
 			if (typeof formSelector == 'undefined') {
 				formSelector = 'body';
@@ -363,13 +394,37 @@ TODO:
 
 			// If form has client-side errors make sure the first tab with an error is active and user is aware there are problems
 			var $form = $(formSelector);
-			var $errors = $form.find('.has-error');
+			var $errors = $form.find(options.errorSelector);
 			if ($errors.length > 0) {
-				var $tabPane = $errors.first().closest('.tab-pane');
+				var $firstError = $errors.first();
+
+				var $tabPane = $firstError.closest('.tab-pane');
 				if ($tabPane.length > 0) {
 					var paneId = $tabPane.attr('id');
 					$form.find('.nav-tabs a[href="#'+ paneId +'"]').tab('show');
 				}
+
+				// Scroll to first error and highlight it
+				$('html, body').animate({
+					scrollTop: $firstError.offset().top - ($(window).height() / 2),
+				}, {
+					duration: 'slow',
+					complete: function() {
+						if (!options.skipFocus) {
+							$firstError.focus();
+						}
+						if (options.elementAttentionClass) {
+							$firstError.addClass(options.elementAttentionClass);
+							if (options.removeClassAfter) {
+								setTimeout(function() {
+									$firstError.removeClass(options.elementAttentionClass);
+								}, options.removeClassAfter);
+							}
+						}
+					}
+				});
+
+				// Add tooltip on submit button
 				$form.find('input[type=submit], button[type=submit]').tooltip({trigger: 'manual', title: (options.submitButtonTooltipText ? options.submitButtonTooltipText : 'Please check the form.'), container: 'body'});  //use container=body to make it not wrap inside element with little space
 				$form.find('input[type=submit], button[type=submit]').tooltip('show');
 
@@ -383,6 +438,22 @@ TODO:
 					$('.tooltip-arrow').css('border-top-color', origBgColor);
 				}, 2000);
 			}
+		}
+	},
+
+	/**
+	 * Object for highlighting errors on a form using Bootstrap tabs
+	 *
+	 * @deprecated No need to use this anymore since HighlightFormErrors automatically handles Bootstrap tabs
+	 */
+	HighlightTabbedFormErrors: {
+		init: function(formSelector, options) {
+			console.info("wsYii2.FormHelper.HighlightTabbedFormErrors is deprecated. Please use wsYii2.FormHelper.HighlightFormErrors instead.");
+			return wsYii2.FormHelper.HighlightFormErrors.init(formSelector, options);
+		},
+		checkForErrors: function(formSelector, options) {
+			console.info("wsYii2.FormHelper.HighlightTabbedFormErrors is deprecated. Please use wsYii2.FormHelper.HighlightFormErrors instead.");
+			return wsYii2.FormHelper.HighlightFormErrors.checkForErrors(formSelector, options);
 		}
 	},
 
