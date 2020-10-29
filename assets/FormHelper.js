@@ -286,11 +286,16 @@ TODO:
 	 * @param {string} selector : jQuery selector (or instance) for the submit button being clicked
 	 * @param {string} attachTo : Set `click` to bind to the submit button's click event, or `form` to bind to the form's submit event
 	 * @param {object} options : Available options:
-	 *   - `delayMs` : milliseconds to delay the event binding (eg. in case other code would delete the event binding)
+	 *   - `blockTime` : milliseconds that the button(s) should be blocked for subsequent clicks after having been clicked the first time. Default is 3000ms.
 	 *   - `callbackOnContinue` : callback that will be executed when submission is allowed to continue. Is passed one argument that is the jQuery instance of the selector.
+	 *   - `delayMs` : milliseconds to delay the event binding (eg. in case other code would delete the event binding)
 	 */
 	prohibitDoubleSubmit: function(selector, attachTo, options) {
-		if (!options) options = {};
+		options = $.extend({}, {
+			blockTime: 3000,
+			callbackOnContinue: null,
+			delayMs: null
+		}, options);
 
 		var $submitButton = $(selector);
 
@@ -310,7 +315,7 @@ TODO:
 			setTimeout(function() {
 				$submitButton.prop('disabled', false);
 				wsYii2.FormHelper._blockSubmit = false;
-			}, 3000);
+			}, options.blockTime);
 
 			if (allowContinue && options.callbackOnContinue) {
 				options.callbackOnContinue($submitButton);
@@ -355,7 +360,7 @@ TODO:
 
 		/**
 		 * @param {object} options - Available options:
-		 *   - `errorSelector` : set custom error CSS selector. Default is `.has-error´
+		 *   - `errorSelector` : set custom error CSS selector. Default is `.has-error`
 		 *   - `elementAttentionClass` : name of class that that should be applied to the first error element in order to bring attention to it - usually applying kind of CSS animation. Default is `highlight-form-element`. Example CSS:
 		 *     ```
 		 *     @keyframes element-blinking {
