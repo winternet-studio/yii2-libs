@@ -242,14 +242,22 @@ TODO:
 	 * Apply the server-side generated errors to the form fields
 	 *
 	 * @param {HTMLElement} form
-	 * @param {object} rsp : response object from the AJAX request
+	 * @param {object} response - Response object from the AJAX request
+	 * @param {object} options - Available options:
+	 *   - `userFriendlyNameCallback` : callback that can modify the name of the error messages' key to make it nicely readable by humans, eg. change `bk_firstname` to `First Name`. Passed one argument being the name. Returned string can include the string `[noColon]` in order not to put a colon after the name.
+	 *   - `errorsLabel` : title of the modal. Default is `Errors`
 	 */
-	applyServerSideErrors: function(form, rsp) {
+	applyServerSideErrors: function(form, response, options) {
+		options = $.extend({}, {
+			userFriendlyNameCallback: null,
+			errorsLabel: 'Errors',
+		}, options);
+
 		var errorCount = 0, errors = [];
-		if (typeof rsp.err_msg_ext != 'undefined') {
-			errors = rsp.err_msg_ext;
-		} else if (typeof rsp.errorsItemized != 'undefined') {
-			errors = rsp.errorsItemized;
+		if (typeof response.err_msg_ext != 'undefined') {
+			errors = response.err_msg_ext;
+		} else if (typeof response.errorsItemized != 'undefined') {
+			errors = response.errorsItemized;
 		}
 		if (errors !== null) {
 			// NOTE: the lonelyErrors are errors that have IDs that do not match anything in Yii's ActiveForm, so show those errors in a modal instead
@@ -266,13 +274,22 @@ TODO:
 					if (lonelyErrors[i][0] === '_generic') {
 						html.push('<li>'+ lonelyErrors[i][1] + '</li>');
 					} else {
-						html.push('<li>'+ lonelyErrors[i][0].replace(/^[a-z]+\-/, '') +': '+ lonelyErrors[i][1] + '</li>');
+						var name = lonelyErrors[i][0].replace(/^[a-z]+\-/, '');
+						var addColon = true;
+						if (options.userFriendlyNameCallback) {
+							name = options.userFriendlyNameCallback(name);
+							if (name && name.indexOf('[noColon]') > -1) {
+								addColon = false;
+								name = name.replace('[noColon]', '');
+							}
+						}
+						html.push('<li>'+ (name ? name + (addColon ? ': ' : '') : '') + lonelyErrors[i][1] + '</li>');
 					}
 				}
 				if (typeof appJS.showModal != 'undefined') {
-					appJS.showModal({title: 'Errors', html: '<ul>'+ html.join('<br>') +'</ul>' });
+					appJS.showModal({title: options.errorsLabel, html: '<ul>'+ html.join('') +'</ul>' });
 				} else {
-					alert('Errors:\n\n'+ html.join('\n').replace(/<li>/g, '- ').replace(/<\/li>/, ''));
+					alert(options.errorsLabel +':\n\n'+ html.join('\n').replace(/<li>/g, '- ').replace(/<\/li>/, ''));
 				}
 			}
 		}
