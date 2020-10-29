@@ -42,23 +42,19 @@ class GulpReload extends \yii\base\Module {
 		// NOTE: increment the version number every time a change is made (so that $jsCallback can know if there are changes)
 ?>
 //v1.
-try {
-	const ws = new WebSocket('ws://<?= $this->websocketHost ?>:<?= $this->websocketPort . $this->websocketPath ?>');
-	ws.addEventListener('error', err => {
-		// console.error('Failed to connect to websocket server for the gulp live reload system');
-		// console.error(err);
-	});
-	ws.addEventListener('message', event => {
-		if (event.data === 'reload') {
-			console.info('Reload requested by gulp');
-			location.reload(true);
-		} else {
-			console.log('Unknown gulp event: '+ event.data);
-			console.log(event);
-		}
-	});
-} catch (error) {
-}
+const ws = new WebSocket('ws://<?= $this->websocketHost ?>:<?= $this->websocketPort . $this->websocketPath ?>');
+ws.addEventListener('error', err => {
+	// console.error(err);
+});
+ws.addEventListener('message', event => {
+	if (event.data === 'reload') {
+		console.info('Reload requested by gulp');
+		location.reload(true);
+	} else {
+		console.log('Unknown gulp event: '+ event.data);
+		console.log(event);
+	}
+});
 <?php
 		$js = ob_get_clean();
 		if (is_callable($this->jsCallback)) {
