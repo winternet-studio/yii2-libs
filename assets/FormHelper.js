@@ -344,25 +344,29 @@ TODO:
 	},
 
 	/**
-	 * Object for highlighting errors on a form
+	 * Object for highlighting errors on a form, or just highlight any element for any purpose
 	 */
-	HighlightFormErrors: {
+	HighlightIssues: {
 
 		/**
-		 * @param {object} options - Same options as for checkForErrors()
+		 * Use this on page load (if desired)
+		 *
+		 * @param {object} options - Same options as for checkNow()
 		 */
 		init: function(formSelector, options) {
 			var myself = this;
 
 			$(formSelector).on('afterValidate', function(ev) {
-				myself.checkForErrors(formSelector, options);
+				myself.checkNow(formSelector, options);
 			});
 
 			// Also check on initial page load in case it has been validated server-side and came back with errors
-			myself.checkForErrors(formSelector, options);
+			myself.checkNow(formSelector, options);
 		},
 
 		/**
+		 * This can also be called directly instead of using the init() method
+		 *
 		 * @param {object} options - Available options:
 		 *   - `errorSelector` : set custom error CSS selector. Default is `.has-error`
 		 *   - `elementAttentionClass` : name of class that that should be applied to the first error element in order to bring attention to it - usually applying kind of CSS animation. Default is `highlight-form-element`. Example CSS:
@@ -385,16 +389,22 @@ TODO:
 		 *   - `removeClassAfter` : Number of milliseconds after which the class should be removed again. Set null to not remove it. Default is 4000 ms
 		 *   - `skipScroll` : don't scroll to the first error element
 		 *   - `skipFocus` : don't put cursor focus on the first error element
-		 *   - `submitButtonTooltipText` : set custom text to use as the tooltip shown for a few seconds when the form contains errors. Default is "Please check the form."
+		 *   - `skipSubmitButtonTooltip` : don't show tooltip on submit button
+		 *   - `submitButtonSelector` : set custom selector for the submit button. Default is `input[type=submit], button[type=submit]`
+		 *   - `submitButtonTooltipText` : set custom text to use as the submit button tooltip, shown for a few seconds when the form contains errors. Default is `Please check the form.`
+		 *   - `tooltipBgColor` : set custom CSS background color for the submit button tooltip. Default is red: `#ec0000`
 		 */
-		checkForErrors: function(formSelector, options) {
+		checkNow: function(formSelector, options) {
 			options = $.extend({}, {
 				errorSelector: '.has-error',
 				elementAttentionClass: 'highlight-form-element',
 				removeClassAfter: 4000,
 				skipScroll: false,
 				skipFocus: false,
-				submitButtonTooltipText: null
+				skipSubmitButtonTooltip: false,
+				submitButtonSelector: 'input[type=submit], button[type=submit]',
+				submitButtonTooltipText: null,
+				tooltipBgColor: '#ec0000'  //= red
 			}, options);
 
 			if (typeof formSelector == 'undefined') {
@@ -434,18 +444,20 @@ TODO:
 				});
 
 				// Add tooltip on submit button
-				$form.find('input[type=submit], button[type=submit]').tooltip({trigger: 'manual', title: (options.submitButtonTooltipText ? options.submitButtonTooltipText : 'Please check the form.'), container: 'body'});  //use container=body to make it not wrap inside element with little space
-				$form.find('input[type=submit], button[type=submit]').tooltip('show');
+				if (!options.skipSubmitButtonTooltip) {
+					$form.find(options.submitButtonSelector).tooltip({trigger: 'manual', title: (options.submitButtonTooltipText ? options.submitButtonTooltipText : 'Please check the form.'), container: 'body'});  //use container=body to make it not wrap inside element with little space
+					$form.find(options.submitButtonSelector).tooltip('show');
 
-				var origBgColor = $('.tooltip-inner, .tooltip-arrow').css('background-color');
-				$('.tooltip-inner').css('background-color', '#ec0000');  //show it in red
-				$('.tooltip-arrow').css('border-top-color', '#ec0000');
+					var origBgColor = $('.tooltip-inner, .tooltip-arrow').css('background-color');
+					$('.tooltip-inner').css('background-color', options.tooltipBgColor);
+					$('.tooltip-arrow').css('border-top-color', options.tooltipBgColor);
 
-				setTimeout(function() {
-					$('input[type=submit], button[type=submit]').tooltip('destroy');
-					$('.tooltip-inner').css('background-color', origBgColor);
-					$('.tooltip-arrow').css('border-top-color', origBgColor);
-				}, 2000);
+					setTimeout(function() {
+						$(options.submitButtonSelector).tooltip('destroy');
+						$('.tooltip-inner').css('background-color', origBgColor);
+						$('.tooltip-arrow').css('border-top-color', origBgColor);
+					}, 2000);
+				}
 			}
 		}
 	},
@@ -453,16 +465,16 @@ TODO:
 	/**
 	 * Object for highlighting errors on a form using Bootstrap tabs
 	 *
-	 * @deprecated No need to use this anymore since HighlightFormErrors automatically handles Bootstrap tabs
+	 * @deprecated No need to use this anymore since HighlightIssues automatically handles Bootstrap tabs
 	 */
 	HighlightTabbedFormErrors: {
 		init: function(formSelector, options) {
-			console.info("wsYii2.FormHelper.HighlightTabbedFormErrors is deprecated. Please use wsYii2.FormHelper.HighlightFormErrors instead.");
-			return wsYii2.FormHelper.HighlightFormErrors.init(formSelector, options);
+			console.info("wsYii2.FormHelper.HighlightTabbedFormErrors is deprecated. Please use wsYii2.FormHelper.HighlightIssues instead.");
+			return wsYii2.FormHelper.HighlightIssues.init(formSelector, options);
 		},
 		checkForErrors: function(formSelector, options) {
-			console.info("wsYii2.FormHelper.HighlightTabbedFormErrors is deprecated. Please use wsYii2.FormHelper.HighlightFormErrors instead.");
-			return wsYii2.FormHelper.HighlightFormErrors.checkForErrors(formSelector, options);
+			console.info("wsYii2.FormHelper.HighlightTabbedFormErrors is deprecated. Please use wsYii2.FormHelper.HighlightIssues instead.");
+			return wsYii2.FormHelper.HighlightIssues.checkNow(formSelector, options);
 		}
 	},
 
