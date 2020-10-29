@@ -263,7 +263,11 @@ TODO:
 			if (lonelyErrors.length > 0) {
 				var html = [];
 				for (var i = 0; i < lonelyErrors.length; i++) {
-					html.push('<li>'+ lonelyErrors[i][0].replace(/^[a-z]+\-/, '') +': '+ lonelyErrors[i][1] + '</li>');
+					if (lonelyErrors[i][0] === '_generic') {
+						html.push('<li>'+ lonelyErrors[i][1] + '</li>');
+					} else {
+						html.push('<li>'+ lonelyErrors[i][0].replace(/^[a-z]+\-/, '') +': '+ lonelyErrors[i][1] + '</li>');
+					}
 				}
 				if (typeof appJS.showModal != 'undefined') {
 					appJS.showModal({title: 'Errors', html: '<ul>'+ html.join('<br>') +'</ul>' });
