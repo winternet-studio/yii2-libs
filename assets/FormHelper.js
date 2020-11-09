@@ -10,8 +10,8 @@ wsYii2.FormHelper = {
 	 * @param {string|object} inputName - Name of form field or jQuery object of the element
 	 * @param {object} options : (opt.) Possible options:
 	 *   - `forceArray` : set true to force value(s) to be returned in an array (good for checkboxes)
-	 *   - `forceNull` : set true to return for returning null instead of empty strings when nothing has been selected (forceArray has priority)
-	 *   - `emptyString` : set true to return empty strings instead of null when nothing has been selected (has priority over forceNull)
+	 *   - `forceNull` : set true to return null instead of empty string or empty array when nothing has been selected (forceArray has priority)
+	 *   - `emptyString` : set true to return empty string instead of null or empty array when nothing has been selected (has priority over forceNull)
 	 *
 	 * @return string|array|null - The form field value (if form field was not found return value will be undefined)
 	 */
@@ -63,11 +63,11 @@ wsYii2.FormHelper = {
 					value = [value];
 				}
 			} else if (options.emptyString) {
-				if (value === null) {
+				if (value === null || (Array.isArray(value) && value.length === 0)) {
 					value = '';
 				}
 			} else if (options.forceNull) {
-				if (value === '') {
+				if (value === '' || (Array.isArray(value) && value.length === 0)) {
 					value = null;
 				}
 			}
