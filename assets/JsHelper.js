@@ -104,8 +104,10 @@ appJS.ajax = function(parms) {
 			if (rsp.responseJSON.message) {
 				html += rsp.responseJSON.message.replace(/(?:\r\n|\r|\n)/g, '<br />');
 			} else {
-				html += 'Response from server: '+ (rsp.responseText === '' ? '<span style="color: #B0B0B0">EMPTY STRING</span>' : rsp.responseText);
-				html += '<br />Text status: '+ status +'<br />Error thrown: '+ err;
+				html += 'Response from server: '+ (rsp.responseText === '' ? '<span style="color: #B0B0B0">EMPTY STRING</span>' : $('<div>').text(rsp.responseText.substr(0, 300)).html() + '... [see the rest in debugger]');
+				console.error('Response from server:');
+				console.error(rsp.responseText);
+				html += '<br /><br />Text status: '+ status +'<br />Error thrown: '+ err;
 			}
 			if (rsp.responseJSON.file) {
 				html += '<br><br>File: '+ rsp.responseJSON.file;
