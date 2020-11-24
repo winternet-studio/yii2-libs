@@ -60,12 +60,13 @@ class Result extends Component implements \JsonSerializable {
 		}
 	}
 
+	/**
+	 * Define what json_encode() should output when being passed this object
+	 *
+	 * For example used when response is set to JSON in controller action and we just return this object (as per the crud2 generator).
+	 */
 	public function jsonSerialize() {
-		return [
-			'status' => $this->status,
-			'errors' => $this->getErrors(),
-			'notices' => $this->getNotices(),
-		];
+		return $this->response();
 	}
 
 	/**
@@ -435,7 +436,13 @@ class Result extends Component implements \JsonSerializable {
 		}
 
 		if (@constant('YII_BEGIN_TIME') && !Yii::$app->request->isConsoleRequest) {
-			Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON]['prettyPrint'] = (defined('YII_DEBUG') ? YII_DEBUG : false); // use "pretty" output in debug mode
+			// use "pretty" output in debug mode
+			$formatter =& Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON];
+			if (is_array($formatter)) {  //sometimes an array, other times an object
+				$formatter['prettyPrint'] = (defined('YII_DEBUG') ? YII_DEBUG : false);
+			} else {
+				$formatter->prettyPrint = (defined('YII_DEBUG') ? YII_DEBUG : false);
+			}
 
 			/*
 			DECIDED NOT TO DO THE FOLLOWING AFTERALL BECAUSE:
@@ -443,7 +450,7 @@ class Result extends Component implements \JsonSerializable {
 			- Object.keys(array).forEach(function(key) { ... }) works fine on arrays as well! (since arrays are just a special type of objects)
 			*/
 			// For JSON output enforce encoding arrays as objects so the variable types will always be the same
-			// Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON]['encodeOptions'] = JSON_FORCE_OBJECT;
+			// Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON]['encodeOptions'] (or ->encodeOptions) = JSON_FORCE_OBJECT;
 		}
 
 		return $output;
