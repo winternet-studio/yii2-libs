@@ -131,8 +131,12 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		if ((Yii::$app->request->isAjax && !Yii::$app->request->isPjax) || Yii::$app->params['isApi']) {
 			Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 			$model->load(Yii::$app->request->post());
-			if (!$_POST['ajax']) $model->save();  //don't save when AJAX validation is done due to enableAjaxValidation=true
-			$result = \winternet\yii2\FormHelper::addResultErrors(null, $model);
+			if ($_POST['ajax']) {
+				$model->validate();  //don't save when AJAX validation is done due to enableAjaxValidation=true
+			} else {
+				$model->save();
+			}
+			$result = \winternet\yii2\FormHelper::addModelResult(null, $model);
 			return $result;
 		}
 
@@ -156,11 +160,14 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 
 		// Form submission
 		if ((Yii::$app->request->isAjax && !Yii::$app->request->isPjax) || Yii::$app->params['isApi']) {
-			$model->load(Yii::$app->request->post());
-			$model->validate();
-			if (!$_POST['ajax']) $model->save();  //don't save when AJAX validation is done due to enableAjaxValidation=true
-			$result = \winternet\yii2\FormHelper::addResultErrors(null, $model);
 			Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+			$model->load(Yii::$app->request->post());
+			if ($_POST['ajax']) {
+				$model->validate();  //don't save when AJAX validation is done due to enableAjaxValidation=true
+			} else {
+				$model->save();
+			}
+			$result = \winternet\yii2\FormHelper::addModelResult(null, $model);
 			return $result;
 		}
 
