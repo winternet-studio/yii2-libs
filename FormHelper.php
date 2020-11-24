@@ -103,7 +103,40 @@ class FormHelper extends Component {
 	}
 
 	/**
+	 * Add errors/notices from a Yii model to a Result instance
+	 *
+	 * Adding notices require a public property on the model called `_resultNotices`.
+	 * 
+	 * @param winternet\yii2\Result|null : Result instance, or provide null to have the method create an instance for you
+	 * @param yii\base\model $model : A Yii model
+	 *
+	 * @return winternet\yii2\Result
+	 */
+	public static function addModelResult($result, &$model) {
+		if (!$result) {
+			$result = new \winternet\yii2\Result();
+		}
+
+		// Add errors
+		foreach ($model->getErrors() as $attribute => $errors) {
+			// Generate the form field ID so Yii ActiveForm client-side can apply the error message
+			$attributeId = \yii\helpers\Html::getInputId($model, $attribute);
+
+			$result->addNamedErrors($attributeId, $errors);
+		}
+
+		// Add notices
+		if ($result->noErrors() && property_exists($model, '_resultNotices') && is_array($model->_resultNotices) && !empty($model->_resultNotices)) {
+			$result->addNotices($model->_resultNotices);
+		}
+
+		return $result;
+	}
+
+	/**
 	 * Add errors from a Yii model to a standard result array
+	 *
+	 * @deprecated Should use the new [addModelResult()] instead.
 	 *
 	 * The new key 'err_msg_ext' MUST then be used for processing it (because 'err_msg' might not contain all error messages).
 	 *
