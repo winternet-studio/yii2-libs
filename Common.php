@@ -20,43 +20,43 @@ class Common extends Component {
 		return FormHelper::addResultErrors($result, $model, $options);
 	}
 
-	public static function parseMultiLang($str, $lang = null) {
-		/*
-		DESCRIPTION:
-		- parses a string with multiple translations of a piece of text
-		INPUT:
-		- $str : string in the format: EN=Text in English ,,, ES=Text in Spanish
-			- unlimited number of translations
-			- upper case of language identifier is optional
-			- spaces are allowed around both identifiers and texts (will be trimmed)
-		- $lang : use specific language instead of Yii's app language
-			- set to 'ALL' to return all translations in an array (key being the language in lower case)
-				- OBS! You still need to check if an array was returned because if no translations were found the original string is just returned
-		OUTPUT:
-		- string, or array if $lang='ALL' and at least one translation was found
-		- if no matches found, the raw string is returned
-		- if language is not found, the first language is returned
-		*/
-		if ($lang === null) {
-			$lang = substr(Yii::$app->language, 0, 2);
+	/**
+	 * Parses a string with multiple translations of a piece of text
+	 *
+	 * @param string $str : String in the format: `EN=Text in English ,,, ES=Text in Spanish`
+	 *   - unlimited number of translations
+	 *   - upper case of language identifier is optional
+	 *   - spaces are allowed around both identifiers and texts (will be trimmed)
+	 * @param string $language : Use specific language instead of Yii's app language (2-letter ISO 639-1 code)
+	 *   - set to `ALL` to return all translations in an array (key being the language in lower case)
+	 *     - OBS! You still need to check if an array was returned because if no translations were found the original string is just returned
+	 * @return string|array : String, or array if $language=`ALL` and at least one translation was found.
+	 *   - if no matches found, the raw string is returned
+	 *   - if language is not found, the first language is returned
+	 */
+	public static function parseMultiLang($text, $language = null) {
+		if ($language === null) {
+			$language = substr(Yii::$app->language, 0, 2);
 		}
 
 		$all = [];
 
-		$str = (string) $str;
-		if (!$str) {
-			return $str;
+		$text = (string) $text;
+		if (!$text) {
+			return $text;
 		} else {
-			if (preg_match('/,,,\\s*[a-zA-Z]{2}\\s*=/', $str)) {
-				$str = explode(',,,', $str);
-				foreach ($str as &$a) {
-					if (preg_match('/^\\s*([a-zA-Z]{2})\\s*=\\s*(.*?)\\s*$/s', $a, $match)) {
+			$regExp = '/^\\s*([a-zA-Z]{2})\\s*=\\s*(.*?)\\s*$/s';
+			if (preg_match('/,,,\\s*[a-zA-Z]{2}\\s*=/', $text)) {
+				// multiple languages
+				$text = explode(',,,', $text);
+				foreach ($text as &$a) {
+					if (preg_match($regExp, $a, $match)) {
 						$clang = strtolower($match[1]);
 
-						if ($lang == 'ALL') {
+						if ($language == 'ALL') {
 							$all[$clang] = $match[2];
 						} else {
-							if ($lang == $clang) {
+							if ($language == $clang) {
 								return $match[2];
 							}
 						}
@@ -64,15 +64,16 @@ class Common extends Component {
 					}
 				}
 
-				if ($lang == 'ALL') {
+				if ($language == 'ALL') {
 					return $all;
 				} else {
-					$b = explode('=', $str[0]);  //fallback to first language
+					$b = explode('=', $text[0], 2);  //fallback to first language
 					return trim($b[1]);
 				}
 
-			} elseif (preg_match('/^\\s*([a-zA-Z]{2})\\s*=\\s*(.*?)\\s*$/s', $str, $match)) {
-				if ($lang == 'ALL') {
+			} elseif (preg_match($regExp, $text, $match)) {
+				// only a single language
+				if ($language == 'ALL') {
 					$clang = strtolower($match[1]);
 					$all[$clang] = $match[2];
 					return $all;
@@ -81,7 +82,8 @@ class Common extends Component {
 				}
 
 			} else {
-				return $str;
+				// no specific language, just regular text
+				return $text;
 			}
 		}
 	}
