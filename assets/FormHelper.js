@@ -244,11 +244,13 @@ TODO:
 	 * @param {HTMLElement} form
 	 * @param {object} response - Response object from the AJAX request
 	 * @param {object} options - Available options:
+	 *   - `skipHighlightIssues` : set true to not automatically call HighlightIssues.checkNow() to highlight any errors
 	 *   - `userFriendlyNameCallback` : callback that can modify the name of the error messages' key to make it nicely readable by humans, eg. change `bk_firstname` to `First Name`. Passed one argument being the name. Returned string can include the string `[noColon]` in order not to put a colon after the name.
 	 *   - `errorsLabel` : title of the modal. Default is `Errors`
 	 */
 	applyServerSideErrors: function(form, response, options) {
 		options = $.extend({}, {
+			skipHighlightIssues: false,
 			userFriendlyNameCallback: null,
 			errorsLabel: 'Errors',
 		}, options);
@@ -295,6 +297,10 @@ TODO:
 		}
 		// NOTE: errorCount MUST be determined before form.yiiActiveForm() because it modifies the `errors` variable! NOTE: updateMessages should always be called so that in case there are no errors any previously set errors are cleared.
 		form.yiiActiveForm('updateMessages', errors, true);
+
+		if (!options.skipHighlightIssues) {
+			wsYii2.FormHelper.HighlightIssues.checkNow(form);
+		}
 
 		return {
 			errorCount: errorCount
@@ -382,7 +388,11 @@ TODO:
 		},
 
 		/**
-		 * This can also be called directly instead of using the init() method
+		 * Bring user's attention to any errors on the form
+		 *
+		 * By default both scrolls to (or make visible) the first error and visually highlights it.
+		 *
+		 * This can also be called directly instead of using the init() method.
 		 *
 		 * @param {object} options - Available options:
 		 *   - `errorSelector` : set custom error CSS selector. Default is `.has-error`
