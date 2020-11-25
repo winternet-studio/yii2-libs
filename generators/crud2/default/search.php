@@ -61,6 +61,8 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 	}
 ?>
 
+	protected $callingViewable = false;
+
 	/**
 	 * @inheritdoc
 	 */
@@ -75,7 +77,15 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 	 */
 	public function scenarios() {
 		$scenarios = parent::scenarios();
+
+		// To avoid infinite loop in case parent viewable() is dependent on scenarios() just returns the basic scenario while we call viewable() below
+		if ($this->callingViewable) {
+			return $scenarios;
+		}
+
+		$this->callingViewable = true;
 		$viewable = parent::viewable();
+		$this->callingViewable = false;
 
 		// Add the *_OP attributes for the current scenario
 		$scenarios[$this->scenario] = [];  //start over because we need to include those that we have view permission for without having update permission (and remove "!" in front of any attributes)
