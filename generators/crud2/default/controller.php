@@ -78,7 +78,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		$filterApplied = (empty($dataProvider->query->where) ? false : true);
 
 		if (Yii::$app->params['isApi']) {
-			return ['result' => $provider->getModels() ];
+			return ['result' => $dataProvider->getModels() ];
 		} else {
 			return $this->render('index', [
 				'searchModel' => $searchModel,
@@ -93,7 +93,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		$filterApplied = (empty($dataProvider->query->where) ? false : true);
 
 		if (Yii::$app->params['isApi']) {
-			return ['result' => $provider->getModels() ];
+			return ['result' => $dataProvider->getModels() ];
 		} else {
 			return $this->render('index', [
 				'dataProvider' => $dataProvider,
