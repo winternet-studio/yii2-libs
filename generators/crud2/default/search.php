@@ -120,6 +120,19 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 	 * @return ActiveDataProvider
 	 */
 	public function search($params) {
+		// Handle memorizing the last used search parameters
+		$shortModelName = basename(__CLASS__);
+		if (Yii::$app->session && !Yii::$app->request->isConsoleRequest) {
+			Yii::$app->session->open();
+			if (empty($params[$shortModelName])) {
+				if (!empty($_SESSION['cache'][__CLASS__]['searchParams'])) {
+					$params[$shortModelName] = $_SESSION['cache'][__CLASS__]['searchParams'];
+				}
+			} else {
+				$_SESSION['cache'][__CLASS__]['searchParams'] = $params[$shortModelName];
+			}
+		}
+
 		$this->applyUserScenario();
 
 		$searchable = array_intersect($this->searchable(), $this->viewable());

@@ -116,7 +116,7 @@ foreach ($generator->getColumnNames() as $attribute) {
 if ($filterApplied) {
 ?>
 		<div style="height: 10px"></div>
-		<a href="<?= "<?= " ?>\yii\helpers\Url::to([Yii::$app->requestedRoute]) ?>" class="btn btn-warning"><?= $generator->generateStringHtml('Clear filter') ?></a>
+		<a href="<?= "<?= " ?>\yii\helpers\Url::to([Yii::$app->requestedRoute, '<?= StringHelper::basename($generator->searchModelClass) ?>[_reset]' => 1]) ?>" class="btn btn-warning"><?= $generator->generateStringHtml('Clear filter') ?></a>
 <?= "<?php\n" ?>
 }
 ?>
