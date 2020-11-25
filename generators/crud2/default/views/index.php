@@ -27,7 +27,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 	<h1><?= "<?= " ?>Html::encode($this->title) ?></h1>
 <?php if(!empty($generator->searchModelClass)): ?>
-<?= "    <?php " . ($generator->indexWidgetType === 'grid' ? "// " : "") ?>echo $this->render('_search', ['model' => $searchModel, 'filterApplied' => $filterApplied]); ?>
+<?= "	<?php " . ($generator->indexWidgetType === 'grid' ? "// " : "") ?>echo $this->render('_search', ['model' => $searchModel, 'filterApplied' => $filterApplied]); ?>
 <?php endif; ?>
 
 	<p class="pull-right">
@@ -43,18 +43,18 @@ $count = 0;
 if (($tableSchema = $generator->getTableSchema()) === false) {
 	foreach ($generator->getColumnNames() as $name) {
 		if (++$count < 6) {
-			echo "            '" . $name . "',\n";
+			echo "			'" . $name . "',\n";
 		} else {
-			echo "            // '" . $name . "',\n";
+			echo "			// '" . $name . "',\n";
 		}
 	}
 } else {
 	foreach ($tableSchema->columns as $column) {
 		$format = $generator->generateColumnFormat($column);
 		if (++$count < 6) {
-			echo "            '" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
+			echo "			'" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
 		} else {
-			echo "            // '" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
+			echo "			// '" . $column->name . ($format === 'text' ? "" : ":" . $format) . "',\n";
 		}
 	}
 }
