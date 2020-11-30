@@ -346,17 +346,17 @@ appJS.doAjax = function(args) {
 				var errors = (typeof rsp.err_msg != 'undefined' ? rsp.err_msg : rsp.errors);
 				var notices = (typeof rsp.result_msg != 'undefined' ? rsp.result_msg : rsp.notices);
 				if (rsp.status == 'ok') {
-					var msgCount = rsp.notices.length;
+					var msgCount = notices.length;
 					if (msgCount == 0) {  //check if it's an object with properties (= text keys) instead of an array (= numeric keys)
-						msgCount = Object.keys(rsp.notices).length;
+						msgCount = Object.keys(notices).length;
 					}
 					if (!isQuiet || msgCount > 0) {
 						var resultMsg = '<span class="result-text success-text">'+ args.options.textSuccess;
 						if (msgCount > 0) {
 							resultMsg += ' '+ args.options.textPleaseNote +':</span><br><br><span class="messages result-messages"><ul>';
-							for (i in rsp.notices) {
-								if (rsp.notices.hasOwnProperty(i)) {
-									resultMsg += '<li>'+ rsp.notices[i] +'</li>';
+							for (i in notices) {
+								if (notices.hasOwnProperty(i)) {
+									resultMsg += '<li>'+ notices[i] +'</li>';
 								}
 							}
 							resultMsg += '</ul></span>';

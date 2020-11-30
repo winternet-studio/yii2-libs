@@ -410,7 +410,7 @@ TODO:
 		 *     }
 		 *     .highlight-form-element input,
 		 *     .highlight-form-element select {
-		 *     	animation: element-blinking 1s 3;
+		 *     	animation: element-blinking 1s 2;
 		 *     }
 		 *     ```
 		 *   - `removeClassAfter` : Number of milliseconds after which the class should be removed again. Set null to not remove it. Default is 4000 ms
