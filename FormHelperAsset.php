@@ -13,7 +13,7 @@ class FormHelperAsset extends AssetBundle {
 
 	// public $css = ['nothingyet.css'];
 
-	public $js = ['FormHelper.js?v=1'];
+	public $js = ['FormHelper.js'];
 
 	public $depends = ['yii\web\JqueryAsset'];
 

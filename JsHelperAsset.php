@@ -13,7 +13,7 @@ class JsHelperAsset extends AssetBundle {
 
 	// public $css = ['nothingyet.css'];
 
-	public $js = ['JsHelper.js?v=8'];
+	public $js = ['JsHelper.js'];
 
 	public $depends = ['yii\web\JqueryAsset'];
 
