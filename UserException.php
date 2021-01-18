@@ -236,7 +236,7 @@ class UserException extends \yii\base\UserException {
 			$requestInfo = [
 				'IP' => $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : ''),
 				'Host' => $host,
-				$_SERVER['REQUEST_METHOD'] => (!empty($_POST) ? $_POST : null),
+				$_SERVER['REQUEST_METHOD'] => (!empty($_POST) ? $_POST : file_get_contents('php://input')),
 				'Referer' => $_SERVER['HTTP_REFERER'],
 				'User Agent' => $_SERVER['HTTP_USER_AGENT'],
 			];
