@@ -22,7 +22,7 @@ use yii\base\Component;
  * 		// continue with something
  * 	}
  *
- * 	$result->addInfo('rowsAffected', $x);
+ * 	$result->addData('rowsAffected', $x);
  *
  * 	return $result;
  * }
@@ -127,7 +127,11 @@ class Result extends Component implements \JsonSerializable {
 	private function addAllNamedErrors($arrayNames) {
 		$this->setStatus('error');
 		foreach ($arrayNames as $name => $errors) {
-			$this->errorMessages[$name] = array_merge( (array) $this->errorMessages[$name], $errors);
+			if (isset($this->errorMessages[$name])) {
+				$this->errorMessages[$name] = array_merge( (array) $this->errorMessages[$name], $errors);
+			} else {
+				$this->errorMessages[$name] = $errors;
+			}
 		}
 	}
 
@@ -218,7 +222,7 @@ class Result extends Component implements \JsonSerializable {
 					}
 				} else {
 					if (is_array($currValue)) {
-						$output[$currKey] = $currValue[0];  //only return first error message of an attribute in the flat format
+						$output[$currKey] = current($currValue);  //only return first error message of an attribute in the flat format
 					} else {
 						$output[$currKey] = $currValue;
 					}
@@ -227,6 +231,13 @@ class Result extends Component implements \JsonSerializable {
 			return $output;
 		}
 		return [];
+	}
+
+	/**
+	 * Get a the first error (in flat format)
+	 */
+	public function getFirstErrorFlat() {
+		return $this->getErrorsFlat()[0];
 	}
 
 	/**
@@ -263,33 +274,33 @@ class Result extends Component implements \JsonSerializable {
 
 
 	/**
-	 * Add arbitrary information to the result
+	 * Add arbitrary data to the result
 	 *
-	 * This method will also overwrite any existing information for the given key.
+	 * This method will also overwrite any existing data for the given key.
 	 */
-	public function addInfo($key, $value) {
+	public function addData($key, $value) {
 		$this->otherInformation[$key] = $value;
 	}
 
-	public function getInfo($key) {
+	public function getData($key) {
 		return $this->otherInformation[$key];
 	}
 
-	public function getAllInfo() {
+	public function getAllData() {
 		return $this->otherInformation;
 	}
 
 	/**
-	 * Filter information so that only the given properties (or array keys) are retained, or apply a custom filter function
+	 * Filter data so that only the given properties (or array keys) are retained, or apply a custom filter function
 	 *
 	 * If $arrayOrCallable is an array, objects will be converted to arrays.
 	 *
-	 * Useful for ensuring that a result with undesired information is not sent client-side.
+	 * Useful for ensuring that a result with undesired data is not sent client-side.
 	 *
-	 * @param string $key : Key that was used in addInfo()
+	 * @param string $key : Key that was used in addData()
 	 * @param array|callback $arrayOrCallable : Array of property or array keys, or a callback function which takes the current value as first argument and which return the new info value to be stored
 	 */
-	public function filterInfo($key, $arrayOrCallable) {
+	public function filterData($key, $arrayOrCallable) {
 		if (is_array($arrayOrCallable)) {
 			if (!isset($this->otherInformation[$key]) || !$this->otherInformation[$key]) {
 				// do nothing
@@ -323,13 +334,13 @@ class Result extends Component implements \JsonSerializable {
 	}
 
 	/**
-	 * Filter result information so that only the keys specified are retained
+	 * Filter result data so that only the keys specified are retained
 	 *
 	 * Useful for ensuring that a result with undesired keys are not sent client-side
 	 *
 	 * @param array $keys : Keys 
 	 */
-	public function filterAllInfo($keys) {
+	public function filterAllData($keys) {
 		foreach ($this->otherInformation as $key => $value) {
 			if (!in_array($key, $keys, true)) {
 				unset($this->otherInformation[$key]);
@@ -337,11 +348,46 @@ class Result extends Component implements \JsonSerializable {
 		}
 	}
 
+	/**
+	 * @deprecated Use [[addData()]] instead.
+	 */
+	public function addInfo($key, $value) {
+		$this->addData($key, $value);
+	}
+
+	/**
+	 * @deprecated Use [[getData()]] instead.
+	 */
+	public function getInfo($key) {
+		return $this->getData($key);
+	}
+
+	/**
+	 * @deprecated Use [[getAllData()]] instead.
+	 */
+	public function getAllInfo() {
+		return $this->getAllData();
+	}
+
+	/**
+	 * @deprecated Use [[filterData()]] instead.
+	 */
+	public function filterInfo($key, $arrayOrCallable) {
+		$this->filterData($key, $arrayOrCallable);
+	}
+
+	/**
+	 * @deprecated Use [[filterAllData()]] instead.
+	 */
+	public function filterAllInfo($keys) {
+		$this->filterAllData($keys);
+	}
+
 
 	/**
 	 * Set custom status
 	 *
-	 * Will only have effect if $this->errorMessages is empty, otherwise it will be overwritten with `error` in $this->output().
+	 * Will only have effect if $this->errorMessages is empty, otherwise it will be overwritten with `error` in $this->response().
 	 * It will also be reset to `error` each time an error is added afterwards.
 	 */
 	public function setStatus($status) {
@@ -366,14 +412,14 @@ class Result extends Component implements \JsonSerializable {
 
 		$this->errorMessages = array_merge($this->errorMessages, $Result->getErrors());
 		$this->resultMessages = array_merge($this->resultMessages, $Result->getNotices());
-		$this->otherInformation = array_merge($this->otherInformation, $Result->getAllInfo());
+		$this->otherInformation = array_merge($this->otherInformation, $Result->getAllData());
 	}
 
 
 	/**
 	 * Format result for output
 	 *
-	 * LEGACY method. Use response() instead.
+	 * @deprecated Use [[response()]] instead.
 	 */
 	public function output($options = []) {
 		if (count($this->errorMessages) == 0) {
