@@ -383,6 +383,12 @@ class UserException extends \yii\base\UserException {
 	}
 
 	public function jsonEncodeCleaned($variable) {
-		return trim(str_replace("\n    ", "\n", json_encode($variable, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES)), "{}\r\n");
+		$json = json_encode($variable, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+		if ($json === false) {
+			// failed to encode (possible reason from json_last_error_msg(): "Malformed UTF-8 characters, possibly incorrectly encoded")
+			return print_r($variable, true);
+		} else {
+			return trim(str_replace("\n    ", "\n", $json), "{}\r\n");
+		}
 	}
 }
