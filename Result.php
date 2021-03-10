@@ -109,18 +109,67 @@ class Result extends Component implements \JsonSerializable {
 		}
 	}
 
-	public function addErrors($arrayMessages) {  //good for passing in Yii2 model->getErrors() - which is actually handled by addAllNamedErrors()
+	/**
+	 * Add multiple errors
+	 *
+	 * @param array $arrayMessages : Array of errors. Good for passing in Yii2 model->getErrors() - which is actually handled by addAllNamedErrors(). Examples:
+	 * ```
+	 * [
+	 *     'usr_firstname' => [
+	 *         'Name is too short.',
+	 *     ]
+	 * ]
+	 * ```
+	 * ```
+	 * [
+	 *     '_generic' => [
+	 *         'Person is already registered as arrived.',
+	 *         'Booking has been canceled.',
+	 *     ]
+	 * ]
+	 * ```
+	 * ```
+	 * [
+	 *     'Person is already registered as arrived.',
+	 *     'Booking has been canceled.',
+	 * ]
+	 * ```
+	 * @param array $options : Available options:
+	 *   - `prefix` : Prefix each error message with this string. Very useful when doing the same operation on multiple records in order to identity which record the individual error message is about.
+	 *   - `suffix` : Suffix each error message with this string.
+	 */
+	public function addErrors($arrayMessages, $options = []) {
 		if (empty($arrayMessages)) return;
+
+		if ($options['prefix']) {
+			$arrayMessages = $this->augmentMessages($arrayMessages, $options['prefix'], 'prefix');
+		} elseif ($options['suffix']) {
+			$arrayMessages = $this->augmentMessages($arrayMessages, $options['suffix'], 'suffix');
+		}
+
 		if (is_array(current($arrayMessages))) {  //detect if we have an array with attributes as keys which each have an array of error messages
 			$this->addAllNamedErrors($arrayMessages);
 		} else {
+			// $arrayMessages is an array of strings
 			$this->setStatus('error');
 			$this->errorMessages['_generic'] = array_merge( (array) $this->errorMessages['_generic'], $arrayMessages);
 		}
 	}
 
-	public function addNamedErrors($name, $arrayMessages) {
+	/**
+	 * @param array $options : Available options:
+	 *   - `prefix` : Prefix each error message with this string. Very useful when doing the same operation on multiple records in order to identity which record the individual error message is about.
+	 *   - `suffix` : Suffix each error message with this string.
+	 */
+	public function addNamedErrors($name, $arrayMessages, $options = []) {
 		$this->setStatus('error');
+
+		if ($options['prefix']) {
+			$arrayMessages = $this->augmentMessages($arrayMessages, $options['prefix'], 'prefix');
+		} elseif ($options['suffix']) {
+			$arrayMessages = $this->augmentMessages($arrayMessages, $options['suffix'], 'suffix');
+		}
+
 		$this->errorMessages[$name] = array_merge( (array) $this->errorMessages[$name], $arrayMessages);
 	}
 
@@ -133,6 +182,40 @@ class Result extends Component implements \JsonSerializable {
 				$this->errorMessages[$name] = $errors;
 			}
 		}
+	}
+
+	/**
+	 * Augment each message with a string as prefix or suffix
+	 *
+	 * @param array $arrayMessages : Same structure as passed to [[addErrors()]]
+	 * @param string $string : String as prefix or suffix
+	 * @param string $action : `prefix` or `suffix`
+	 * @return array : Modified version of `$arrayMessages`
+	 */
+	public function augmentMessages($arrayMessages, $string, $action = 'prefix') {
+		if (!empty($arrayMessages)) {
+			if (is_array(current($arrayMessages))) {  //detect if we have an array with attributes as keys which each have an array of error messages
+				foreach ($arrayMessages as $name => &$messages) {
+					$messages = array_map(function($item) use (&$string, $action) {
+						if ($action === 'prefix') {
+							return $string . $item;
+						} else {
+							return $item . $string;
+						}
+					}, $messages);
+				}
+			} else {
+				// $arrayMessages is an array of strings
+				$arrayMessages = array_map(function($item) use (&$string, $action) {
+					if ($action === 'prefix') {
+						return $string . $item;
+					} else {
+						return $item . $string;
+					}
+				}, $arrayMessages);
+			}
+		}
+		return $arrayMessages;
 	}
 
 	public function addNotice($message) {
