@@ -137,9 +137,15 @@ class Result extends Component implements \JsonSerializable {
 	 * @param array $options : Available options:
 	 *   - `prefix` : Prefix each error message with this string. Very useful when doing the same operation on multiple records in order to identity which record the individual error message is about.
 	 *   - `suffix` : Suffix each error message with this string.
+	 *   - `errorIfEmpty` : String with a generic error message to add if $arrayMessages is empty
 	 */
 	public function addErrors($arrayMessages, $options = []) {
-		if (empty($arrayMessages)) return;
+		if (empty($arrayMessages)) {
+			if ($options['errorIfEmpty']) {
+				$this->addError($options['errorIfEmpty']);
+			}
+			return;
+		}
 
 		if ($options['prefix']) {
 			$arrayMessages = $this->augmentMessages($arrayMessages, $options['prefix'], 'prefix');
@@ -427,6 +433,31 @@ class Result extends Component implements \JsonSerializable {
 		foreach ($this->otherInformation as $key => $value) {
 			if (!in_array($key, $keys, true)) {
 				unset($this->otherInformation[$key]);
+			}
+		}
+	}
+
+	/**
+	 * Raise error if an input array contains parameters/attributes the user does not have permission to set or does not exist
+	 *
+	 * @param $model : Yii2 model that has the valid parameters/attributes set as safe attributes (using scenarios)
+	 * @param $attibutes : Associative array with attribute/value pairs. Example where eg. `invalidfield` will cause error:
+	 * ```
+	 * [
+	 *   'firstname' => 'John',
+	 *   'lastname' => 'Doe',
+	 *   'invalidfield' => 'Something',
+	 * ]
+	 * ```
+	 */
+	public function validateModelAttributes($model, $attributes) {
+		if (!is_array($attributes)) {
+			$this->addError('Input is not an array.');
+		} else {
+			$invalidAttributes = array_diff(array_keys($attributes), $model->safeAttributes());
+			if (!empty($invalidAttributes)) {
+				$this->addError('Invalid parameters: '. implode(', ', $invalidAttributes));
+				$this->addData('invalidParameters', array_values($invalidAttributes));  //array_values() gets rid of non-sequential numeric indexes
 			}
 		}
 	}
