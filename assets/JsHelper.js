@@ -674,11 +674,11 @@ appJS.showModal = function(parms) {
 		//put focus in first form field, if any
 		var $firstInput = $(modalSelector).find(':input:not(button):not(textarea):first');
 		if ($firstInput.length > 0) {
+			$firstInput.focus().select();
 			if (parms.skipCloseOnInputEnter === true) {
 				//ensure we clear any event handlers that might have been established from previous use of this modal
 				$firstInput.off('keyup.JsHelperModal');
 			} else {
-				$firstInput.focus().select();
 				$firstInput.on('keyup.JsHelperModal', function(ev) {
 					if (ev && ev.keyCode == 13) {  //it happened that ev was undefined when I opened a modal and then just click OK...! Therefore check ev
 						var $btn = $(modalSelector).find('.btn-yes, .btn-ok');
