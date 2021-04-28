@@ -20,7 +20,8 @@ use yii\base\Behavior;
 class AttributesInfluencedBehavior extends Behavior {
 
 	/**
-	 * @var array : Array of attributes
+	 * @var array|string : Array of attributes that when influenced should trigger the callback,
+	 *                     or set string '*' to trigger callback on change of ANY attribute.
 	 */
 	public $attributes = [];
 
@@ -44,10 +45,14 @@ class AttributesInfluencedBehavior extends Behavior {
 		if ($event->name === ActiveRecord::EVENT_AFTER_INSERT || $event->name === ActiveRecord::EVENT_AFTER_DELETE) {
 			call_user_func($this->callback, $event);
 		} else {
-			foreach ($event->changedAttributes as $changedAttribute => $oldValue) {
-				if (in_array($changedAttribute, $this->attributes)) {
+			if ($this->attributes === '*') {
+				call_user_func($this->callback, $event);
+			} else {
+				$changedAttributes = array_keys($event->changedAttributes);
+
+				$a = array_intersect($this->attributes, $changedAttributes);  //from \winternet\jensenfw2\core::any_in_array()  (see also https://stackoverflow.com/questions/40331407/php-in-array-vs-array-intersect-performance)
+				if (!empty($a)) {
 					call_user_func($this->callback, $event);
-					break;
 				}
 			}
 		}
