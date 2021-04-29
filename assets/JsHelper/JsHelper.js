@@ -665,8 +665,9 @@ appJS.showModal = function(parms) {
 		}, 0);
 
 		if (typeof parms.successCallback == 'function') {
+			var thisModal = this;
 			$(this).find('.btn-yes, .btn-ok, .btn-affirmative').one('click.JsHelperModal', function(evt) {
-				parms.successCallback(this);
+				parms.successCallback(thisModal);
 			});
 		}
 		// NOTE: tried to make a cancelCallback as well that would be called if user clicks an canceling/negative/aborting button (like on `$('.btn-no, .btn-cancel, .btn-negative, button.close')`) but I couldn't easily catch the Escape keyup event (when keyboard:true) so I didn't complete it.
