@@ -645,9 +645,9 @@ appJS.showModal = function(parms) {
 		});
 	}
 
-	var openCb = function() {
+	var openCb = function(ev) {
 		if (typeof parms.openCallback == 'function') {
-			parms.openCallback(this);
+			parms.openCallback(this, ev);
 		}
 		if (typeof parms.preventClose != 'undefined') {
 			$(this).find('button.close').hide();
@@ -666,17 +666,17 @@ appJS.showModal = function(parms) {
 
 		if (typeof parms.successCallback == 'function') {
 			var thisModal = this;
-			$(this).find('.btn-yes, .btn-ok, .btn-affirmative').one('click.JsHelperModal', function(evt) {
-				parms.successCallback(thisModal);
+			$(this).find('.btn-yes, .btn-ok, .btn-affirmative').one('click.JsHelperModal', function(ev2) {
+				parms.successCallback(thisModal, ev2);
 			});
 		}
 		// NOTE: tried to make a cancelCallback as well that would be called if user clicks an canceling/negative/aborting button (like on `$('.btn-no, .btn-cancel, .btn-negative, button.close')`) but I couldn't easily catch the Escape keyup event (when keyboard:true) so I didn't complete it.
 	};
 	$(modalSelector).one('show.bs.modal', openCb);
 
-	var openedCb = function() {
+	var openedCb = function(ev) {
 		if (typeof parms.openedCallback == 'function') {
-			parms.openedCallback(this);
+			parms.openedCallback(this, ev);
 		}
 		//put focus in first form field, if any
 		$firstInput = $(modalSelector).find(':input:not(button):not(textarea):first');
@@ -699,9 +699,9 @@ appJS.showModal = function(parms) {
 	};
 	$(modalSelector).one('shown.bs.modal', openedCb);
 
-	var closeCb = function() {
+	var closeCb = function(ev) {
 		if (typeof parms.closeCallback == 'function') {
-			parms.closeCallback(this);
+			parms.closeCallback(this, ev);
 		}
 
 		// Remove all events handlers
@@ -713,9 +713,9 @@ appJS.showModal = function(parms) {
 	};
 	$(modalSelector).one('hide.bs.modal', closeCb);
 
-	var closedCb = function() {
+	var closedCb = function(ev) {
 		if (typeof parms.closedCallback == 'function') {
-			parms.closedCallback(this);
+			parms.closedCallback(this, ev);
 		}
 
 		if (parms.hideButtons === true) {
