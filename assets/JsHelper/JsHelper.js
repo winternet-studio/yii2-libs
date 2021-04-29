@@ -587,6 +587,7 @@ appJS.hideProgressBar = function(options) {
  *   		- `classes` : add one or more classes to the button (comma-sep.)
  *   - `hideButtons` : set to true to show no buttons in the footer
  *   - `modalOptions` : extra options to pass on to the Bootstrap modal
+ *   - `successCallback` : function that will be called if user clicks an affirmative button, like Yes or OK
  *   - `openCallback`
  *   - `openedCallback`
  *   - `closeCallback`
@@ -595,7 +596,7 @@ appJS.hideProgressBar = function(options) {
  * @return {object} - jQuery reference to the modal in property `jqModal`
  */
 appJS.showModal = function(parms) {
-	var modalOpts, modalSelector = '#JsHelperModal';
+	var modalOpts, modalSelector = '#JsHelperModal', $firstInput;
 	if (typeof parms == 'string') parms = {html: parms};
 	if (parms.customModalSelector === 'confirm') {
 		this.initBaseConfirmModal();
@@ -619,7 +620,7 @@ appJS.showModal = function(parms) {
 	if (typeof parms.preventClose != 'undefined') modalOpts = $.extend(modalOpts, {keyboard: false, backdrop: 'static'});  //source: http://www.tutorialrepublic.com/faq/how-to-prevent-bootstrap-modal-from-closing-when-clicking-outside.php
 
 	if ($(modalSelector).is(':visible') && parms.allowAdditional == true) {
-		// TODO: clone the modal so we can lay it on top of the existing one
+		// TODO: clone the modal so we can lay it on top of the existing one (but what about event handlers then?)
 		// Code for cloning: $div.clone().prop('id', 'klon'+num );
 		// Keep a variable with number of currently shown modals and number of created modals
 		// When adding modal check that the HTML for it has been created before trying to set it
@@ -647,7 +648,6 @@ appJS.showModal = function(parms) {
 	var openCb = function() {
 		if (typeof parms.openCallback == 'function') {
 			parms.openCallback(this);
-			$(this).off('show.bs.modal', openCb);  //don't call again
 		}
 		if (typeof parms.preventClose != 'undefined') {
 			$(this).find('button.close').hide();
@@ -663,22 +663,25 @@ appJS.showModal = function(parms) {
 		setTimeout(function() {
 			$('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
 		}, 0);
+
+		if (typeof parms.successCallback == 'function') {
+			$(this).find('.btn-yes, .btn-ok, .btn-affirmative').one('click.JsHelperModal', function(evt) {
+				parms.successCallback(this);
+			});
+		}
+		// NOTE: tried to make a cancelCallback as well that would be called if user clicks an canceling/negative/aborting button (like on `$('.btn-no, .btn-cancel, .btn-negative, button.close')`) but I couldn't easily catch the Escape keyup event (when keyboard:true) so I didn't complete it.
 	};
-	$(modalSelector).on('show.bs.modal', openCb);
+	$(modalSelector).one('show.bs.modal', openCb);
 
 	var openedCb = function() {
 		if (typeof parms.openedCallback == 'function') {
 			parms.openedCallback(this);
-			$(this).off('shown.bs.modal', openedCb);  //don't call again
 		}
 		//put focus in first form field, if any
-		var $firstInput = $(modalSelector).find(':input:not(button):not(textarea):first');
+		$firstInput = $(modalSelector).find(':input:not(button):not(textarea):first');
 		if ($firstInput.length > 0) {
 			$firstInput.focus().select();
-			if (parms.skipCloseOnInputEnter === true) {
-				//ensure we clear any event handlers that might have been established from previous use of this modal
-				$firstInput.off('keyup.JsHelperModal');
-			} else {
+			if (parms.skipCloseOnInputEnter !== true) {
 				$firstInput.on('keyup.JsHelperModal', function(ev) {
 					if (ev && ev.keyCode == 13) {  //it happened that ev was undefined when I opened a modal and then just click OK...! Therefore check ev
 						var $btn = $(modalSelector).find('.btn-yes, .btn-ok');
@@ -693,23 +696,26 @@ appJS.showModal = function(parms) {
 			}
 		}
 	};
-	$(modalSelector).on('shown.bs.modal', openedCb);
+	$(modalSelector).one('shown.bs.modal', openedCb);
 
 	var closeCb = function() {
 		if (typeof parms.closeCallback == 'function') {
 			parms.closeCallback(this);
-			$(this).off('hide.bs.modal', closeCb);  //don't call again
+		}
+
+		// Remove all events handlers
+		$(modalSelector).find('button').off('click');
+		$(modalSelector).find('.btn-yes, .btn-ok, .btn-affirmative').off('click.JsHelperModal');
+		if ($firstInput.length > 0) {
+			$firstInput.off('keyup.JsHelperModal');
 		}
 	};
-	$(modalSelector).on('hide.bs.modal', closeCb);
+	$(modalSelector).one('hide.bs.modal', closeCb);
 
 	var closedCb = function() {
 		if (typeof parms.closedCallback == 'function') {
 			parms.closedCallback(this);
-			$(this).off('hidden.bs.modal', closedCb);  //don't call again
 		}
-		//remove all events handlers on buttons
-		$(modalSelector).find('button').off('click');
 
 		if (parms.hideButtons === true) {
 			$(modalSelector).find('.modal-footer').find('button').show();
@@ -734,7 +740,7 @@ appJS.showModal = function(parms) {
 			$backDrop.css('z-index', currModalZindex - 1);
 		}
 	};
-	$(modalSelector).on('hidden.bs.modal', closedCb);
+	$(modalSelector).one('hidden.bs.modal', closedCb);
 
 	if (Boolean(parms.skipTitleHtml) == false) {
 		if (typeof parms.title == 'undefined') parms.title = 'Information';
