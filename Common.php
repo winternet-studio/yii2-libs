@@ -144,6 +144,84 @@ class Common extends Component {
 	}
 
 	/**
+	 * Set a value in the temporary buffer table
+	 *
+	 * Good for information that doesn't fit into the existing table structure and is temporary anyway.
+	 *
+	 * Originally a copy from winternet-studio/jensenfw2.
+	 *
+	 * @param string|integer $key : Number or string with the key
+	 * @param string|integer $value : Number or string with the value to store
+	 * @param string $expiration : The expiration date (UTC) of this value in MySQL format (yyyy-mm-dd or yyyy-mm-dd hh:mm:ss)
+	 *   - or number of hours to expire (eg. 6 hours: `6h`)
+	 *   - or days to expire (eg. 14 days: `14d`)
+	 *   - or `NOW` in order to delete a buffer value before current expiration (when overwriting an existing one)
+	 * @return void
+	 */
+	public static function setBufferValue($key, $value, $expiration = false) {
+		// Auto-overwrite any record with the same key
+		$sqlRelative = null;
+		$sql = "REPLACE INTO `buffer` SET tmpd_key = :key, tmpd_value = :value";
+		$parameters = [
+			'key' => $key,
+			'value' => $value,
+		];
+		if ($expiration) {
+			if (preg_match('|^\\d{2,4}-\\d{1,2}-\\d{1,2}$|', $expiration) || preg_match('|^\\d{2,4}-\\d{1,2}-\\d{1,2}\\s+\\d{1,2}:\\d{2}:\\d{2}$|', $expiration)) {
+				//do nothing, use raw value
+			} elseif (preg_match("/^\\d+[dh]$/i", $expiration)) {
+				$sqlRelative = 'NOW() + INTERVAL '. str_replace(['d', 'h'], [' DAY', ' HOUR'], $expiration);
+			} elseif ($expiration == 'NOW') {
+				$expiration = '2000-01-01 00:00:00';
+			} else {
+				throw new \Exception('Invalid expiration date for setting a value in temporary buffer table.');
+			}
+			if ($sqlRelative) {
+				$sql .= ", tmpd_date_expire = ". $sqlRelative;
+			} else {
+				$sql .= ", tmpd_date_expire = :expiration";
+				$parameters['expiration'] = (new \DateTime($expiration))->format('Y-m-d H:i:s');
+			}
+		}
+
+		$affectedRows = \Yii::$app->db->createCommand($sql, $parameters)->execute();
+	}
+
+	/**
+	 * Get a value from the temporary buffer table
+	 *
+	 * Also cleans the buffer table once per session.
+	 *
+	 * @param string $key : Key to get the value for
+	 * @return string|array : String with the value, or empty array if key was not found
+	 */
+	public static function getBufferValue($key) {
+		// Clean up the buffer once per session
+		$session = Yii::$app->session;
+		if (Yii::$app->request->isConsoleRequest || !$session || !$session->get('_jfw_cleaned_buffer')) {
+
+			\Yii::$app->db->createCommand("DELETE FROM `buffer` WHERE tmpd_date_expire IS NOT NULL AND tmpd_date_expire < UTC_TIMESTAMP()")->execute();
+
+			if ($session) {
+				$session->set('_jfw_cleaned_buffer', true);
+			}
+		}
+
+		// Get the value
+		$sql = "SELECT tmpd_value FROM `buffer` WHERE tmpd_key = :key AND (tmpd_date_expire IS NULL OR tmpd_date_expire > UTC_TIMESTAMP())";
+		return \Yii::$app->db->createCommand($sql, [
+			'key' => $key,
+		])->queryScalar();
+	}
+
+	/**
+	 * Get an item from the buffer table by searching for a value
+	 */
+	public static function searchBufferValue($value) {
+		return (new \yii\db\Query())->from('buffer')->where(['tmpd_value' => $value])->one();
+	}
+
+	/**
 	 * @param array $options : Possible keys:
 	 *   - `absoluteUrl` : set true to return full URL instead of only the part after the domain name
 	 *   - `skipConsolePrefix` : set true to not include "Console command: " prefix for console scripts
