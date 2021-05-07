@@ -304,8 +304,9 @@ class UserException extends \yii\base\UserException {
 					$fileLog .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 				}
 				if (!empty($this->internalInfo)) {
-					if (is_string($this->jsonEncodeCleaned($this->internalInfo))) {
-						$fileLog .= "\r\n\r\nInternal Error Details: ". $this->internalInfo;
+					$cleanedJson = $this->jsonEncodeCleaned($this->internalInfo);
+					if (is_string($cleanedJson)) {
+						$fileLog .= "\r\n\r\nInternal Error Details: ". $cleanedJson;
 					} else {
 						$fileLog .= "\r\n\r\nInternal Error Details: ". json_encode($this->internalInfo, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 					}
@@ -316,7 +317,9 @@ class UserException extends \yii\base\UserException {
 				$fileLog .= "\r\n";
 				$fileLog .= "\r\nUserID: ". $userID;
 				$fileLog .= "\r\nUser name: ". $userName;
-				file_put_contents(Yii::getAlias('@app/runtime/logs/') .'/exceptions.log', $fileLog, FILE_APPEND);
+				$logPath = Yii::getAlias('@app/runtime/logs/');
+				\yii\helpers\FileHelper::createDirectory($logPath);
+				file_put_contents($logPath .'exceptions.log', $fileLog, FILE_APPEND);
 			}
 		}
 
