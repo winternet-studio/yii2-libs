@@ -199,7 +199,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		}
 
 		if (Yii::$app->params['isApi']) {
-			return $result->output();
+			return $result->response();
 		} else {
 			return $this->redirect(['index']);
 		}
