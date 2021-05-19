@@ -18,7 +18,7 @@ class LoggingBehavior extends Behavior {
 	/**
 	 * @var array : Array that maps the different values to attributes in the model specified in $logModel
 	 */
-	public $attributeMapping = [
+	public $attributeMapping = [  //also defined further down
 		'userID' => 'log_userID',
 		'model' => 'log_model',
 		'modelID' => 'log_modelID',
@@ -38,9 +38,29 @@ class LoggingBehavior extends Behavior {
 	public $maskValues = [];
 
 	/**
-	 * @var string : Period after which the log entry can be deleted (currently needs a separate process to do that). Any expression that the DateTime constructor accepts can be used. See https://www.php.net/manual/en/datetime.formats.relative.php
+	 * @var boolean : Set true to always create log entry on an update, even if the array with effective changes to log is empty
+	 */
+	public $logUpdateIfNoChanges = false;
+
+	/**
+	 * @var boolean : Set false to not remove changes where only the type has changed (eg. string "100" changed to integer 100)
+	 */
+	public $nonStrictChangesOnly = true;
+
+	/**
+	 * @var boolean : Set true to pretty-print JSON with the changes
+	 */
+	public $prettyPrintJson = false;
+
+	/**
+	 * @var string : Period after which the log entry can be deleted (needs a separate process to do that). Any expression that the DateTime constructor accepts can be used. See https://www.php.net/manual/en/datetime.formats.relative.php
 	 */
 	public $expiresAfter = null;
+
+	/**
+	 * @var array : Array of base classes (fully qualified names) we want to use in logging if the actual model is a subclass
+	 */
+	public $baseClasses = [];
 
 	public function events() {
 		return [
@@ -51,6 +71,15 @@ class LoggingBehavior extends Behavior {
 	}
 
 	public function logChanges($event) {
+		$attrMap = array_merge([
+			'userID' => 'log_userID',
+			'model' => 'log_model',
+			'modelID' => 'log_modelID',
+			'action' => 'log_action',
+			'data' => 'log_data',
+			'expire' => 'log_expire',
+		], $this->attributeMapping);
+
 		$id = null;
 		if (is_numeric($event->sender->primaryKey)) {
 			$id = $event->sender->primaryKey;
@@ -74,33 +103,66 @@ class LoggingBehavior extends Behavior {
 			$from = $to = null;
 		}
 
-		$modelNameClean = $this->cleanModelName($event->sender);
+		$modelClass = null;
+		if (!empty($this->baseClasses)) {
+			foreach ($this->baseClasses as $fqClassName) {
+				if ($event->sender instanceOf $fqClassName) {
+					file_put_contents(\Yii::getAlias('@runtime/dump.txt'), print_r(get_class($event->sender) .' is instance of '. $fqClassName, true) ."\r\n--------------------- line ". __LINE__ ." in ". __FILE__ ." at ". date('Y-m-d H:i:s') ."\r\n\r\n\r\n", FILE_APPEND);
+					$modelClass = $fqClassName;
+				} else {
+					file_put_contents(\Yii::getAlias('@runtime/dump.txt'), print_r(get_class($event->sender) .' is not instance of '. $fqClassName, true) ."\r\n--------------------- line ". __LINE__ ." in ". __FILE__ ." at ". date('Y-m-d H:i:s') ."\r\n\r\n\r\n", FILE_APPEND);
+				}
+			}
+		}
+		if (!$modelClass) {
+			$modelClass = get_class($event->sender);
+		}
 
-		$logAttributes = [
-			$this->attributeMapping['userID'] => (\Yii::$app->user->isGuest ? null : \Yii::$app->user->identity->id),
-			$this->attributeMapping['model'] => $modelNameClean,
-			$this->attributeMapping['modelID'] => $id,
-			$this->attributeMapping['action'] => $action,
-		];
+		$logAttributes = [];
+
 		if ($from || $to) {
-			if ($from) {
-				$logAttributes[ $this->attributeMapping['data'] ][$modelNameClean]['from'] = $this->maskModelValues($from);
+			if ($this->nonStrictChangesOnly && $event->name === ActiveRecord::EVENT_AFTER_UPDATE) {
+				foreach ($from as $currAttr => $currValue) {
+					if ((string) $from[$currAttr] === (string) $to[$currAttr]) {
+						unset($from[$currAttr], $to[$currAttr]);
+					}
+				}
 			}
-			if ($to) {
-				$logAttributes[ $this->attributeMapping['data'] ][$modelNameClean]['to'] = $this->maskModelValues($to);
+
+			if (!empty($from)) {
+				$logAttributes[ $attrMap['data'] ][$modelClass]['from'] = $this->maskModelValues($from);
+			}
+			if (!empty($to)) {
+				$logAttributes[ $attrMap['data'] ][$modelClass]['to'] = $this->maskModelValues($to);
 			}
 		}
-		if ($this->expiresAfter) {
-			$logAttributes[ $this->attributeMapping['expire'] ] = (new \DateTime($this->expiresAfter))->format('Y-m-d');
-		}
 
-		$logModel = $this->logModel;
-		$log = new $logModel();
+		if ($event->name !== ActiveRecord::EVENT_AFTER_UPDATE || $this->logUpdateIfNoChanges || !empty($logAttributes[ $attrMap['data'] ])) {
+			$logAttributes[ $attrMap['userID'] ] = (\Yii::$app->user->isGuest ? null : \Yii::$app->user->identity->id);
+			$logAttributes[ $attrMap['model'] ] = $modelClass;
+			$logAttributes[ $attrMap['modelID'] ] = $id;
+			$logAttributes[ $attrMap['action'] ] = $action;
 
-		$log->setAttributes($logAttributes);
+			if ($this->expiresAfter) {
+				$logAttributes[ $attrMap['expire'] ] = (new \DateTime($this->expiresAfter))->format('Y-m-d');
+			}
 
-		if (!$log->save()) {
-			new \winternet\yii2\UserException('Failed to log the operation.', ['Errors' => $log->getErrors(), 'Model' => $log->toArray() ]);
+			$logModel = $this->logModel;
+			$log = new $logModel();
+
+			if (is_array($logAttributes[ $attrMap['data'] ])) {
+				if ($this->prettyPrintJson) {
+					$logAttributes[ $attrMap['data'] ] = json_encode($logAttributes[ $attrMap['data'] ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+				} else {
+					$logAttributes[ $attrMap['data'] ] = json_encode($logAttributes[ $attrMap['data'] ], JSON_UNESCAPED_SLASHES);
+				}
+			}
+
+			$log->setAttributes($logAttributes);
+
+			if (!$log->save()) {
+				new \winternet\yii2\UserException('Failed to log the operation.', ['Errors' => $log->getErrors(), 'Model' => $log->toArray() ]);
+			}
 		}
 	}
 
@@ -117,8 +179,11 @@ class LoggingBehavior extends Behavior {
 		return $values;
 	}
 
+	/**
+	 * @param string $model : Model class name, usually by `get_class($modelInstance)`
+	 */
 	protected function cleanModelName($model) {
-		return str_replace('app\models\\', '', get_class($model));
+		return str_replace('app\models\\', '', $model);
 	}
 
 }
