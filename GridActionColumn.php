@@ -22,7 +22,45 @@ class GridActionColumn extends \yii\grid\ActionColumn {
 		'update' => 'Edit',
 		'view' => null,
 		'delete' => null,
+		'history' => null,
 	];
+
+	/**
+	 * @var array : Set to an array to add a history button. The array can have these keys:
+	 *   - `controller` : (opt.) Name of controller to link to
+	 *   - `action` : (req.) Name of action to link to
+	 *   - `secretSalt` : (req.) Secret salt used for generating a hash in the generated URL
+	 */
+	public $historyButton = null;
+
+	public function init() {
+		parent::init();
+
+		if (!empty($this->historyButton)) {
+			// Add to template if not already present
+			if (strpos($this->template, '{history}') === false) {
+				$lastBracket = strrpos($this->template, '}');
+				if ($lastBracket !== false) {
+					$this->template = substr_replace($this->template, '} {history}', $lastBracket, strlen('}'));
+				}
+			}
+
+			$this->initDefaultButton('history', 'time');
+		}
+	}
+
+	public function createUrl($action, $model, $key, $index) {
+		if ($action === 'history') {
+			$className = get_class($model);
+			$timestamp = time();
+			$params = is_array($key) ? $key : ['id' => (string) $key, 'model' => $className, 'timestamp' => $timestamp, 'hash' => hash('sha256', $className . $key .'-'. $timestamp . $this->historyButton['secretSalt'])];
+			$params[0] = $this->historyButton['controller'] ? $this->historyButton['controller'] . '/' . $this->historyButton['action'] : $this->historyButton['action'];
+
+			return \yii\helpers\Url::toRoute($params);
+		} else {
+			return parent::createUrl($action, $model, $key, $index);
+		}
+	}
 
 	/**
 	 * {@inheritdoc}
