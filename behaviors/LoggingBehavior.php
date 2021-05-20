@@ -35,7 +35,7 @@ class LoggingBehavior extends Behavior {
 	/**
 	 * @var array : Attributes that should be excluded from the "changes" log
 	 */
-	public $excludeChanges = [];
+	public $excludeAttributes = [];
 
 	/**
 	 * @var array : Attributes in the "changes" log that should be masked with stars instead of showing the actual value
@@ -178,7 +178,7 @@ class LoggingBehavior extends Behavior {
 	}
 
 	protected function removeExcluded($keyValueArray) {
-		return array_diff_key($keyValueArray, array_flip($this->excludeChanges));
+		return array_diff_key($keyValueArray, array_flip($this->excludeAttributes));
 	}
 
 	protected function maskModelValues($values) {
