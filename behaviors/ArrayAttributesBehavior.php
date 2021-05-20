@@ -15,6 +15,11 @@ class ArrayAttributesBehavior extends Behavior {
 	public $separator = ',';
 	public $jsonAttributes = [];
 
+	/**
+	 * @var boolean : Set true to sort array values so they are always saved in the same order and don't cause the attribute to be dirty if eg. values are listed in a different order in a form
+	 */
+	public $sortArrayValues = false;
+
 	public function events() {
 		return [
 			ActiveRecord::EVENT_AFTER_FIND => 'toArrays',
@@ -56,7 +61,15 @@ class ArrayAttributesBehavior extends Behavior {
 	public function toStrings($event) {
 		foreach ($this->attributes as $attribute) {
 			if (is_array($this->owner->$attribute)) {
-				$this->owner->$attribute = implode($this->separator, $this->owner->$attribute);
+				$arrayValues = $this->owner->$attribute;  //can't use sort() directly on this
+				if ($this->sortArrayValues) {
+					sort($arrayValues);
+				}
+				$this->owner->$attribute = implode($this->separator, $arrayValues);
+			} elseif ($this->sortArrayValues && is_string($this->owner->$attribute) && strpos($this->owner->$attribute, $this->separator) !== false) {
+				$arrayValues = explode($this->separator, $this->owner->$attribute);
+				sort($arrayValues);
+				$this->owner->$attribute = implode($this->separator, $arrayValues);
 			}
 		}
 
