@@ -28,6 +28,11 @@ class LoggingBehavior extends Behavior {
 	];
 
 	/**
+	 * @var array : Exclude logging these events. Currently these are available: `insert`, `update`, `delete`
+	 */
+	public $excludeEvents = [];
+
+	/**
 	 * @var array : Attributes that should be excluded from the "changes" log
 	 */
 	public $excludeChanges = [];
@@ -63,11 +68,17 @@ class LoggingBehavior extends Behavior {
 	public $baseClasses = [];
 
 	public function events() {
-		return [
-			ActiveRecord::EVENT_AFTER_INSERT => 'logChanges',
-			ActiveRecord::EVENT_AFTER_UPDATE => 'logChanges',
-			ActiveRecord::EVENT_AFTER_DELETE => 'logChanges',
-		];
+		$events = [];
+		if (!in_array('insert', $this->excludeEvents)) {
+			$events[ActiveRecord::EVENT_AFTER_INSERT] = 'logChanges';
+		}
+		if (!in_array('update', $this->excludeEvents)) {
+			$events[ActiveRecord::EVENT_AFTER_UPDATE] = 'logChanges';
+		}
+		if (!in_array('delete', $this->excludeEvents)) {
+			$events[ActiveRecord::EVENT_AFTER_DELETE] = 'logChanges';
+		}
+		return $events;
 	}
 
 	public function logChanges($event) {
