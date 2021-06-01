@@ -330,10 +330,14 @@ class Result extends Component implements \JsonSerializable {
 	}
 
 	/**
-	 * Get a string with all the errors, concatenated with a space
+	 * Get a string with all the errors
 	 */
 	public function getErrorsString() {
-		return implode(' ', $this->getErrorsFlat());
+		$string = '';
+		foreach ($this->getErrorsFlat() as $errorMessage) {
+			$string .= ' '. rtrim($errorMessage, '.') .'.';
+		}
+		return trim($string);
 	}
 
 	public function getNotices() {
