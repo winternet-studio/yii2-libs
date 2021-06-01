@@ -227,7 +227,7 @@ if (count($pks) === 1) {
 		if (($model = <?= $modelClass ?>::findOfUser(<?= $condition ?>, ['setScenario' => true])) !== null) {
 			return $model;
 		} else {
-			throw new NotFoundHttpException('The requested page does not exist.');
+			return new NotFoundHttpException('The requested page does not exist.');
 		}
 	}
 }
