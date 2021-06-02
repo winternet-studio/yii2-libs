@@ -119,7 +119,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 
 	// 	$query = self::findMine();
 
-	// 	if ($id) {
+	// 	if ($id || is_numeric($id)) {
 	// 		//return one
 	// 		$query->andWhere(['<?= array_keys($labels)[0];  //assume first field is primary key ?>' => $id]);
 	// 		$model = $query->one();
