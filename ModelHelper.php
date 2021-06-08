@@ -38,7 +38,9 @@ class ModelHelper extends Component {
 		// Prefix with ! (= no massive assign but still validated)
 		return array_map(function($attribute) use (&$allow) {
 			if (!in_array($attribute, $allow)) {
-				$attribute = '!'. $attribute;  //prefix with ! (= no massive assign but still validated)
+				if ($attribute[0] !== '!') {
+					$attribute = '!'. $attribute;  //prefix with ! (= no massive assign but still validated)
+				}
 			} elseif ($attribute[0] === '!') {  //remove existing 
 				$attribute = substr($attribute, 1);
 			}
