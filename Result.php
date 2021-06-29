@@ -95,13 +95,13 @@ class Result extends Component implements \JsonSerializable {
 		}
 
 		if ($namedError != null) {
-			if ($options['prepend'] && is_array($this->errorMessages[$namedError]) && !empty($this->errorMessages[$namedError])) {
+			if (!empty($options['prepend']) && is_array($this->errorMessages[$namedError]) && !empty($this->errorMessages[$namedError])) {
 				array_unshift($this->errorMessages[$namedError], $message);
 			} else {
 				$this->errorMessages[$namedError][] = $message;
 			}
 		} else {
-			if ($options['prepend'] && is_array($this->errorMessages['_generic']) && !empty($this->errorMessages['_generic'])) {
+			if (!empty($options['prepend']) && is_array($this->errorMessages['_generic']) && !empty($this->errorMessages['_generic'])) {
 				array_unshift($this->errorMessages['_generic'], $message);
 			} else {
 				$this->errorMessages['_generic'][] = $message;
@@ -141,15 +141,15 @@ class Result extends Component implements \JsonSerializable {
 	 */
 	public function addErrors($arrayMessages, $options = []) {
 		if (empty($arrayMessages)) {
-			if ($options['errorIfEmpty']) {
+			if (!empty($options['errorIfEmpty'])) {
 				$this->addError($options['errorIfEmpty']);
 			}
 			return;
 		}
 
-		if ($options['prefix']) {
+		if (!empty($options['prefix'])) {
 			$arrayMessages = $this->augmentMessages($arrayMessages, $options['prefix'], 'prefix');
-		} elseif ($options['suffix']) {
+		} elseif (!empty($options['suffix'])) {
 			$arrayMessages = $this->augmentMessages($arrayMessages, $options['suffix'], 'suffix');
 		}
 
