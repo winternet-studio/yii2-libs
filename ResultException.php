@@ -11,7 +11,14 @@ class ResultException extends \Exception {
 
 	public $errors = [];
 
+	/**
+	 * @param array|string $errors : Array with errors (according to what is required for [[winternet\yii2\Result::addErrors()]]) (eg. the output from [[winternet\yii2\Result::getErrors()]]) or string with a single error message
+	 */
 	public function __construct($errors) {
+		if (is_string($errors)) {
+			$errors = [ $errors ];
+		}
+
 		$this->errors = $errors;
 	}
 
