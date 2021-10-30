@@ -118,10 +118,7 @@ class LoggingBehavior extends Behavior {
 		if (!empty($this->baseClasses)) {
 			foreach ($this->baseClasses as $fqClassName) {
 				if ($event->sender instanceOf $fqClassName) {
-					file_put_contents(\Yii::getAlias('@runtime/dump.txt'), print_r(get_class($event->sender) .' is instance of '. $fqClassName, true) ."\r\n--------------------- line ". __LINE__ ." in ". __FILE__ ." at ". date('Y-m-d H:i:s') ."\r\n\r\n\r\n", FILE_APPEND);
 					$modelClass = $fqClassName;
-				} else {
-					file_put_contents(\Yii::getAlias('@runtime/dump.txt'), print_r(get_class($event->sender) .' is not instance of '. $fqClassName, true) ."\r\n--------------------- line ". __LINE__ ." in ". __FILE__ ." at ". date('Y-m-d H:i:s') ."\r\n\r\n\r\n", FILE_APPEND);
 				}
 			}
 		}

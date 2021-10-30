@@ -14,6 +14,9 @@ class CheckReferentialConstraintsBehavior extends Behavior {
 
 	/**
 	 * @var array : Array of relations names, eg. `client`, `posts`, `userRoles` which matches the model's methods `getClient()`, `getPosts()`, `getUserRoles()`
+	 *
+	 * It is not possible to automatically iterate over all relations (see https://github.com/yiisoft/yii2/issues/7710), therefore we do it like this -
+	 * unless we want to use Reflection like here: https://github.com/yiisoft/yii2/issues/1282
 	 */
 	public $relations = [];
 
