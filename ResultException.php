@@ -12,7 +12,9 @@ class ResultException extends \Exception {
 	public $errors = [];
 
 	/**
-	 * @param array|string $errors : Array with errors (according to what is required for [[winternet\yii2\Result::addErrors()]]) (eg. the output from [[winternet\yii2\Result::getErrors()]]) or string with a single error message
+	 * @param array|string $errors : Array with errors (according to what is required for [[winternet\yii2\Result::addErrors()]]) (eg. the output from [[winternet\yii2\Result::getErrors()]]) or string with a single error message.
+	 *
+	 * Eg. for named errors: `['gdprAccepted' => ['GDPR consent is required.']]`
 	 */
 	public function __construct($errors) {
 		if (is_string($errors)) {
