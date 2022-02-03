@@ -26,7 +26,9 @@ class ArrayAttributesBehavior extends Behavior {
 			ActiveRecord::EVENT_AFTER_REFRESH => 'toArrays',
 			ActiveRecord::EVENT_BEFORE_VALIDATE => 'toArrays',
 			ActiveRecord::EVENT_BEFORE_INSERT => 'toStrings',
+			ActiveRecord::EVENT_AFTER_INSERT => 'toArrays',
 			ActiveRecord::EVENT_BEFORE_UPDATE => 'toStrings',
+			ActiveRecord::EVENT_AFTER_UPDATE => 'toArrays',
 		];
 	}
 
