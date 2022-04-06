@@ -11,10 +11,10 @@ class Request extends Component {
 	 *
 	 * The purpose is to solve the issue when the parameter has a dash or other special character in it prohibiting the normal parameters in the action method.
 	 */
-	public static function queryParam($name, $default = null) {
+	public static function queryParam($name, $default = '-DEFAULT-') {
 		$value = \Yii::$app->request->get($name);
 		if (empty($value) && !is_numeric($value)) {
-			if ($default === null) {
+			if ($default === '-DEFAULT-') {
 				throw new \yii\web\BadRequestHttpException('Missing required parameter: '. $name);
 			} else {
 				return $default;
