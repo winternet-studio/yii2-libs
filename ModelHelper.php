@@ -49,6 +49,51 @@ class ModelHelper extends Component {
 	}
 
 	/**
+	 * Get attributes for a given attribute
+	 *
+	 * @param yii\base\Model $attribute : Model instance
+	 * @param string $attribute : Name of attribute
+	 */
+	public static function getAttributeRules($model, $attribute) {
+		$rules = [];
+		foreach ($model->rules() as $rule) {
+			if ($rule[0] && $rule[1]) {
+				if (!is_array($rule[0])) {
+					$rule[0] = [ $rule[0] ];
+				}
+
+				if (in_array($attribute, $rule[0])) {
+					$rules[] = $rule;
+				}
+			}
+		}
+		return $rules;
+	}
+
+	/**
+	 * Get the max/min length of attribute if available
+	 *
+	 * @param yii\base\Model $attribute : Model instance
+	 * @param string $attribute : Name of attribute
+	 * @return array : Array with `max` and/or `min` or empty if nothing found
+	 */
+	public static function getAttributeLength($model, $attribute) {
+		$rules = static::getAttributeRules($model, $attribute);
+		$length = [];
+		foreach ($rules as $rule) {
+			if ($rule[0] === 'string') {
+				if (is_numeric(@$rule['max'])) {
+					$length['max'] = $rule['max'];
+				}
+				if (is_numeric(@$rule['min'])) {
+					$length['min'] = $rule['min'];
+				}
+			}
+		}
+		return $length;
+	}
+
+	/**
 	 * Return a list of model attributes that are required
 	 *
 	 * @param yii\base\Model $model
