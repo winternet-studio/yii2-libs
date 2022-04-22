@@ -165,16 +165,17 @@ class ModelHelper extends Component {
 		return $types;
 	}
 
+	/**
+	 * Filter list of attributes
+	 *
+	 * Takes an array of attributes in the form they are provided to eg. GridView or DetailView, and return new array
+	 * where only the desired ones have been kept.
+	 *
+	 * @param array $all_attributes : Entire list of attributes (and possibly other entries) to be filtered
+	 * @param array $attributes_to_keep : List of attributes to keep (other entries are kept as well)
+	 * @return array : Array of attributes
+	 */
 	public static function filterAttributes($all_attributes, $attributes_to_keep) {
-		/*
-		DESCRIPTION:
-		- takes an array of attributes in the form they are provided to eg. GridView or DetailView, and return new array where only the desired ones have been kept
-		INPUT:
-		- $all_attributes : entire list of attributes (and possibly other entries) to be filtered
-		- $attributes_to_keep : list of attributes to keep (other entries are kept as well)
-		OUTPUT:
-		- array of attributes
-		*/
 		if (!is_array($all_attributes)) {
 			new \winternet\yii2\UserException('Invalid list of attributes to filtering.', ['Attributes' => $all_attributes]);
 		}
