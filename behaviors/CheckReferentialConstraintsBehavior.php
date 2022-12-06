@@ -57,18 +57,24 @@ class CheckReferentialConstraintsBehavior extends Behavior {
 
 					// Find other tables that has this table as a foreign key and which prohibits automatic deletion of their records when we our record
 					$constraints = $this->owner->getDb()->createCommand("SELECT * FROM `information_schema`.`REFERENTIAL_CONSTRAINTS` WHERE CONSTRAINT_SCHEMA = :databaseName AND REFERENCED_TABLE_NAME = :primaryTable AND TABLE_NAME = :foreignKeyTable", ['databaseName' => $databaseName, 'primaryTable' => $primaryTable, 'foreignKeyTable' => $relatedTableName])->queryAll();
+					// NOTE: see sample $constraints in the bottom of this file
 					if (empty($constraints)) {
 						continue;
-					} elseif (count($constraints) === 1) {
-						if ($constraints[0]['DELETE_RULE'] === 'RESTRICT') {
+					} else {
+						$hasAtLeastOneRestrictRule = false;
+						foreach ($constraints as $constraint) {
+							if ($constraint['DELETE_RULE'] === 'RESTRICT') {
+								$hasAtLeastOneRestrictRule = true;
+								break;
+							}
+						}
+						if ($hasAtLeastOneRestrictRule) {
 							// Check if that other table has any records referring to our record
 							$referencingModels = $this->owner->$relationName;
 							if (!empty($referencingModels)) {
 								$this->owner->addError($this->determineErrorAttribute(), \Yii::t('app', 'Cannot delete record as it is referenced by {relationName}.', ['relationName' => $relationName]));
 							}
 						}
-					} else {
-						throw new \winternet\yii2\UserException('Checking referential constraint currently only works when exactly one constraint is found.', ['Model' => get_class($this->owner), 'relationName' => $relationName, 'databaseName' => $databaseName, 'primaryTable' => $primaryTable, 'foreignKeyTable' => $relatedTableName]);
 					}
 				} else {
 					throw new \winternet\yii2\UserException('Expected method name does not exist based on the given relation name when checking referential constraints before deleting a model.', ['Model' => get_class($this->owner), 'relationName' => $relationName, 'Method name' => $relationMethod]);
@@ -91,7 +97,7 @@ class CheckReferentialConstraintsBehavior extends Behavior {
 			FROM information_schema.`KEY_COLUMN_USAGE` AS tb1
 			INNER JOIN information_schema.REFERENTIAL_CONSTRAINTS AS tb2 ON
 			tb1.CONSTRAINT_NAME = tb2.CONSTRAINT_NAME AND tb1.TABLE_NAME = tb2.TABLE_NAME
-			WHERE table_schema = 'forskoleutvecklingnu' AND tb1.TABLE_NAME = 'main_organizations' AND referenced_column_name IS NOT NULL";
+			WHERE table_schema = 'mydatabasename' AND tb1.TABLE_NAME = 'main_organizations' AND referenced_column_name IS NOT NULL";
 		}
 
 		if ($this->owner->hasErrors()) {
@@ -110,3 +116,38 @@ class CheckReferentialConstraintsBehavior extends Behavior {
 		return (string) $attributeName;
 	}
 }
+
+/*
+Sample $constraints:
+
+```
+Array(
+    [0] => Array(
+            [CONSTRAINT_CATALOG] => def
+            [CONSTRAINT_SCHEMA] => mydatabasename
+            [CONSTRAINT_NAME] => FK_main_messages_system_users_2
+            [UNIQUE_CONSTRAINT_CATALOG] => def
+            [UNIQUE_CONSTRAINT_SCHEMA] => mydatabasename
+            [UNIQUE_CONSTRAINT_NAME] => PRIMARY
+            [MATCH_OPTION] => NONE
+            [UPDATE_RULE] => CASCADE
+            [DELETE_RULE] => CASCADE
+            [TABLE_NAME] => main_messages
+            [REFERENCED_TABLE_NAME] => system_users
+        )
+    [1] => Array(
+            [CONSTRAINT_CATALOG] => def
+            [CONSTRAINT_SCHEMA] => mydatabasename
+            [CONSTRAINT_NAME] => main_messages_ibfk_5
+            [UNIQUE_CONSTRAINT_CATALOG] => def
+            [UNIQUE_CONSTRAINT_SCHEMA] => mydatabasename
+            [UNIQUE_CONSTRAINT_NAME] => PRIMARY
+            [MATCH_OPTION] => NONE
+            [UPDATE_RULE] => CASCADE
+            [DELETE_RULE] => CASCADE
+            [TABLE_NAME] => main_messages
+            [REFERENCED_TABLE_NAME] => system_users
+        )
+)
+```
+*/
