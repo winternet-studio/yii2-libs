@@ -30,6 +30,7 @@ $rules[] = "[['" . implode("', '", $operatorAttributes) . "'], 'in', 'range' => 
 
 // Add rule for common search term
 $rules[] = "['__common', 'string']";
+$rules[] = "['__common', 'trim']";
 
 echo "<?php\n";
 ?>
