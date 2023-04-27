@@ -182,6 +182,7 @@ appJS.enableSubmit = function() {
  *
  * @param {object} args - Object where the following options are available:
  *   - {string} url - URL of the webservice
+ *   - {string} method - Enforce this method, eg. `GET`, `POST`, etc. Otherwise if `params` has values it will be `POST`, otherwise `GET`
  *   - {object} params - Object with parameters to send to the webservice
  *   - {string|object} responseFormat - How to interpret the data being returned from the webservice. Available options:
  *   	- `nothing` : don't do any postprocessing as nothing is being returned, or the returned should only be processed by post-processing function
@@ -219,7 +220,7 @@ appJS.enableSubmit = function() {
  *   		- `data` : response from server
  *   		- `success` : boolean true or false based on response from server
  *   		- `doAjaxArgs` : arguments passed to the doAjax function
- *   - {object} options - Object with nay of these options:
+ *   - {object} options - Object with any of these options:
  *   	- `confirmMessage` : set a string with message to have the user confirm before executing the AJAX call
  *   	- `skipShowProcess` : set to true to not dim the page and show process status
  *   	- `requireSsl` : set to true to require SSL for transmitting this request to the server
@@ -286,7 +287,7 @@ appJS.doAjax = function(args) {
 
 	var parms = {
 		url: args.url,
-		type: ($.isEmptyObject(args.options) ? 'GET' : 'POST'),
+		type: (args.method ? args.method.toUpperCase() : ($.isEmptyObject(args.params) ? 'GET' : 'POST')),
 		data: args.params,
 		success: function(rsp, jqXHR, textStatus) {
 			var i, functionName;
