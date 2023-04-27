@@ -111,7 +111,8 @@ class LoggingBehavior extends Behavior {
 
 		} elseif ($event->name === ActiveRecord::EVENT_AFTER_DELETE) {
 			$action = 'delete';
-			$from = $to = null;
+			$from = $this->removeExcluded($event->sender->attributes);
+			$to   = null;
 		}
 
 		$modelClass = null;
