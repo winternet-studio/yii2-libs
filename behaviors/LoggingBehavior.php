@@ -104,6 +104,7 @@ class LoggingBehavior extends Behavior {
 		} elseif ($event->name === ActiveRecord::EVENT_AFTER_UPDATE) {
 			$action = 'update';
 			$from = $this->removeExcluded($event->changedAttributes);  //hopefully this is correct - see https://stackoverflow.com/questions/51645487/yii-2-getoldattribute-method-not-working-in-aftersave
+			$this->convertArrayAttributes($event->sender, $from);
 			$to = [];
 			foreach ($from as $currFromKey => $currFromValue) {
 				$to[$currFromKey] = $event->sender->getAttribute($currFromKey);
@@ -130,10 +131,23 @@ class LoggingBehavior extends Behavior {
 		$logAttributes = [];
 
 		if ($from || $to) {
-			if ($this->nonStrictChangesOnly && $event->name === ActiveRecord::EVENT_AFTER_UPDATE) {
+			if ($event->name === ActiveRecord::EVENT_AFTER_UPDATE) {
 				foreach ($from as $currAttr => $currValue) {
-					if ((string) $from[$currAttr] === (string) $to[$currAttr]) {
-						unset($from[$currAttr], $to[$currAttr]);
+					if (is_array($from[$currAttr]) && is_array($to[$currAttr])) {  //compare array attributes correctly
+						if (serialize($from[$currAttr]) === serialize($to[$currAttr])) {  //see https://stackoverflow.com/questions/804045/preferred-method-to-store-php-arrays-json-encode-vs-serialize
+							unset($from[$currAttr], $to[$currAttr]);
+						}
+					}
+				}
+				if ($this->nonStrictChangesOnly) {
+					foreach ($from as $currAttr => $currValue) {
+						if (is_array($from[$currAttr]) && is_array($to[$currAttr])) {  //ensure array attributes are not converted to just "Array" and removed by the code below (they are handled above instead)
+							// do nothing, they are handled above
+						} else {
+							if ((string) $from[$currAttr] === (string) $to[$currAttr]) {
+								unset($from[$currAttr], $to[$currAttr]);
+							}
+						}
 					}
 				}
 			}
@@ -171,6 +185,24 @@ class LoggingBehavior extends Behavior {
 
 			if (!$log->save()) {
 				new \winternet\yii2\UserException('Failed to log the operation.', ['Errors' => $log->getErrors(), 'Model' => $log->toArray() ]);
+			}
+		}
+	}
+
+	/**
+	 * If any attributes has been set as array attributes using  winternet\yii2\behaviors\ArrayAttributesBehavior, ensure they are not strings but arrays when being logged
+	 */
+	public function convertArrayAttributes($model, &$changes) {
+		if (!is_array($changes) || empty($changes)) {
+			return;
+		}
+		foreach ($model->getBehaviors() as $behavior) {
+			if ($behavior instanceOf ArrayAttributesBehavior) {
+				$tempModel = clone $behavior->owner;
+				$tempModel->setAttributes($changes, false);
+				$tempModel->trigger(\yii\db\ActiveRecord::EVENT_AFTER_FIND);
+				$changes = $tempModel->getAttributes(array_keys($changes));
+				break;
 			}
 		}
 	}
