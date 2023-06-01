@@ -81,11 +81,14 @@ wsYii2.FormHelper = {
 	 * Set form input value(s) of any type of input
 	 *
 	 * @param {string|object} inputName - Name of form field or jQuery object of the element
+	 * @param {object} options - Available options:
+	 *   - `triggerChange` : set true to trigger a change event on the input if the new value is different (see also https://stackoverflow.com/questions/3179385/val-doesnt-trigger-change-in-jquery and https://stackoverflow.com/questions/24410581/changing-prop-using-jquery-does-not-trigger-change-event)
 	 *
 	 * @return {object|null} - The element as a jQuery object
 	 */
-	setValue: function(inputName, value) {
+	setValue: function(inputName, value, options) {
 		var $inputElement;
+		if (typeof options == 'undefined') options = {};
 
 		if (typeof inputName === 'string') {
 			$inputElement = $(':input[name="' + inputName + '"]');
@@ -97,39 +100,69 @@ wsYii2.FormHelper = {
 			switch ($inputElement.attr('type')) {
 			case 'checkbox':
 				$inputElement.each(function (i) {
+					var $this = $(this);
 					if (Array.isArray(value)) {
 						if (value.length == 0) {
-							$(this).attr('checked', false);
+							if (options.triggerChange === true && $this.prop('checked') !== false) {
+								$this.prop('checked', false).trigger('change');
+							} else {
+								$this.prop('checked', false);
+							}
 						} else {
-							var currElement = this, setValue = false;
+							var setValue = false;
 							$.each(value, function(indx, currValue) {
-								if ($(currElement).val() == currValue) {
+								if ($this.val() == currValue) {
 									setValue = true;
 									return false;
 								}
 							});
-							$(this).attr('checked', setValue);
+							if (options.triggerChange === true && $this.prop('checked') !== setValue) {
+								$this.prop('checked', setValue).trigger('change');
+							} else {
+								$this.prop('checked', setValue);
+							}
 						}
 					} else {
-						if ($(this).val() == value) {
-							$(this).attr('checked', true);
+						if ($this.val() == value) {
+							if (options.triggerChange === true && $this.prop('checked') !== true) {
+								$this.prop('checked', true).trigger('change');
+							} else {
+								$this.prop('checked', true);
+							}
 						} else {
-							$(this).attr('checked', false);
+							if (options.triggerChange === true && $this.prop('checked') !== false) {
+								$this.prop('checked', false).trigger('change');
+							} else {
+								$this.prop('checked', false);
+							}
 						}
 					}
 				});
 				break;
 			case 'radio':
 				$inputElement.each(function (i) {
-					if ($(this).val() == value) {
-						$(this).attr('checked', true);
+					var $this = $(this);
+					if ($this.val() == value) {
+						if (options.triggerChange === true && $this.prop('checked') !== true) {
+							$this.prop('checked', true).trigger('change');
+						} else {
+							$this.prop('checked', true);
+						}
 					} else {
-						$(this).attr('checked', false);
+						if (options.triggerChange === true && $this.prop('checked') !== false) {
+							$this.prop('checked', false).trigger('change');
+						} else {
+							$this.prop('checked', false);
+						}
 					}
 				});
 				break;
 			default:
-				$inputElement.val(value);
+				if (options.triggerChange === true && $inputElement.val() != value) {
+					$inputElement.val(value).trigger('change');
+				} else {
+					$inputElement.val(value);
+				}
 				break;
 			}
 			return $inputElement;
