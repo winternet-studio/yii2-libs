@@ -76,7 +76,7 @@ class ArrayAttributesBehavior extends Behavior {
 		}
 
 		foreach ($this->jsonAttributes as $attribute) {
-			if (!is_string($this->owner->$attribute)) {
+			if (!is_string($this->owner->$attribute) && $this->owner->$attribute !== null) {
 				$string = json_encode($this->owner->$attribute);
 				if ($string === null && json_last_error() !== JSON_ERROR_NONE) {
 					// invalid input data, failed to generate JSON string
