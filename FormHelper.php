@@ -109,18 +109,24 @@ class FormHelper extends Component {
 	 * 
 	 * @param winternet\yii2\Result|null : Result instance, or provide null to have the method create an instance for you
 	 * @param yii\base\model $model : A Yii model
+	 * @param array $options : Available options:
+	 *   - `forActiveForm` : set true to use attribute names as needed by ActiveForm
 	 *
 	 * @return winternet\yii2\Result
 	 */
-	public static function addModelResult($result, &$model) {
+	public static function addModelResult($result, &$model, $options = []) {
 		if (!$result) {
 			$result = new \winternet\yii2\Result();
 		}
 
 		// Add errors
 		foreach ($model->getErrors() as $attribute => $errors) {
-			// Generate the form field ID so Yii ActiveForm client-side can apply the error message
-			$attributeId = \yii\helpers\Html::getInputId($model, $attribute);
+			if (!empty($options['forActiveForm'])) {
+				// Generate the form field ID so Yii ActiveForm client-side can apply the error message
+				$attributeId = \yii\helpers\Html::getInputId($model, $attribute);
+			} else {
+				$attributeId = $attribute;
+			}
 
 			$result->addNamedErrors($attributeId, $errors);
 		}
