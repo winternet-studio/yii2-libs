@@ -136,7 +136,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 			} else {
 				$model->save();
 			}
-			$result = \winternet\yii2\FormHelper::addModelResult(null, $model);
+			$result = \winternet\yii2\FormHelper::addModelResult(null, $model, ['forActiveForm' => true]);
 			return $result;
 		}
 
@@ -167,7 +167,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 			} else {
 				$model->save();
 			}
-			$result = \winternet\yii2\FormHelper::addModelResult(null, $model);
+			$result = \winternet\yii2\FormHelper::addModelResult(null, $model, ['forActiveForm' => true]);
 			return $result;
 		}
 
