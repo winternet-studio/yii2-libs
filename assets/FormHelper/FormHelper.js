@@ -483,25 +483,50 @@ TODO:
 					$form.find('.nav-tabs a[href="#'+ paneId +'"]').tab('show');
 				}
 
-				// Scroll to first error and highlight it
-				$('html, body').animate({
-					scrollTop: $firstError.offset().top - ($(window).height() / 2),
-				}, {
-					duration: 'slow',
-					complete: function() {
-						if (!options.skipFocus) {
-							$firstError.focus();
-						}
-						if (options.elementAttentionClass) {
-							$firstError.addClass(options.elementAttentionClass);
-							if (options.removeClassAfter) {
-								setTimeout(function() {
-									$firstError.removeClass(options.elementAttentionClass);
-								}, options.removeClassAfter);
+				if (!$firstError.is(':visible')) {
+					// The error is invisible => try to find the error message or field name and display it in alert() instead
+					if ($firstError.find('p.help-block-error').length > 0) {
+						alert('Configuration error. A field has the following problem but is not visible on the page: '+ $firstError.find('p.help-block-error').html());
+					} else {
+						var fieldName;
+						var $label = $firstError.find('label');  //first look for a label
+						if ($label.length > 0) {
+							fieldName = $label.html().replace(/:$/, '');
+						} else {
+							if ($label.is(':input')) {  //then look for input name
+								fieldName = $label.attr('name');
+							} else if ($firstError.find(':input').length > 0) {
+								fieldName = $firstError.find(':input:first').attr('name');
+							}
+							if (fieldName) {
+								alert('Configuration error. The field '+ fieldName +' has an error but is not visible on the page.');
+							} else {
+								alert('Configuration error. A field has an error but is not visible on the page.');
 							}
 						}
+						$firstError = $firstError.closest(':visible');
 					}
-				});
+				} else {
+					// Scroll to first error and highlight it
+					$('html, body').animate({
+						scrollTop: $firstError.offset().top - ($(window).height() / 2),
+					}, {
+						duration: 'slow',
+						complete: function() {
+							if (!options.skipFocus) {
+								$firstError.focus();
+							}
+							if (options.elementAttentionClass) {
+								$firstError.addClass(options.elementAttentionClass);
+								if (options.removeClassAfter) {
+									setTimeout(function() {
+										$firstError.removeClass(options.elementAttentionClass);
+									}, options.removeClassAfter);
+								}
+							}
+						}
+					});
+				}
 
 				// Add tooltip on submit button
 				if (!options.skipSubmitButtonTooltip) {
