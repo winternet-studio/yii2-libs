@@ -197,13 +197,15 @@ class Common extends Component {
 	 */
 	public static function getBufferValue($key) {
 		// Clean up the buffer once per session
-		$session = Yii::$app->session;
-		if (Yii::$app->request->isConsoleRequest || !$session || !$session->get('_jfw_cleaned_buffer')) {
+		if (Yii::$app->has('session')) {  //skip cleaning when no session available (most often means running in CLI)
+			$session = Yii::$app->session;
+			if (Yii::$app->request->isConsoleRequest || !$session || !$session->get('_jfw_cleaned_buffer')) {
 
-			\Yii::$app->db->createCommand("DELETE FROM `buffer` WHERE tmpd_date_expire IS NOT NULL AND tmpd_date_expire < UTC_TIMESTAMP()")->execute();
+				\Yii::$app->db->createCommand("DELETE FROM `buffer` WHERE tmpd_date_expire IS NOT NULL AND tmpd_date_expire < UTC_TIMESTAMP()")->execute();
 
-			if ($session) {
-				$session->set('_jfw_cleaned_buffer', true);
+				if ($session) {
+					$session->set('_jfw_cleaned_buffer', true);
+				}
 			}
 		}
 

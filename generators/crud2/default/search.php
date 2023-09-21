@@ -123,7 +123,7 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 	public function search($params) {
 		// Handle memorizing the last used search parameters
 		$shortModelName = \yii\helpers\StringHelper::basename(__CLASS__);
-		if (Yii::$app->session && !Yii::$app->request->isConsoleRequest) {
+		if (Yii::$app->has('session') && !Yii::$app->request->isConsoleRequest) {
 			Yii::$app->session->open();
 			if (empty($params[$shortModelName])) {
 				if (!empty($_SESSION['cache'][__CLASS__]['searchParams'])) {
