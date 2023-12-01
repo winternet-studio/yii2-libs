@@ -11,19 +11,11 @@ Installation
 
 The preferred way to install this extension is through [composer](http://getcomposer.org/download/).
 
-Either run
+First [install Yii2](https://www.yiiframework.com/doc/guide/2.0/en/start-installation), then:
 
 ```
-php composer.phar require --prefer-dist winternet-studio/yii2-libs "*"
+composer require winternet-studio/yii2-libs
 ```
-
-or add
-
-```
-"winternet-studio/yii2-libs": "*"
-```
-
-to the require section of your `composer.json` file.
 
 
 Usage
