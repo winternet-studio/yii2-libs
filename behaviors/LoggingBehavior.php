@@ -28,6 +28,11 @@ class LoggingBehavior extends Behavior {
 	];
 
 	/**
+	 * @var mixed : Value to use as userID during a console application. Be aware of relations/MySQL JOIN queries though - might want to use `null` for that reason.
+	 */
+	public $consoleUserID = 0;  //default to 0 since we assume a normal user will never have ID 0 (at least never should)
+
+	/**
 	 * @var array : Exclude logging these events. Currently these are available: `insert`, `update`, `delete`
 	 */
 	public $excludeEvents = [];
@@ -161,7 +166,15 @@ class LoggingBehavior extends Behavior {
 		}
 
 		if ($event->name !== ActiveRecord::EVENT_AFTER_UPDATE || $this->logUpdateIfNoChanges || !empty($logAttributes[ $attrMap['data'] ])) {
-			$logAttributes[ $attrMap['userID'] ] = (\Yii::$app->user->isGuest ? null : \Yii::$app->user->identity->id);
+			if (\Yii::$app->request->isConsoleRequest) {  //in a console app the user component normally will not exist
+				if (!\Yii::$app->has('user') || \Yii::$app->user->isGuest) {
+					$logAttributes[ $attrMap['userID'] ] = $this->consoleUserID;
+				} else {
+					$logAttributes[ $attrMap['userID'] ] = \Yii::$app->user->identity->id;
+				}
+			} else {
+				$logAttributes[ $attrMap['userID'] ] = (\Yii::$app->user->isGuest ? null : \Yii::$app->user->identity->id);
+			}
 			$logAttributes[ $attrMap['model'] ] = $modelClass;
 			$logAttributes[ $attrMap['modelID'] ] = $id;
 			$logAttributes[ $attrMap['action'] ] = $action;
