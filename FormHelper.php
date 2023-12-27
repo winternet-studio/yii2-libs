@@ -260,10 +260,11 @@ class FormHelper extends Component {
 	 * @param string $userTimeZone : Time zone of the end-user
 	 * @param array $model : Model to convert timestamp attributes for (can just be an empty model)
 	 * @param string $options : Available options:
-	 *   - `format` (string)
-	 *   - `modifyModel` (boolean)
+	 *   - `format` (string) : how to format date using (as per date()). Default: `Y-m-d H:i:s`
+	 *   - `modifyModel` (boolean) : default is false
 	 *   - `multipleModels` (boolean) : set true to assume that the POST contains multiple of the given model,
 	 *        ie. that the form of the fields are `$_POST[modelName][index][attribute]` instead of just the normal `$_POST[modelName][attribute]`
+	 *        Default false.
 	 *   - `customPostData` (array) : inject POST values manually if $_POST is not to be used.
 	 *        Then the modified values are returned instead and they are not written back into neither $_POST nor Yii's request body params.
 	 *

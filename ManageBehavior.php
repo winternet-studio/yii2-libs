@@ -44,7 +44,7 @@ class ManageBehavior extends Component {
 		- nothing
 		*/
 		foreach ($this->model->behaviors() as $key => $behav) {
-			if ($this->suspendedBehaviors[$behav['class']]) {
+			if (@$this->suspendedBehaviors[$behav['class']]) {
 				$this->model->attachBehavior($key, $this->suspendedBehaviors[$behav['class']]);
 				unset($this->suspendedBehaviors[$behav['class']]);
 			}
