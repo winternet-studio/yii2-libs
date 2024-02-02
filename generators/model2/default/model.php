@@ -124,7 +124,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// 		$query->andWhere(['<?= array_keys($labels)[0];  //assume first field is primary key ?>' => $id]);
 	// 		$model = $query->one();
 
-	// 		if ($model && $options['setScenario'] === true) {
+	// 		if ($model && @$options['setScenario'] === true) {
 	// 			$model->applyUserScenario();
 	// 		}
 

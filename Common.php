@@ -230,13 +230,13 @@ class Common extends Component {
 	 */
 	public static function getScriptReference($options = []) {
 		if (Yii::$app->request->isConsoleRequest) {
-			if ($options['skipConsolePrefix']) {
+			if (@$options['skipConsolePrefix']) {
 				return implode(' ', Yii::$app->request->getParams());
 			} else {
 				return 'Console command: '. implode(' ', Yii::$app->request->getParams());
 			}
 		} else {
-			if ($options['absoluteUrl']) {
+			if (@$options['absoluteUrl']) {
 				return Yii::$app->request->getAbsoluteUrl();
 			} else {
 				return Yii::$app->request->getUrl();

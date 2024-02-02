@@ -31,10 +31,10 @@ class ConsoleHelper extends Component {
 			require_once($staticincl);
 		}
 
-		if ($options['phpErrorReportingAll']) {
+		if (@$options['phpErrorReportingAll']) {
 			ini_set('error_reporting', E_ALL & ~E_NOTICE);
 		}
-		if ($options['setMemoryLimit']) {
+		if (@$options['setMemoryLimit']) {
 			ini_set('memory_limit', $options['setMemoryLimit']);
 		}
 
@@ -63,7 +63,7 @@ class ConsoleHelper extends Component {
 	public static function l($line_str = null, $options = []) {
 		self::linePrefix($options);
 
-		if ($options['color']) {
+		if (@$options['color']) {
 			$line_str = self::applyColor($line_str, $options['color']);
 		}
 
@@ -81,7 +81,7 @@ class ConsoleHelper extends Component {
 
 		echo "\n";
 
-		if (!$options['raw']) {
+		if (!@$options['raw']) {
 			if (self::$timeFormat == 'seconds') {
 				$accum_time = microtime(true) - self::$starttime;
 				if ($accum_time >= 61) {
@@ -113,7 +113,7 @@ class ConsoleHelper extends Component {
 			echo $separator .' ';
 
 			$fullWidthString = self::mb_str_pad($argument, self::$columns[$index]['width'], ' ', (self::$columns[$index]['align'] == 'right' ? STR_PAD_LEFT : STR_PAD_RIGHT));
-			if (self::$columns[$index]['color']) {
+			if (!empty(self::$columns[$index]['color'])) {
 				echo self::applyColor($fullWidthString, self::$columns[$index]['color']);
 			} else {
 				echo $fullWidthString;

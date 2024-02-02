@@ -110,9 +110,9 @@ class UserException extends \yii\base\UserException {
 						if ($key > 0) {
 							$errorData .= '* * * * * * *'. PHP_EOL;
 						}
-						$errorData .= 'Level '. ($key+1) .': '. ltrim(str_replace(\Yii::$app->basePath, '', $b['file']), '\\') .'::'. $b['line'];
+						$errorData .= 'Level '. ($key+1) .': '. ltrim(str_replace(\Yii::$app->basePath, '', (string) @$b['file']), '\\') .'::'. @$b['line'];
 						if ($key != 0) {  //the first entry will always reference to this function (system_error) so skip that
-							$errorData .= ' / '. $b['function'] .'(';
+							$errorData .= ' / '. @$b['function'] .'(';
 							if (count($b['args']) > 0) {
 								$arrArgs = array();
 								foreach ($b['args'] as $xarg) {
@@ -211,6 +211,7 @@ class UserException extends \yii\base\UserException {
 
 			$url = $_SERVER['REQUEST_URI'];
 
+			$userID = $userName = null;
 			if (Yii::$app->getComponents()['user']) {
 				if (!Yii::$app->user->isGuest) {
 					$userID = Yii::$app->user->getId();
@@ -226,19 +227,13 @@ class UserException extends \yii\base\UserException {
 					$userName = trim($userName);
 				}
 			}
-			if (!$userID) {
-				$userID = null;
-			}
-			if (!$userName) {
-				$userName = null;
-			}
 
 			$requestInfo = [
-				'IP' => $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : ''),
+				'IP' => $ipAddress . (@$_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : ''),
 				'Host' => $host,
 				$_SERVER['REQUEST_METHOD'] => (!empty($_POST) ? $_POST : file_get_contents('php://input')),
-				'Referer' => $_SERVER['HTTP_REFERER'],
-				'User Agent' => $_SERVER['HTTP_USER_AGENT'],
+				'Referer' => @$_SERVER['HTTP_REFERER'],
+				'User Agent' => @$_SERVER['HTTP_USER_AGENT'],
 			];
 			if (!$terminate) {
 				$requestInfo['Execution terminated'] = $terminate;

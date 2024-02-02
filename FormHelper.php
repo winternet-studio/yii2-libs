@@ -318,7 +318,7 @@ class FormHelper extends Component {
 						}
 					}
 				} else {
-					if ($postData[$formName][$attribute]) {
+					if (@$postData[$formName][$attribute]) {
 						$timestamp = Common::changeTimezone($postData[$formName][$attribute], $userTimeZone, 'UTC', $options['format']);
 
 						if (!$options['customPostData']) {

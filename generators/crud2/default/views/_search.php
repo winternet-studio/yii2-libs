@@ -49,7 +49,7 @@ $form = ActiveForm::begin([
 		if ($attribute == '__common') return [];
 		$defaultOperator = $model->{$attribute .'_OP'};
 		if (!$defaultOperator) {
-			if ($attributeTypes[$attribute]['common'] == 'numeric') {
+			if (@$attributeTypes[$attribute]['common'] == 'numeric') {
 				$defaultOperator = 'equal';
 			} else {
 				$defaultOperator = 'contains';
@@ -61,7 +61,7 @@ $form = ActiveForm::begin([
 			'class' => 'form-control operator-input',
 			'options' => $operatorDropdownOptions,
 		]) .'</div>';
-		$template .=  '<div class="col-sm-8 main-field">{input}{hint}{error}<div class="operator-hint">'. $operatorDropdownOptions[ $model->{$attribute .'_OP'} ]['title'] /*needed if default operator has a hint*/ .'</div></div>';
+		$template .=  '<div class="col-sm-8 main-field">{input}{hint}{error}<div class="operator-hint">'. @$operatorDropdownOptions[ $model->{$attribute .'_OP'} ]['title'] /*needed if default operator has a hint*/ .'</div></div>';
 		$template .= '</div>';
 		return [
 			'template' => $template,

@@ -193,7 +193,7 @@ class ModelHelper extends Component {
 					$name = substr($value, 0, $colon);
 				}
 			} elseif (is_array($value)) {
-				if ($value['attribute']) {
+				if (@$value['attribute']) {
 					$name = $value['attribute'];
 
 					if (preg_match("/.\\../", $name)) {
@@ -204,7 +204,7 @@ class ModelHelper extends Component {
 							}
 						}
 					}
-				} elseif ($value['class']) {
+				} elseif (@$value['class']) {
 					// always leave special entries intact (eg. class=yii\grid\ActionColumn)
 					$output[] = $value;
 					continue;

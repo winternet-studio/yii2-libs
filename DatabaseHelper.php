@@ -41,12 +41,12 @@ class DatabaseHelper extends Component {
 		// if (($value === '' || $value === false || $value === null || $value === array()) && strpos($options, 'noNull') === false) {  //NOTE: see test_if_value_is_db_NULL.php
 		// 	return [$attribute => null];
 		// } else {
-			if ($options['field']) {
+			if (@$options['field']) {
 				$value = new \yii\db\Expression('`'. str_replace('`', '', $value) .'`');
-			} elseif ($options['passthrough']) {
+			} elseif (@$options['passthrough']) {
 				$value = new \yii\db\Expression($value);
 			} elseif ($operator == 'contains' || $operator == 'containsnot') {
-				$value = str_replace(' ', '%', $value);  //add wildcards within the text
+				$value = str_replace(' ', '%', (string) $value);  //add wildcards within the text
 			}
 
 			// Determine operator (and sometimes adjust the value)
@@ -66,7 +66,7 @@ class DatabaseHelper extends Component {
 			case 'soundslike':
 				$operator = '=';
 				$attribute = new \yii\db\Expression("SOUNDEX(`". $attribute ."`)");
-				if ($options['field'] || $options['passthrough']) {
+				if (@$options['field'] || @$options['passthrough']) {
 					$value = new \yii\db\Expression("SOUNDEX(". $value .")");
 				} else {
 					$value = new \yii\db\Expression("SOUNDEX(". \Yii::$app->db->quoteValue($value) .")");

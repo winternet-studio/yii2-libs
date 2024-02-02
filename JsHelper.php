@@ -143,27 +143,27 @@ class JsHelper extends Component {
 
 		// NOTE: tabindex=-1 needed for Esc to work (http://stackoverflow.com/questions/12630156/how-do-you-enable-the-escape-key-close-functionality-in-a-twitter-bootstrap-moda)
 ?>
-<div id="<?= ($options['id'] ? $options['id'] : 'JsHelperModal') ?>" class="modal fade" role="dialog" tabindex="-1">
+<div id="<?= (@$options['id'] ? $options['id'] : 'JsHelperModal') ?>" class="modal fade" role="dialog" tabindex="-1">
 	<div class="modal-dialog">
 		<div class="modal-content">
 <?php
-		if (!$options['hideTitle']) {
+		if (!@$options['hideTitle']) {
 ?>
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal"><?= (self::$defaultCloseHtml ? self::$defaultCloseHtml : '&times;') ?></button>
-				<h4 class="modal-title"><?= ($options['title'] ? $options['title'] : 'Information') ?></h4>
+				<h4 class="modal-title"><?= (@$options['title'] ? $options['title'] : 'Information') ?></h4>
 			</div>
 <?php
 		}
 ?>
 			<div class="modal-body">
-				<p><?= ($options['html'] ? $options['html'] : '[message placeholder]') ?></p>
+				<p><?= (@$options['html'] ? $options['html'] : '[message placeholder]') ?></p>
 			</div>
 <?php
-			if (!$options['hideButtons']) {
+			if (!@$options['hideButtons']) {
 ?>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal"><?= ($options['buttonClose'] ? $options['buttonClose'] : (self::$defaultButtonClose ? self::$defaultButtonClose : 'OK')) ?></button>
+				<button type="button" class="btn btn-default" data-dismiss="modal"><?= (@$options['buttonClose'] ? $options['buttonClose'] : (self::$defaultButtonClose ? self::$defaultButtonClose : 'OK')) ?></button>
 			</div>
 <?php
 			}
@@ -198,25 +198,25 @@ class JsHelper extends Component {
 		// NOTE: tabindex=-1 needed for Esc to work (http://stackoverflow.com/questions/12630156/how-do-you-enable-the-escape-key-close-functionality-in-a-twitter-bootstrap-moda)
 		// NOTE: avoid closing when button clicked: http://stackoverflow.com/questions/19073238/how-to-prevent-bootstrap-modal-from-closing-from-button-using-onclick#19078898
 ?>
-<div id="<?= ($options['id'] ? $options['id'] : 'JsHelperModalConfirm') ?>" class="modal fade" role="dialog" tabindex="-1">
+<div id="<?= (@$options['id'] ? $options['id'] : 'JsHelperModalConfirm') ?>" class="modal fade" role="dialog" tabindex="-1">
 	<div class="modal-dialog">
 		<div class="modal-content">
 <?php
-		if (!$options['hideTitle']) {
+		if (!@$options['hideTitle']) {
 ?>
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal"><?= (self::$defaultCloseHtml ? self::$defaultCloseHtml : '&times;') ?></button>
-				<h4 class="modal-title"><?= ($options['title'] ? $options['title'] : 'Are you sure?') ?></h4>
+				<h4 class="modal-title"><?= (@$options['title'] ? $options['title'] : 'Are you sure?') ?></h4>
 			</div>
 <?php
 		}
 ?>
 			<div class="modal-body">
-				<p><?= ($options['html'] ? $options['html'] : 'Are you sure you want to do this?') ?></p>
+				<p><?= (@$options['html'] ? $options['html'] : 'Are you sure you want to do this?') ?></p>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default btn-no" data-dismiss="modal"><?= ($options['buttonNo'] ? $options['buttonNo'] : (self::$defaultButtonNo ? self::$defaultButtonNo : 'No')) ?></button>
-				<button type="button" class="btn btn-primary btn-yes" data-dismiss="modal"><?= ($options['buttonYes'] ? $options['buttonYes'] : (self::$defaultButtonYes ? self::$defaultButtonYes : 'Yes')) ?></button>
+				<button type="button" class="btn btn-default btn-no" data-dismiss="modal"><?= (@$options['buttonNo'] ? $options['buttonNo'] : (self::$defaultButtonNo ? self::$defaultButtonNo : 'No')) ?></button>
+				<button type="button" class="btn btn-primary btn-yes" data-dismiss="modal"><?= (@$options['buttonYes'] ? $options['buttonYes'] : (self::$defaultButtonYes ? self::$defaultButtonYes : 'Yes')) ?></button>
 			</div>
 		</div>
 	</div>
@@ -248,25 +248,25 @@ class JsHelper extends Component {
 		// NOTE: tabindex=-1 needed for Esc to work (http://stackoverflow.com/questions/12630156/how-do-you-enable-the-escape-key-close-functionality-in-a-twitter-bootstrap-moda)
 		// NOTE: avoid closing when button clicked: http://stackoverflow.com/questions/19073238/how-to-prevent-bootstrap-modal-from-closing-from-button-using-onclick#19078898
 ?>
-<div id="<?= ($options['id'] ? $options['id'] : 'JsHelperModalFullscreen') ?>" class="modal fade" role="dialog" tabindex="-1">
+<div id="<?= (@$options['id'] ? $options['id'] : 'JsHelperModalFullscreen') ?>" class="modal fade" role="dialog" tabindex="-1">
 	<div class="modal-dialog modal-lg">
 		<div class="modal-content">
 <?php
-		if (!$options['hideTitle']) {
+		if (!@$options['hideTitle']) {
 ?>
 			<div class="modal-header">
 				<button type="button" class="close" data-dismiss="modal"><?= (self::$defaultCloseHtml ? self::$defaultCloseHtml : '&times;') ?></button>
-				<h4 class="modal-title"><?= $options['title'] ?></h4>
+				<h4 class="modal-title"><?= @$options['title'] ?></h4>
 			</div>
 <?php
 		}
 ?>
 			<div class="modal-body"></div>
 <?php
-			if (!$options['hideButtons']) {
+			if (!@$options['hideButtons']) {
 ?>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal"><?= ($options['buttonClose'] ? $options['buttonClose'] : (self::$defaultButtonClose ? self::$defaultButtonClose : 'OK')) ?></button>
+				<button type="button" class="btn btn-default" data-dismiss="modal"><?= (@$options['buttonClose'] ? $options['buttonClose'] : (self::$defaultButtonClose ? self::$defaultButtonClose : 'OK')) ?></button>
 			</div>
 <?php
 			}
@@ -279,17 +279,17 @@ class JsHelper extends Component {
 	}
 
 	public static function systemMsgInit($options = []) {
-		if (!$options['view']) {
+		if (!@$options['view']) {
 			$options['view'] = \Yii::$app->controller->getView();
 		}
 
 		self::loadAssets($options['view']);  // ensure the Javascript messaging section is available
 
 		$js = [];
-		if ($options['removeAfter']) {
+		if (@$options['removeAfter']) {
 			$js[] = 'appJS.systemMsg.removeAfter = '. (int) $options['removeAfter'] .';';
 		}
-		if ($options['selector']) {
+		if (@$options['selector']) {
 			$js[] = 'appJS.systemMsg.selector = '. json_encode($options['selector']) .';';
 		}
 		if (!empty($js)) {
