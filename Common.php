@@ -5,6 +5,9 @@ use Yii;
 use yii\base\Component;
 
 class Common extends Component {
+
+	public static $runtime = [];
+
 	public static function processAjaxSubmit($options = []) {
 		// TODO: change all uses to use the FormHelper instead
 		return FormHelper::processAjaxSubmit($options);
@@ -36,7 +39,11 @@ class Common extends Component {
 	 */
 	public static function parseMultiLang($text, $language = null) {
 		if ($language === null) {
-			$language = substr(Yii::$app->language, 0, 2);
+			if (@Yii::$app->params['currMultiLingualLanguage']) {
+				$language = Yii::$app->params['currMultiLingualLanguage'];
+			} else {
+				$language = substr(Yii::$app->language, 0, 2);
+			}
 		}
 
 		$all = [];
@@ -88,15 +95,13 @@ class Common extends Component {
 		}
 	}
 
+	/**
+	 * Builds a string with multiple translations of a piece of text
+	 *
+	 * @param array $array : Array output from [[parseMultiLang()]] with $lang='ALL' as argument
+	 * @return string
+	 */
 	public static function buildMultiLang($array) {
-		/*
-		DESCRIPTION:
-		- builds a string with multiple translations of a piece of text
-		INPUT:
-		- $array : array output from parseMultiLang() with $lang='ALL' as argument
-		OUTPUT:
-		- string
-		*/
 		if (is_string($array)) {
 			return $array;
 		} else {
@@ -105,6 +110,32 @@ class Common extends Component {
 				$output[] = strtoupper($lang) .'='. $string;
 			}
 			return implode(',,,', $output);
+		}
+	}
+
+	/**
+	 * Set temporary language to use for multilingual strings parsed by buildMultiLang()
+	 *
+	 * @param string $newIetfLanguage : 4-letter language code, eg. `en-US`
+	 * @param string $newLanguage : 2-letter language code used in the string of multiple translations if it's not the first 2 characters of the IETF code, eg. `en`.
+	 *                              In this case you also have to use `Yii::$app->params['currMultiLingualLanguage']` to hold the current 2-letter language code.
+	 */
+	public static function temporaryLanguage($newIetfLanguage, $newLanguage = null) {
+		static::$runtime['originalYiiLanguage'] = Yii::$app->language;
+		Yii::$app->language = $newIetfLanguage;
+
+		if (isset(Yii::$app->params['currMultiLingualLanguage'])) {
+			static::$runtime['originalMultiLingualLanguage'] = Yii::$app->params['currMultiLingualLanguage'];
+			Yii::$app->params['currMultiLingualLanguage'] = $newLanguage;
+		}
+	}
+
+	public static function restoreLanguage() {
+		Yii::$app->language = static::$runtime['originalYiiLanguage'];
+		static::$runtime['originalYiiLanguage'] = null;
+
+		if (isset(static::$runtime['originalMultiLingualLanguage'])) {
+			Yii::$app->params['currMultiLingualLanguage'] = static::$runtime['originalMultiLingualLanguage'];
 		}
 	}
 
