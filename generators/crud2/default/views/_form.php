@@ -83,7 +83,7 @@ foreach ($generator->getColumnNames() as $attribute) {
 		echo "\n";
 		echo "if (in_array('". $attribute ."', \$viewAttribs)) {\n";
 		echo "	echo " . $activeField . "\n";   //";\n";
-		echo "		->hint(\$hints['". $attribute ."']);\n";
+		echo "		->hint(@\$hints['". $attribute ."']);\n";
 		echo "}\n";
 	}
 } ?>

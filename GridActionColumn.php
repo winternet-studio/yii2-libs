@@ -54,7 +54,7 @@ class GridActionColumn extends \yii\grid\ActionColumn {
 			$className = get_class($model);
 			$timestamp = time();
 			$params = is_array($key) ? $key : ['id' => (string) $key, 'model' => $className, 'timestamp' => $timestamp, 'hash' => hash('sha256', $className . $key .'-'. $timestamp . $this->historyButton['secretSalt'])];
-			$params[0] = $this->historyButton['controller'] ? $this->historyButton['controller'] . '/' . $this->historyButton['action'] : $this->historyButton['action'];
+			$params[0] = @$this->historyButton['controller'] ? $this->historyButton['controller'] . '/' . $this->historyButton['action'] : $this->historyButton['action'];
 
 			return \yii\helpers\Url::toRoute($params);
 		} else {
@@ -69,7 +69,7 @@ class GridActionColumn extends \yii\grid\ActionColumn {
 		// Add a unique identifier so we can target the button with CSS
 		$additionalOptions['data-button-name'] = $name;
 
-		if ($this->buttonNames[$name]) {
+		if (@$this->buttonNames[$name]) {
 			if (!isset($this->buttons[$name]) && strpos($this->template, '{' . $name . '}') !== false) {
 				$this->buttons[$name] = function ($url, $model, $key) use ($name, $iconName, $additionalOptions) {
 					switch ($name) {

@@ -204,12 +204,12 @@ class UserException extends \yii\base\UserException {
 		// (this has better error stack information that Yii's own app.log - more argument values are shown)
 		if ($register) {
 			if (Yii::$app->request->isConsoleRequest) {
-				$host = ($_SERVER['USER'] ? $_SERVER['USER'] : $_SERVER['HOME']);  //CLI and arguments is recorded in $ipAddress
+				$host = $_SERVER['USER'] ?? @$_SERVER['HOME'];  //CLI and arguments is recorded in $ipAddress
 			} else {
 				$host = Yii::$app->request->getHostInfo();
 			}
 
-			$url = $_SERVER['REQUEST_URI'];
+			$url = @$_SERVER['REQUEST_URI'];
 
 			$userID = $userName = null;
 			if (Yii::$app->getComponents()['user']) {
@@ -291,8 +291,8 @@ class UserException extends \yii\base\UserException {
 				$fileLog .= $messageString ."\r\n";
 				$fileLog .= "\r\nError Code: ". $this->errorCode;
 				$fileLog .= "\r\nURL: ". $_SERVER['REQUEST_METHOD'] ." ". $host . $url;
-				$fileLog .= "\r\nReferer: ". $_SERVER['HTTP_REFERER'];
-				$fileLog .= "\r\nIP: ". $ipAddress . ($_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
+				$fileLog .= "\r\nReferer: ". @$_SERVER['HTTP_REFERER'];
+				$fileLog .= "\r\nIP: ". $ipAddress . (@$_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] ? '   '. $_SERVER['REDIRECT_GEOIP_COUNTRY_NAME'] : '');
 				if (!empty($_POST)) {
 					$fileLog .= "\r\n\r\nPOST: ". json_encode($_POST, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
 				}
@@ -322,11 +322,11 @@ class UserException extends \yii\base\UserException {
 				// Defaults
 				if ($senderEmail) {
 					$senderAddress = $senderEmail;
-				} elseif (Yii::$app->params && Yii::$app->params['defaultEmailSenderAddress']) {
+				} elseif (Yii::$app->params && @Yii::$app->params['defaultEmailSenderAddress']) {
 					$senderAddress = Yii::$app->params['defaultEmailSenderAddress'];
 				} else {
 					$senderAddress = 'info@'. Yii::$app->request->getHostName();  //resort to just a guess as the last option!
-					if (Yii::$app->getComponents()['mailer'] && Yii::$app->mailer->transport && Yii::$app->mailer->transport->getUsername()) {
+					if (@Yii::$app->getComponents()['mailer'] && Yii::$app->mailer->transport && Yii::$app->mailer->transport->getUsername()) {
 						$smptUsername = Yii::$app->mailer->transport->getUsername();
 						if ($smptUsername && filter_var($smptUsername, FILTER_VALIDATE_EMAIL)) {
 							$senderAddress = $smptUsername;
@@ -338,7 +338,7 @@ class UserException extends \yii\base\UserException {
 				} else {
 					if ($adminEmail) {
 						$recipientAddress = $adminEmail;
-					} elseif (Yii::$app->params && Yii::$app->params['adminEmail']) {
+					} elseif (Yii::$app->params && @Yii::$app->params['adminEmail']) {
 						$recipientAddress = Yii::$app->params['adminEmail'];
 					} else {
 						$recipientAddress = $senderAddress;

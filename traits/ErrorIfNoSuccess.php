@@ -18,7 +18,7 @@ trait ErrorIfNoSuccess {
 		$model = static::findOne($condition);
 
 		if ($model == null) {
-			static::raiseError($options['message'] ?? 'Failed to find a specific '. static::class .' in database.', array_merge(['Query conditions' => $condition], (array) $options['errorDetails']), (array) $options['errorOptions']);
+			static::raiseError($options['message'] ?? 'Failed to find a specific '. static::class .' in database.', array_merge(['Query conditions' => $condition], (array) @$options['errorDetails']), (array) @$options['errorOptions']);
 		}
 
 		return $model;
@@ -34,7 +34,7 @@ trait ErrorIfNoSuccess {
 		$model = static::findOfUser($condition, $options);
 
 		if ($model == null || empty($model)) {
-			static::raiseError($options['message'] ?? 'Failed to find a specific '. static::class .' for current user in database.', array_merge(['Query conditions' => $condition], (array) $options['errorDetails']), (array) $options['errorOptions']);
+			static::raiseError($options['message'] ?? 'Failed to find a specific '. static::class .' for current user in database.', array_merge(['Query conditions' => $condition], (array) @$options['errorDetails']), (array) @$options['errorOptions']);
 		}
 
 		return $model;
@@ -50,7 +50,7 @@ trait ErrorIfNoSuccess {
 		$model = static::findAll($condition);
 
 		if (empty($model)) {
-			static::raiseError($options['message'] ?? 'Failed to find at least one '. static::class .' in database.', array_merge(['Query conditions' => $condition], (array) $options['errorDetails']), (array) $options['errorOptions']);
+			static::raiseError($options['message'] ?? 'Failed to find at least one '. static::class .' in database.', array_merge(['Query conditions' => $condition], (array) @$options['errorDetails']), (array) @$options['errorOptions']);
 		}
 
 		return $model;

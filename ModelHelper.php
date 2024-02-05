@@ -198,7 +198,7 @@ class ModelHelper extends Component {
 
 					if (preg_match("/.\\../", $name)) {
 						// this attribute is an attribute in a related table => try to get the original attribute from the dropdown input field in the 'filter' param
-						if ($value['filter']) {
+						if (@$value['filter']) {
 							if (preg_match("/name=\".*\\[(.*)]\"/U", $value['filter'], $match)) {
 								$name = $match[1];
 							}

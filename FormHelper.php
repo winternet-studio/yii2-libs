@@ -23,8 +23,8 @@ class FormHelper extends Component {
 	 **/
 	public static function processAjaxSubmit($options = []) {
 		$js = "function(rsp) {";
-		if ($options['form']) {
-			if (!$options['view']) {
+		if (@$options['form']) {
+			if (!@$options['view']) {
 				$options['view'] = Yii::$app->controller->getView();
 				if (!$options['view']) {
 					new \winternet\yii2\UserException('Failed to automatically determine the view.');
@@ -38,23 +38,23 @@ class FormHelper extends Component {
 			$js .= "var errorCount = applyResult.errorCount;";
 
 			// Always check if we are on a tabbed form and need to show the right tab
-			$js .= "wsYii2.FormHelper.HighlightTabbedFormErrors.checkForErrors('#". $options['form']->options['id'] ."', ". json_encode(['submitButtonTooltipText' => $options['submitButtonTooltipText']]) .");";
+			$js .= "wsYii2.FormHelper.HighlightTabbedFormErrors.checkForErrors('#". $options['form']->options['id'] ."', ". json_encode(['submitButtonTooltipText' => @$options['submitButtonTooltipText']]) .");";
 		} else {
 			$js .= "var form, errorCount;";
 			$js .= "if (rsp.err_msg) { errorCount = rsp.err_msg.length; } else if (rsp.errors) { errorCount = rsp.errors.length; }";
 		}
 
-		if ($options['on_complete']) {
+		if (@$options['on_complete']) {
 			$js .= $options['on_complete'] .'({form:form, rsp:rsp, errorCount:errorCount});';
 		}
-		if ($options['on_completeJS']) {
+		if (@$options['on_completeJS']) {
 			$js .= self::bindTags($options['on_completeJS'], $options['form']);
 		}
-		if ($options['on_error'] || $options['on_success']) {
-			$js .= "if (errorCount > 0) {". ($options['on_error'] ? $options['on_error'] .'({form:form, rsp:rsp, errorCount:errorCount});' : '') ."} else {". ($options['on_success'] ? $options['on_success'] .'({form:form, rsp:rsp, errorCount:errorCount});' : '') ."}";
+		if (@$options['on_error'] || @$options['on_success']) {
+			$js .= "if (errorCount > 0) {". (@$options['on_error'] ? $options['on_error'] .'({form:form, rsp:rsp, errorCount:errorCount});' : '') ."} else {". (@$options['on_success'] ? $options['on_success'] .'({form:form, rsp:rsp, errorCount:errorCount});' : '') ."}";
 		}
-		if ($options['on_successJS']) {
-			$js .= "if (errorCount == 0) {". self::bindTags($options['on_successJS'], $options['form']) ."}";
+		if (@$options['on_successJS']) {
+			$js .= "if (errorCount == 0) {". self::bindTags($options['on_successJS'], @$options['form']) ."}";
 		}
 		$js .= "}";
 		return new \yii\web\JsExpression($js);
@@ -74,19 +74,19 @@ class FormHelper extends Component {
 	 * @return yii\web\JsExpression
 	 */
 	public static function processAjaxSubmitError($options = []) {
-		if ($options['minimal']) {
+		if (@$options['minimal']) {
 			$js = "function(r,t,e) {";
-			if ($options['jsBefore']) {
+			if (@$options['jsBefore']) {
 				$js .= $options['jsBefore'];
 			}
 			$js .= "alert(e+\"\\n\\n\"+\$('<div/>').html((r.responseJSON && r.responseJSON.message ? r.responseJSON.message : r.responseText)).text());";
-			if ($options['jsAfter']) {
+			if (@$options['jsAfter']) {
 				$js .= $options['jsAfter'];
 			}
 			$js .= "}";
 		} else {
 			$js = "function(xhr, textStatus, errorThrown) {";
-			if ($options['jsBefore']) {
+			if (@$options['jsBefore']) {
 				$js .= $options['jsBefore'];
 			}
 			$js .= "var \$bg = \$('<div/>').addClass('jfw-yii2-ajax-error-bg').css({position: 'fixed', top: '0px', left: '0px', width: '100%', backgroundColor: '#595959'}).height(\$(window).height());";
@@ -94,7 +94,7 @@ class FormHelper extends Component {
 			$js .= "\$modal.html('<h3>'+ errorThrown +' (Status '+ xhr.status +')</h3>'+ (xhr.responseJSON ? (xhr.responseJSON.name && xhr.responseJSON.name != errorThrown ? '<h4>'+ xhr.responseJSON.name +'</h4>' : '') + (xhr.responseJSON.message ? xhr.responseJSON.message : '') : xhr.responseText) +'<div><button class=\"btn btn-primary\" onclick=\"\$(this).parent().parent().parent().remove();\">OK</button></div>');";
 			$js .= "\$bg.append(\$modal);";
 			$js .= "\$('body').append(\$bg);";
-			if ($options['jsAfter']) {
+			if (@$options['jsAfter']) {
 				$js .= $options['jsAfter'];
 			}
 			$js .= "}";
@@ -183,7 +183,7 @@ class FormHelper extends Component {
 
 
 		if (!$usingResultClass) {
-			if ($options['add_existing']) {
+			if (@$options['add_existing']) {
 				if (!empty($result['err_msg'])) {
 					$result['err_msg_ext']['_generic'] = $result['err_msg'];
 				}

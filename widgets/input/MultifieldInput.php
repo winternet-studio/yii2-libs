@@ -146,7 +146,7 @@ class MultifieldInput extends InputWidget {
 			$inputID = $this->containerOptions['id'] .'-'. $counter;
 
 			$fieldName = $basename .'['. $item['name'] .']';
-			$fieldValue = ($value[$item['name']] ? $value[$item['name']] : $item['default']);
+			$fieldValue = $value[$item['name']] ?? $item['default'];
 
 			$content[] = '<tr>';
 			$content[] = '<td class="mfi-label">'. ($this->encodeLabel ? Html::encode($item['label']) : $item['label']) .'&nbsp;</td>';
@@ -157,7 +157,7 @@ class MultifieldInput extends InputWidget {
 			} else {
 				$content[] = '<td class="mfi-input text-type">'. Html::textInput($fieldName, $fieldValue, array_merge($this->inputOptions, ['id' => $inputID])) .'</td>';
 			}
-			if ($item['suffix']) {
+			if (@$item['suffix']) {
 				$content[] = '<td class="mfi-suffix">'. ($this->encodeSuffix ? Html::encode($item['suffix']) : $item['suffix']) .'</td>';
 			}
 			$content[] = '</tr>';

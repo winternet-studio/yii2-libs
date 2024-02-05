@@ -65,7 +65,7 @@ class Result extends Component implements \JsonSerializable {
 	 *
 	 * For example used when response is set to JSON in controller action and we just return this object (as per the crud2 generator).
 	 */
-	public function jsonSerialize() {
+	public function jsonSerialize(): mixed {
 		return $this->response();
 	}
 
@@ -170,9 +170,9 @@ class Result extends Component implements \JsonSerializable {
 	public function addNamedErrors($name, $arrayMessages, $options = []) {
 		$this->setStatus('error');
 
-		if ($options['prefix']) {
+		if (isset($options['prefix'])) {
 			$arrayMessages = $this->augmentMessages($arrayMessages, $options['prefix'], 'prefix');
-		} elseif ($options['suffix']) {
+		} elseif (isset($options['suffix'])) {
 			$arrayMessages = $this->augmentMessages($arrayMessages, $options['suffix'], 'suffix');
 		}
 
@@ -376,7 +376,7 @@ class Result extends Component implements \JsonSerializable {
 	}
 
 	public function getData($key) {
-		return $this->otherInformation[$key];
+		return @$this->otherInformation[$key];
 	}
 
 	public function getAllData() {
@@ -399,7 +399,7 @@ class Result extends Component implements \JsonSerializable {
 				// do nothing
 			} elseif (is_object($this->otherInformation[$key]) || is_array($this->otherInformation[$key])) {
 				if (is_object($this->otherInformation[$key])) {
-					if (@constant('YII_BEGIN_TIME') && $this->otherInformation[$key] instanceof \yii\base\Model) {
+					if (defined('YII_BEGIN_TIME') && $this->otherInformation[$key] instanceof \yii\base\Model) {
 						$this->otherInformation[$key] = $this->otherInformation[$key]->toArray($arrayOrCallable);
 					} else {
 						$this->otherInformation[$key] = get_object_vars($obj);
@@ -541,20 +541,20 @@ class Result extends Component implements \JsonSerializable {
 	 */
 	public function output($options = []) {
 		if (count($this->errorMessages) == 0) {
-			$output = array(
+			$output = [
 				'status' => $this->status,
 				'result_msg' => $this->resultMessages,
 				'err_msg' => [],
 				'err_msg_ext' => [],
-			);
+			];
 		} else {
 			$this->setStatus('error');
-			$output = array(
+			$output = [
 				'status' => $this->status,
 				'result_msg' => [],
 				'err_msg' => $this->getErrorsFlat(),  // flat array, can have a mix of integer and string/named keys
 				'err_msg_ext' => $this->errorMessages,  // not flat, has named keys which then always have an array of values
-			);
+			];
 		}
 		foreach ($this->otherInformation as $key => $value) {
 			$output[$key] = $value;
@@ -599,7 +599,7 @@ class Result extends Component implements \JsonSerializable {
 			}
 		}
 
-		if (@constant('YII_BEGIN_TIME') && !Yii::$app->request->isConsoleRequest) {
+		if (defined('YII_BEGIN_TIME') && !Yii::$app->request->isConsoleRequest) {
 			// use "pretty" output in debug mode
 			$formatter =& Yii::$app->response->formatters[\yii\web\Response::FORMAT_JSON];
 			if (is_array($formatter)) {  //sometimes an array, other times an object
@@ -642,7 +642,7 @@ class Result extends Component implements \JsonSerializable {
 		if ($this->status === 'ok') {
 			$html = '<div class="alert alert-success std-func-result ok">'. $okMessageHtml;
 			if (!empty($this->resultMessages)) {
-				$html .= ' <span class="pls-note">'. ($options['textPleaseNote'] ? $options['textPleaseNote'] : 'Please note') .':<span><ul>';
+				$html .= ' <span class="pls-note">'. ($options['textPleaseNote'] ?? 'Please note') .':<span><ul>';
 				foreach ($this->resultMessages as $notice) {
 					$html .= '<li>'. $notice .'</li>';
 				}

@@ -131,8 +131,10 @@ class Common extends Component {
 	}
 
 	public static function restoreLanguage() {
-		Yii::$app->language = static::$runtime['originalYiiLanguage'];
-		static::$runtime['originalYiiLanguage'] = null;
+		if (@static::$runtime['originalYiiLanguage']) {
+			Yii::$app->language = static::$runtime['originalYiiLanguage'];
+			static::$runtime['originalYiiLanguage'] = null;
+		}
 
 		if (isset(static::$runtime['originalMultiLingualLanguage'])) {
 			Yii::$app->params['currMultiLingualLanguage'] = static::$runtime['originalMultiLingualLanguage'];

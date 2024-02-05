@@ -11,13 +11,13 @@ class JobQueue extends Component {
 
 
 	public function __construct($params = []) {
-		if ($params['db']) {
+		if (@$params['db']) {
 			$this->db = $params['db'];
 		}
-		if ($params['dbName']) {
+		if (@$params['dbName']) {
 			$this->dbName = $params['dbName'];
 		}
-		if ($params['queueID']) {
+		if (@$params['queueID']) {
 			$this->queueID = $params['queueID'];
 		}
 	}
@@ -97,7 +97,7 @@ class JobQueue extends Component {
 	public function listen($params = []) {
 		// Continually run all jobs every X seconds
 		$interval = 60;
-		if ($params['interval']) {
+		if (@$params['interval']) {
 			$interval = $params['interval'];
 		}
 
@@ -151,13 +151,13 @@ class JobQueue extends Component {
 	 * @return void
 	 */
 	public function push($params = []) {
-		if (!$params['command']) {
+		if (!@$params['command']) {
 			new \winternet\yii2\UserException('Command for adding JobQueue is not specified.');
 		}
 
 		$bindings = [];
 
-		if ($params['replaceID']) {
+		if (@$params['replaceID']) {
 			$bindings['replace'] = $params['replaceID'];
 		} else {
 			$bindings['replace'] = null;
@@ -165,13 +165,13 @@ class JobQueue extends Component {
 
 		$bindings['command'] = json_encode($params['command']);
 
-		if (is_numeric($params['priority'])) {
+		if (is_numeric(@$params['priority'])) {
 			$bindings['priority'] = $params['priority'];
 		} else {
 			$bindings['priority'] = 10;
 		}
 
-		if (is_numeric($params['delaySecs'])) {
+		if (is_numeric(@$params['delaySecs'])) {
 			$bindings['delay'] = time() + $params['delaySecs'];
 		} else {
 			$bindings['delay'] = null;
@@ -182,16 +182,16 @@ class JobQueue extends Component {
 		$rowsaffected = \Yii::$app->{$this->db}->createCommand("REPLACE INTO ". ($this->dbName ? '`'. $this->dbName .'`.' : '') ."system_job_queue SET job_queueID = :queue, job_replaceID = :replace, job_command = :command, job_priority = :priority, job_postpone_time = :delay, job_time_added = UTC_TIMESTAMP()", $bindings)->execute();
 		$jobID = \Yii::$app->{$this->db}->getLastInsertID();
 
-		if ($params['atCommand'] && stripos(PHP_OS, 'Linux') !== false) {
+		if (@$params['atCommand'] && stripos(PHP_OS, 'Linux') !== false) {
 			$skip_at = false;
 
 			$cmd = str_replace('{{jobID}}', $jobID, $params['atCommand']);
 
-			if ($params['niceness']) {
+			if (@$params['niceness']) {
 				$cmd = 'nice -'. $params['niceness'] .' '. $cmd;
 			}
 
-			if ($params['noConcurrentExecution']) {
+			if (@$params['noConcurrentExecution']) {
 				$indic_file = \Yii::getAlias('@app/runtime/WS-JobQueue-at-inprogress.tmp');
 
 				// Cancel setting at command if one is already pending
@@ -208,7 +208,7 @@ class JobQueue extends Component {
 
 			if (!$skip_at) {
 				$whole_minutes = $remaining_seconds = null;
-				if (is_numeric($params['delaySecs'])) {
+				if (is_numeric(@$params['delaySecs'])) {
 					if ($params['delaySecs'] >= 60) {
 						$whole_minutes = floor($params['delaySecs'] / 60) + 1;  //have to add 1 minute because if current time is 14:05:43 and we say "now + 1 min" it will execute at 14:06:00 (because the current "minute" we are in is included). Without adding one the job will be executed SOONER than one 1 minute and then job_postpone_time might still be in the future and won't be run when the job executes!
 						$remaining_seconds = $params['delaySecs'] - ($whole_minutes * 60);
@@ -219,7 +219,7 @@ class JobQueue extends Component {
 						$cmd = 'sleep '. $remaining_seconds .' && '. $cmd;
 					}
 				}
-				$cmd = "echo '". str_replace("'", '', $cmd) ."' | at now". ($whole_minutes && $params['delaySecs'] >= 60 ? ' + '. $whole_minutes .' min' : '');
+				$cmd = "echo '". str_replace("'", '', $cmd) ."' | at now". ($whole_minutes && @$params['delaySecs'] >= 60 ? ' + '. $whole_minutes .' min' : '');
 
 				$output = []; $exitcode = 0;
 				exec($cmd, $output, $exitcode);
@@ -230,7 +230,7 @@ class JobQueue extends Component {
 			}
 		}
 
-		if ($params['touchFile']) {
+		if (@$params['touchFile']) {
 			$folder = dirname($params['touchFile']);
 			$filename = basename($params['touchFile']);
 
@@ -242,7 +242,7 @@ class JobQueue extends Component {
 			}
 
 			$skip_touch = false;
-			if ($params['noConcurrentExecution']) {
+			if (@$params['noConcurrentExecution']) {
 				$indic_file = \Yii::getAlias('@app/runtime/WS-JobQueue-incron-inprogress.tmp');
 
 				// Cancel touching file if an execution is already in progress

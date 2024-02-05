@@ -160,7 +160,9 @@ class ConsoleHelper extends Component {
 			$arr = [];
 			$styling = explode('.', $color);
 			foreach ($styling as $style) {
-				$arr[] = constant('\yii\helpers\Console::'. $style);
+				if (defined('\yii\helpers\Console::'. $style)) {
+					$arr[] = constant('\yii\helpers\Console::'. $style);
+				}
 			}
 			array_unshift($arr, $string);
 			$string = call_user_func_array([ \Yii::$app->controller, 'ansiFormat' ], $arr);  // calling \Yii::$app->controller->ansiFormat()

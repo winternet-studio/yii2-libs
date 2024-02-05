@@ -186,7 +186,7 @@ class <?= $className ?> extends <?= '\\' . ltrim($generator->baseClass, '\\') ?>
 	// 			1 => 'Yes',
 	// 		],
 	// 	];
-	// 	if ($attribute !== null) { return $values[$attribute]; } else { return $values; }
+	// 	if ($attribute !== null) { return @$values[$attribute]; } else { return $values; }
 	// }
 
 	/**

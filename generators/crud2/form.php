@@ -23,7 +23,7 @@ if (!empty($allConfigs) && is_array($allConfigs['configs']['crud2'])) {
 	echo '</div>';
 }
 $loadConfig = Yii::$app->request->get('loadConfig');
-if ($loadConfig && $allConfigs['configs']['crud2'][$loadConfig] && Yii::$app->request->isGet) {
+if ($loadConfig && @$allConfigs['configs']['crud2'][$loadConfig] && Yii::$app->request->isGet) {
 	// Load a selected config
 	foreach ($allConfigs['configs']['crud2'][$loadConfig] as $prop => $val) {
 		$generator->{$prop} = $val;

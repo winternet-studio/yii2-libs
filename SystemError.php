@@ -61,7 +61,7 @@ class SystemError extends Component {
 			return new \winternet\yii2\UserException('CONFIGURATION ERROR. Options parameter is not an array.', ['Message' => $message, 'InternalInfo' => $internalInfo, 'Options' => $options], ['notify' => 'developer']);
 		}
 
-		if (Yii::$app->getComponents()['user'] && Yii::$app->user->isGuest) {
+		if (@Yii::$app->getComponents()['user'] && Yii::$app->user->isGuest) {
 			// Give user a chance to login first
 			Yii::$app->response->redirect(Url::to([$this->loginRoute, $this->urlParam => Url::current()]), $this->redirectStatusCode)->send();
 			Yii::$app->end();

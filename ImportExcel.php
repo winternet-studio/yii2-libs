@@ -21,11 +21,11 @@ class ImportExcel extends Component {
 	public function loadToArray($options = []) {
 		$output = [];
 
-		if ($options['worksheetNumber']) {
+		if (@$options['worksheetNumber']) {
 			$worksheet = $this->spreadsheet->setActiveSheetIndex($options['worksheetNumber']-1);
-		} elseif (is_numeric($options['worksheetIndex'])) {
+		} elseif (is_numeric(@$options['worksheetIndex'])) {
 			$worksheet = $this->spreadsheet->setActiveSheetIndex($options['worksheetIndex']);
-		} elseif ($options['worksheetName']) {
+		} elseif (@$options['worksheetName']) {
 			$worksheet = $this->spreadsheet->setActiveSheetIndexByName($options['worksheetName']);
 		}
 

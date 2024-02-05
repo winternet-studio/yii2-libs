@@ -144,7 +144,7 @@ class MultiLanguageInput extends InputWidget {
 		if (!isset($this->containerOptions['id'])) {
 			$this->containerOptions['id'] = $this->getId();
 		}
-		if ($this->options['id'] && $this->options['id'] == $this->containerOptions['id']) {
+		if (isset($this->options['id']) && $this->options['id'] == $this->containerOptions['id']) {
 			$this->containerOptions['id'] = $this->containerOptions['id'] .'-noconflict';  //ensure we don't have conflicting IDs
 		}
 
@@ -203,10 +203,10 @@ class MultiLanguageInput extends InputWidget {
 
 		$content[] = Html::beginTag('div', ['class' => 'language-inputs', 'style' => ($useMultiLangMode ? '' : 'display: none') ]);
 		foreach ($this->activeLanguages as $currLang) {
-			$languageName = $this->languages[$currLang];
+			$languageName = @$this->languages[$currLang];
 			if (!$languageName) $languageName = strtoupper($currLang);
 
-			$tmp  = '<div class="lang-input input-group" data-lang="'. Html::encode($currLang) .'"'. (!is_array($parsed) || $parsed[$currLang] === null ? ' style="display: none"' : '') .'>';
+			$tmp  = '<div class="lang-input input-group" data-lang="'. Html::encode($currLang) .'"'. (!is_array($parsed) || @$parsed[$currLang] === null ? ' style="display: none"' : '') .'>';
 			$tmp .= '<span class="input-group-addon '. $this->addonSizeClass .'">';
 			if ($this->disabled) {
 				$tmp .= Html::encode($languageName);
@@ -264,7 +264,7 @@ class MultiLanguageInput extends InputWidget {
 		$list = [];
 		foreach ($this->activeLanguages as $lang) {
 			if (!in_array($lang, $this->alreadyExist)) {
-				$list[$lang] = ($this->languages[$lang] ? $this->languages[$lang] : $lang);
+				$list[$lang] = $this->languages[$lang] ?? $lang;
 			}
 		}
 		return $list;

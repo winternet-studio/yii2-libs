@@ -77,7 +77,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		$dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 		$filterApplied = (empty($dataProvider->query->where) ? false : true);
 
-		if (Yii::$app->params['isApi']) {
+		if (@Yii::$app->params['isApi']) {
 			return ['result' => $dataProvider->getModels() ];
 		} else {
 			return $this->render('index', [
@@ -92,7 +92,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		]);
 		$filterApplied = (empty($dataProvider->query->where) ? false : true);
 
-		if (Yii::$app->params['isApi']) {
+		if (@Yii::$app->params['isApi']) {
 			return ['result' => $dataProvider->getModels() ];
 		} else {
 			return $this->render('index', [
@@ -109,7 +109,7 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 	 * @return mixed
 	 */
 	public function actionView(<?= $actionParams ?>) {
-		if (Yii::$app->params['isApi']) {
+		if (@Yii::$app->params['isApi']) {
 			return ['result' => $this->findModel($id) ];
 		} else {
 			return $this->render('view', [
@@ -128,10 +128,10 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		$model->applyUserScenario();
 
 		// Form submission
-		if ((Yii::$app->request->isAjax && !Yii::$app->request->isPjax) || Yii::$app->params['isApi']) {
+		if ((Yii::$app->request->isAjax && !Yii::$app->request->isPjax) || @Yii::$app->params['isApi']) {
 			Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 			$model->load(Yii::$app->request->post());
-			if ($_POST['ajax']) {
+			if (@$_POST['ajax']) {
 				$model->validate();  //don't save when AJAX validation is done due to enableAjaxValidation=true
 			} else {
 				$model->save();
@@ -159,10 +159,10 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 		$model = $this->findModel(<?= $actionParams ?>);
 
 		// Form submission
-		if ((Yii::$app->request->isAjax && !Yii::$app->request->isPjax) || Yii::$app->params['isApi']) {
+		if ((Yii::$app->request->isAjax && !Yii::$app->request->isPjax) || @Yii::$app->params['isApi']) {
 			Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 			$model->load(Yii::$app->request->post());
-			if ($_POST['ajax']) {
+			if (@$_POST['ajax']) {
 				$model->validate();  //don't save when AJAX validation is done due to enableAjaxValidation=true
 			} else {
 				$model->save();
@@ -191,14 +191,14 @@ class <?= $controllerClass ?> extends <?= StringHelper::basename($generator->bas
 
 		$model = $this->findModel(<?= $actionParams ?>);
 		if (!$model->delete()) {
-			if (Yii::$app->params['isApi']) {
+			if (@Yii::$app->params['isApi']) {
 				$result->addErrors($model->getErrors());
 			} else {
 				\Yii::$app->system->error('Cannot delete record because: '. implode(' ', $model->getErrorSummary(true)), ['Errors' => $model->getErrors(), 'Model' => $model->toArray() ], ['expire' => 2]);
 			}
 		}
 
-		if (Yii::$app->params['isApi']) {
+		if (@Yii::$app->params['isApi']) {
 			return $result->response();
 		} else {
 			return $this->redirect(['index']);
