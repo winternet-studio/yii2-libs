@@ -5,7 +5,7 @@ use yii\web\AssetBundle;
 
 class FormHelperAsset extends AssetBundle {
 
-	public $sourcePath = '@vendor/winternet-studio/yii2-libs/assets/FormHelper';
+	public $sourcePath = '@vendor/winternet-studio/yii2-libs/src/assets/FormHelper';
 
 	// public $publishOptions = ['forceCopy' => true];
 

@@ -5,7 +5,7 @@ use yii\web\AssetBundle;
 
 class JsHelperAsset extends AssetBundle {
 
-	public $sourcePath = '@vendor/winternet-studio/yii2-libs/assets/JsHelper';
+	public $sourcePath = '@vendor/winternet-studio/yii2-libs/src/assets/JsHelper';
 
 	// public $publishOptions = ['forceCopy' => true];
 

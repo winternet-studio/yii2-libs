@@ -14,7 +14,7 @@
     },
     "autoload": {
         "psr-4": {
-            "winternet\\yii2\\": ""
+            "winternet\\yii2\\": "src/"
         }
     }
 }
