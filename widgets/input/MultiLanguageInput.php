@@ -12,7 +12,7 @@ use winternet\yii2\Common;
  * With model & with ActiveForm:
  * ```php
  * echo $form->field($model, 'payment_terms')->widget(MultiLanguageInput::class, [
- * 	'activeLanguages' => ['en', 'nb', 'da', 'de'],
+ * 	'activeLanguages' => ['en', 'no', 'da', 'de'],
  * ]);
  * ```
  * 
@@ -22,7 +22,7 @@ use winternet\yii2\Common;
  * echo MultiLanguageInput::widget([
  * 	'model' => $model,
  * 	'attribute' => 'payment_terms',
- * 	'activeLanguages' => ['en', 'nb', 'da', 'de'],
+ * 	'activeLanguages' => ['en', 'no', 'da', 'de'],
  * ]);
  * ```
  * 
@@ -31,7 +31,7 @@ use winternet\yii2\Common;
  * echo MultiLanguageInput::widget([
  * 	'name' => 'inputname',
  * 	'value' => 'EN=No refunding after June 27.,,,DA=Ingen refundering efter 27. juni.',
- * 	'activeLanguages' => ['en', 'nb', 'da', 'de'],
+ * 	'activeLanguages' => ['en', 'no', 'da', 'de'],
  * ]);
  * ```
  *
@@ -101,7 +101,7 @@ class MultiLanguageInput extends InputWidget {
 		'mk' => 'Macedonian',
 		'ml' => 'Malayalam',
 		'ms' => 'Malay',
-		'nb' => 'Norwegian',
+		'no' => 'Norwegian',
 		'ne' => 'Nepali',
 		'nl' => 'Dutch',
 		'nn' => 'Norwegian (nynorsk)',
