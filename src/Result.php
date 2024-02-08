@@ -65,7 +65,8 @@ class Result extends Component implements \JsonSerializable {
 	 *
 	 * For example used when response is set to JSON in controller action and we just return this object (as per the crud2 generator).
 	 */
-	public function jsonSerialize(): mixed {
+	#[\ReturnTypeWillChange]
+	public function jsonSerialize() {
 		return $this->response();
 	}
 
