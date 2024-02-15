@@ -81,7 +81,7 @@ class ModelHelper extends Component {
 		$rules = static::getAttributeRules($model, $attribute);
 		$length = [];
 		foreach ($rules as $rule) {
-			if ($rule[0] === 'string') {
+			if ($rule[1] === 'string') {
 				if (is_numeric(@$rule['max'])) {
 					$length['max'] = $rule['max'];
 				}
