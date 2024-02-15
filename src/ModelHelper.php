@@ -236,7 +236,7 @@ class ModelHelper extends Component {
 			new \winternet\yii2\UserException('Table name for creating ActiveRecord class has invalid characters.', ['TableName' => $params['tableName']]);
 		}
 
-		$className = str_replace('.', '__', $params['tableName']);
+		$className = str_replace('.', '__', $params['tableName']) . str_replace('.', '_', (string) microtime(true));  //ensure no collision of class names
 
 		$phpCode  = "class ". $className ." extends \yii\db\ActiveRecord { public static function tableName() {return '". $params['tableName'] ."';} }". PHP_EOL;
 		eval($phpCode);
