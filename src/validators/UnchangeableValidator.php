@@ -9,7 +9,7 @@ class UnchangeableValidator extends Validator {
 	/**
 	 * @var boolean : Value passed to the `$identical` argument for `isAttributeChanged()`
 	 */
-	public $identical = true;
+	public $identical = false;
 
 	public function validateAttribute($model, $attribute) {
 		if ( ! $model->isNewRecord && $model->isAttributeChanged($attribute, $this->identical)) {
