@@ -12,6 +12,7 @@ class CleanupBehavior extends Behavior {
 
 	public $trimString = true;
 	public $emptyStringToNull = true;
+	public $replaceNonBreakingSpaces = true;
 
 	public function events() {
 		return [
@@ -22,6 +23,9 @@ class CleanupBehavior extends Behavior {
 	public function beforeValidate($event) {
 		foreach ($this->owner->attributes as $key => $value) {
 			if (is_string($this->owner->$key)) {
+				if ($this->replaceNonBreakingSpaces) {
+					$this->owner->$key = str_replace("\xC2\xA0", ' ', $this->owner->$key);
+				}
 				if ($this->trimString) {
 					$this->owner->$key = trim($this->owner->$key);
 				}
