@@ -215,15 +215,15 @@ class MultiLanguageInput extends InputWidget {
 			}
 			$tmp .= '</span>';
 			if ($this->inputType == 'textarea') {
-				$tmp .= Html::textarea( $this->containerOptions['id'] .'_input['. $currLang .']', (is_array($parsed) ? $parsed[$currLang] : null), $this->inputOptions);
+				$tmp .= Html::textarea( $this->containerOptions['id'] .'_input['. $currLang .']', (is_array($parsed) ? @$parsed[$currLang] : null), $this->inputOptions);
 			} else {
-				$tmp .= Html::textInput($this->containerOptions['id'] .'_input['. $currLang .']', (is_array($parsed) ? $parsed[$currLang] : null), $this->inputOptions);
+				$tmp .= Html::textInput($this->containerOptions['id'] .'_input['. $currLang .']', (is_array($parsed) ? @$parsed[$currLang] : null), $this->inputOptions);
 			}
 			$tmp .= '</div>';
 
 			$content[] = $tmp;
 
-			if (is_array($parsed) && $parsed[$currLang] !== null) {
+			if (is_array($parsed) && isset($parsed[$currLang])) {
 				$this->alreadyExist[] = $currLang;
 			}
 		}
