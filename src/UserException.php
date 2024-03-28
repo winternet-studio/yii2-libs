@@ -113,7 +113,7 @@ class UserException extends \yii\base\UserException {
 						$errorData .= 'Level '. ($key+1) .': '. ltrim(str_replace(\Yii::$app->basePath, '', (string) @$b['file']), '\\') .'::'. @$b['line'];
 						if ($key != 0) {  //the first entry will always reference to this function (system_error) so skip that
 							$errorData .= ' / '. @$b['function'] .'(';
-							if (count($b['args']) > 0) {
+							if (isset($b['args']) && count($b['args']) > 0) {
 								$arrArgs = array();
 								foreach ($b['args'] as $xarg) {
 									if (is_array($xarg) || is_object($xarg)) {
@@ -212,19 +212,21 @@ class UserException extends \yii\base\UserException {
 			$url = @$_SERVER['REQUEST_URI'];
 
 			$userID = $userName = null;
-			if (Yii::$app->getComponents()['user']) {
+			if (@Yii::$app->getComponents()['user']) {
 				if (!Yii::$app->user->isGuest) {
 					$userID = Yii::$app->user->getId();
 
 					// Automatically detect the name of the user!
-					$userUnfo = Yii::$app->user->identity->toArray();
-					$userName = '';
-					foreach ($userUnfo as $fieldName => $fieldValue) {
-						if (stripos($fieldName, 'name') !== false) {
-							$userName .= $fieldValue .' ';
+					if (Yii::$app->user->identity instanceOf \yii\base\Model) {
+						$userUnfo = Yii::$app->user->identity->toArray();
+						$userName = '';
+						foreach ($userUnfo as $fieldName => $fieldValue) {
+							if (stripos($fieldName, 'name') !== false) {
+								$userName .= $fieldValue .' ';
+							}
 						}
+						$userName = trim($userName);
 					}
-					$userName = trim($userName);
 				}
 			}
 

@@ -177,7 +177,7 @@ class Result extends Component implements \JsonSerializable {
 			$arrayMessages = $this->augmentMessages($arrayMessages, $options['suffix'], 'suffix');
 		}
 
-		$this->errorMessages[$name] = array_merge( (array) $this->errorMessages[$name], $arrayMessages);
+		$this->errorMessages[$name] = array_merge( (array) @$this->errorMessages[$name], $arrayMessages);
 	}
 
 	private function addAllNamedErrors($arrayNames) {
