@@ -96,13 +96,13 @@ class Result extends Component implements \JsonSerializable {
 		}
 
 		if ($namedError != null) {
-			if (!empty($options['prepend']) && is_array($this->errorMessages[$namedError]) && !empty($this->errorMessages[$namedError])) {
+			if (!empty($options['prepend']) && !empty($this->errorMessages[$namedError]) && is_array($this->errorMessages[$namedError])) {
 				array_unshift($this->errorMessages[$namedError], $message);
 			} else {
 				$this->errorMessages[$namedError][] = $message;
 			}
 		} else {
-			if (!empty($options['prepend']) && is_array($this->errorMessages['_generic']) && !empty($this->errorMessages['_generic'])) {
+			if (!empty($options['prepend']) && !empty($this->errorMessages['_generic']) && is_array($this->errorMessages['_generic'])) {
 				array_unshift($this->errorMessages['_generic'], $message);
 			} else {
 				$this->errorMessages['_generic'][] = $message;
@@ -159,7 +159,7 @@ class Result extends Component implements \JsonSerializable {
 		} else {
 			// $arrayMessages is an array of strings
 			$this->setStatus('error');
-			$this->errorMessages['_generic'] = array_merge( (array) $this->errorMessages['_generic'], $arrayMessages);
+			@$this->errorMessages['_generic'] = array_merge( (array) @$this->errorMessages['_generic'], $arrayMessages);
 		}
 	}
 
