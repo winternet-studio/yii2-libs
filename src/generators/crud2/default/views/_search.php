@@ -24,8 +24,8 @@ function toggleSearchMethod() {
 		// Clear fields we are hiding and reset operator
 		$('.crud-search-area :input').not(':visible').not('.operator-input').val('');
 		$('.crud-search-area select.operator-input').find('option').prop('selected', function () {
-	        return $(this).prop('defaultSelected');
-	    }).parent().trigger('change');
+			return $(this).prop('defaultSelected');
+		}).parent().trigger('change');
 	}});
 }
 $(function() {
