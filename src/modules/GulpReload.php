@@ -25,13 +25,13 @@ class GulpReload extends \yii\base\Module {
 
 	public function init() {
 		parent::init();
+        $app =& Yii::$app;
 
-		if (Yii::$app->request->isConsoleRequest) {
+		if ($app->request->isConsoleRequest || $app->request->get('_pjax')) {
 			return;
 		}
 
         // Delay attaching event handler to the view component after it is fully configured (idea from yii\debug\Module)
-        $app =& Yii::$app;
         $app->on(\yii\base\Application::EVENT_BEFORE_REQUEST, function () use ($app) {
             $app->getView()->on(\yii\web\View::EVENT_END_BODY, [$this, 'clientJs']);
         });
