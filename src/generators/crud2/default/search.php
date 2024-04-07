@@ -148,6 +148,13 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 			// 'sort' => ['defaultOrder' => ['<?= $generator->getSearchAttributes()[0] ?>' => SORT_ASC]],
 		]);
 
+		// Remove non-searchable attributes - eg. custom getters since they are read-only (unless we make a setter and add it to searchable())
+		if (!empty($params[$shortModelName])) {
+			$params[$shortModelName] = array_filter($params[$shortModelName], function($attribute) use (&$searchable) {
+				return in_array($attribute, $searchable);
+			}, ARRAY_FILTER_USE_KEY);
+		}
+
 		$this->load($params);
 
 		if (!$this->validate()) {
