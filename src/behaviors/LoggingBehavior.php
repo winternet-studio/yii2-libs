@@ -149,7 +149,7 @@ class LoggingBehavior extends Behavior {
 						if (is_array($from[$currAttr]) && is_array($to[$currAttr])) {  //ensure array attributes are not converted to just "Array" and removed by the code below (they are handled above instead)
 							// do nothing, they are handled above
 						} else {
-							if ((string) $from[$currAttr] === (string) $to[$currAttr]) {
+							if (!is_array($from[$currAttr]) && !is_array($to[$currAttr]) && (string) $from[$currAttr] === (string) $to[$currAttr]) {  //avoid array to string conversion if only one of them is an array
 								unset($from[$currAttr], $to[$currAttr]);
 							}
 						}

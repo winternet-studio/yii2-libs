@@ -16,7 +16,7 @@ if ($allConfigs) {
 	$allConfigs = [];
 	$allConfigs['_about'] = 'This file belongs to the Gii generator at '. get_class($generator) .' (https://github.com/winternet-studio/yii2-libs)';
 }
-if (!empty($allConfigs) && is_array($allConfigs['configs']['model2'])) {
+if (is_array(@$allConfigs['configs']['model2'])) {
 	// UI for selecting config to load
 	echo '<div class="alert alert-info">';
 	echo '<div style="margin-bottom: 10px">Load a previous configuration:</div>';

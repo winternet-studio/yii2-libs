@@ -150,8 +150,8 @@ class <?= $searchModelClass ?> extends <?= isset($modelAlias) ? $modelAlias : $m
 
 		// Remove non-searchable attributes - eg. custom getters since they are read-only (unless we make a setter and add it to searchable())
 		if (!empty($params[$shortModelName])) {
-			$params[$shortModelName] = array_filter($params[$shortModelName], function($attribute) use (&$searchable) {
-				return in_array($attribute, $searchable);
+			$params[$shortModelName] = array_filter((array) $params[$shortModelName], function($attribute) use (&$searchable) {
+				return substr($attribute, 0, 2) == '__' || in_array($attribute, $searchable);
 			}, ARRAY_FILTER_USE_KEY);
 		}
 
