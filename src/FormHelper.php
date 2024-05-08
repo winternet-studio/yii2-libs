@@ -167,10 +167,8 @@ class FormHelper extends Component {
 
 		foreach ($modelErrors as $attr => $errors) {
 			// Generate the form field ID so Yii ActiveForm client-side can apply the error message
-			if (!$modelName) {
-				$modelName = get_class($model);
-				$modelName = mb_strtolower(substr($modelName, strrpos($modelName, '\\')+1));
-			}
+			$modelName = get_class($model);
+			$modelName = mb_strtolower(substr($modelName, strrpos($modelName, '\\')+1));
 
 			$attributeId = $modelName .'-'. mb_strtolower($attr);
 

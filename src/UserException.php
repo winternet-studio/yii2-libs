@@ -147,6 +147,7 @@ class UserException extends \yii\base\UserException {
 			}
 		}
 
+		$extraMessage = '';
 		if ($msg === null) {
 			$messageString = $messageStringHtml = 'NULL';
 		} elseif (is_array($msg) || is_object($msg) || is_bool($msg)) {
