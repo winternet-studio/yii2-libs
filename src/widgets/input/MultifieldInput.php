@@ -150,7 +150,7 @@ class MultifieldInput extends InputWidget {
 
 			$content[] = '<tr>';
 			$content[] = '<td class="mfi-label">'. ($this->encodeLabel ? Html::encode($item['label']) : $item['label']) .'&nbsp;</td>';
-			if (is_callable($item['type'])) {
+			if (is_callable(@$item['type'])) {
 				$content[] = '<td class="mfi-input custom-type">'. call_user_func($item['type'], $fieldName, $fieldValue, array_merge($this->inputOptions, ['id' => $inputID])) .'</td>';
 			} elseif ($item['type'] == 'dropDownList') {
 				$content[] = '<td class="mfi-input dropdown-type">'. Html::dropDownList($fieldName, $fieldValue, $item['list'], array_merge($this->inputOptions, ['id' => $inputID])) .'</td>';
