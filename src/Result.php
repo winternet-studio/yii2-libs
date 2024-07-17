@@ -327,7 +327,7 @@ class Result extends Component implements \JsonSerializable {
 	 * Get a the first error (in flat format)
 	 */
 	public function getFirstErrorFlat() {
-		return $this->getErrorsFlat()[0];
+		return current($this->getErrorsFlat());
 	}
 
 	/**
