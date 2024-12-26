@@ -146,7 +146,7 @@ class MultifieldInput extends InputWidget {
 			$inputID = $this->containerOptions['id'] .'-'. $counter;
 
 			$fieldName = $basename .'['. $item['name'] .']';
-			$fieldValue = $value[$item['name']] ?? $item['default'];
+			$fieldValue = $value[$item['name']] ?? @$item['default'];
 
 			$content[] = '<tr>';
 			$content[] = '<td class="mfi-label">'. ($this->encodeLabel ? Html::encode($item['label']) : $item['label']) .'&nbsp;</td>';
