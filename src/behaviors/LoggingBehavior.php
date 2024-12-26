@@ -72,6 +72,12 @@ class LoggingBehavior extends Behavior {
 	 */
 	public $baseClasses = [];
 
+	/**
+	 * @var callable : Function to call before saving the log entry. Passed the event and log model. Use `$event->sender` to access the original model.
+	 *                 Could be used to set additional attributes in the log.
+	 */
+	public $preSave = null;
+
 	public function events() {
 		$events = [];
 		if (!in_array('insert', $this->excludeEvents)) {
@@ -195,6 +201,10 @@ class LoggingBehavior extends Behavior {
 			}
 
 			$log->setAttributes($logAttributes);
+
+			if (is_callable($this->preSave)) {
+				call_user_func($this->preSave, $event, $log);
+			}
 
 			if (!$log->save()) {
 				new \winternet\yii2\UserException('Failed to log the operation.', ['Errors' => $log->getErrors(), 'Model' => $log->toArray() ]);
