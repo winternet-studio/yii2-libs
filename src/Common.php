@@ -142,6 +142,32 @@ class Common extends Component {
 	}
 
 	/**
+	 * Determine language from browser header
+	 *
+	 * Example header: `Accept-Language: de-DE,de;q=0.9,en;q=0.8`
+	 *
+	 * @param array $supportedLanguages : Supported languages, eg. `['en-US', 'da-DK', 'de-DE']`
+	 * @return string|null : Eg. `da-DK` if the language is found
+	 */
+	public static function getLanguageFromBrowser($supportedLanguages) {
+		foreach (\Yii::$app->request->getAcceptableLanguages() as $acceptableLanguage) {  //copied from yii\web\Request class. Example: `['en-GB', 'en']`. Yii puts them in their prioritized order.
+			$acceptableLanguage = str_replace('_', '-', strtolower($acceptableLanguage));
+			foreach ($supportedLanguages as $language) {
+				$normalizedLanguage = str_replace('_', '-', strtolower($language));
+
+				if (
+					$normalizedLanguage === $acceptableLanguage // en-us==en-us
+					|| strpos($acceptableLanguage, $normalizedLanguage . '-') === 0 // en==en-us
+					|| strpos($normalizedLanguage, $acceptableLanguage . '-') === 0 // en-us==en
+				) {
+					return $language;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Change the timezone of a datetime/timestamp
 	 *
 	 * @param mixed $dateTime : MySQL datetime or Unix timestamp (or anything the DateTime() constructor accepts)
