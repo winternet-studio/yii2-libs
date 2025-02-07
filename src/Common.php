@@ -6,6 +6,13 @@ use yii\base\Component;
 
 class Common extends Component {
 
+	public static $bufferTableConfig = [
+		'tableName' => null,
+		'keyColumn' => null,
+		'valueColumn' => null,
+		'expireColumn' => null,
+	];
+
 	public static $runtime = [];
 
 	public static function processAjaxSubmit($options = []) {
@@ -218,9 +225,11 @@ class Common extends Component {
 	 * @return void
 	 */
 	public static function setBufferValue($key, $value, $expiration = false) {
+		$config = static::getBufferConfig();
+
 		// Auto-overwrite any record with the same key
 		$sqlRelative = null;
-		$sql = "REPLACE INTO `buffer` SET tmpd_key = :key, tmpd_value = :value";
+		$sql = "REPLACE INTO `". $config->tableName ."` SET `". $config->keyColumn ."` = :key, `". $config->valueColumn ."` = :value";
 		$parameters = [
 			'key' => $key,
 			'value' => $value,
@@ -236,9 +245,9 @@ class Common extends Component {
 				throw new \Exception('Invalid expiration date for setting a value in temporary buffer table.');
 			}
 			if ($sqlRelative) {
-				$sql .= ", tmpd_date_expire = ". $sqlRelative;
+				$sql .= ", `". $config->expireColumn ."` = ". $sqlRelative;
 			} else {
-				$sql .= ", tmpd_date_expire = :expiration";
+				$sql .= ", `". $config->expireColumn ."` = :expiration";
 				$parameters['expiration'] = (new \DateTime($expiration))->format('Y-m-d H:i:s');
 			}
 		}
@@ -255,12 +264,14 @@ class Common extends Component {
 	 * @return string|array : String with the value, or empty array if key was not found
 	 */
 	public static function getBufferValue($key) {
+		$config = static::getBufferConfig();
+
 		// Clean up the buffer once per session
 		if (Yii::$app->has('session')) {  //skip cleaning when no session available (most often means running in CLI)
 			$session = Yii::$app->session;
 			if (Yii::$app->request->isConsoleRequest || !$session || !$session->get('_jfw_cleaned_buffer')) {
 
-				\Yii::$app->db->createCommand("DELETE FROM `buffer` WHERE tmpd_date_expire IS NOT NULL AND tmpd_date_expire < UTC_TIMESTAMP()")->execute();
+				\Yii::$app->db->createCommand("DELETE FROM `". $config->tableName ."` WHERE `". $config->expireColumn ."` IS NOT NULL AND `". $config->expireColumn ."` < UTC_TIMESTAMP()")->execute();
 
 				if ($session) {
 					$session->set('_jfw_cleaned_buffer', true);
@@ -269,7 +280,7 @@ class Common extends Component {
 		}
 
 		// Get the value
-		$sql = "SELECT tmpd_value FROM `buffer` WHERE tmpd_key = :key AND (tmpd_date_expire IS NULL OR tmpd_date_expire > UTC_TIMESTAMP())";
+		$sql = "SELECT `". $config->valueColumn ."` FROM `". $config->tableName ."` WHERE `". $config->keyColumn ."` = :key AND (`". $config->expireColumn ."` IS NULL OR `". $config->expireColumn ."` > UTC_TIMESTAMP())";
 		return \Yii::$app->db->createCommand($sql, [
 			'key' => $key,
 		])->queryScalar();
@@ -279,7 +290,17 @@ class Common extends Component {
 	 * Get an item from the buffer table by searching for a value
 	 */
 	public static function searchBufferValue($value) {
-		return (new \yii\db\Query())->from('buffer')->where(['tmpd_value' => $value])->one();
+		$config = static::getBufferConfig();
+		return (new \yii\db\Query())->from($config->tableName)->where([$config->valueColumn => $value])->one();
+	}
+
+	public static function getBufferConfig() {
+		return (object) [
+			'tableName' => static::$bufferTableConfig['tableName'] ?? 'buffer',
+			'keyColumn' => static::$bufferTableConfig['keyColumn'] ?? 'tmpd_key',
+			'valueColumn' => static::$bufferTableConfig['valueColumn'] ?? 'tmpd_value',
+			'expireColumn' => static::$bufferTableConfig['expireColumn'] ?? 'tmpd_date_expire',
+		];
 	}
 
 	/**
