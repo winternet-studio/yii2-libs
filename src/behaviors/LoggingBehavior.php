@@ -155,8 +155,12 @@ class LoggingBehavior extends Behavior {
 						if (is_array($from[$currAttr]) && is_array($to[$currAttr])) {  //ensure array attributes are not converted to just "Array" and removed by the code below (they are handled above instead)
 							// do nothing, they are handled above
 						} else {
-							if (!is_array($from[$currAttr]) && !is_array($to[$currAttr]) && (string) $from[$currAttr] === (string) $to[$currAttr]) {  //avoid array to string conversion if only one of them is an array
-								unset($from[$currAttr], $to[$currAttr]);
+							if (!is_array($from[$currAttr]) && !is_array($to[$currAttr])) {  //avoid array to string conversion if only one of them is an array
+								if ((string) $from[$currAttr] === (string) $to[$currAttr]) {  //treat string "100" the same as integer 100
+									unset($from[$currAttr], $to[$currAttr]);
+								} elseif (is_numeric($from[$currAttr]) && is_numeric($to[$currAttr]) && (float) $from[$currAttr] === (float) $to[$currAttr]) {  //treat string "55.30" the same as float 55.3
+									unset($from[$currAttr], $to[$currAttr]);
+								}
 							}
 						}
 					}
