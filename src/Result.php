@@ -570,7 +570,7 @@ class Result extends Component implements \JsonSerializable {
 	 *
 	 * And if you just need all errors joined in a string you can do `Object.values(errors).join(' ')`.
 	 */
-	public function response() {
+	public function response($options = []) {
 		/*
 		NOTES:
 		- decided not to go for the full blown "envelope" style where all below would be put under a "result" property and everything else under a "data" property. Reasons being:
@@ -594,9 +594,16 @@ class Result extends Component implements \JsonSerializable {
 				'errorsItemized' => $this->errorMessages,  // not flat, has named keys which then always have an array of values
 			];
 		}
-		foreach ($this->otherInformation as $key => $value) {
-			if (!in_array($key, ['status', 'notices', 'errors', 'errorsItemized'], true)) {  //protect these values
-				$output[$key] = $value;
+		if (empty($options['isolateData'])) {
+			foreach ($this->otherInformation as $key => $value) {
+				if (!in_array($key, ['status', 'notices', 'errors', 'errorsItemized'], true)) {  //protect these values
+					$output[$key] = $value;
+				}
+			}
+		} else {
+			$output['data'] = [];
+			foreach ($this->otherInformation as $key => $value) {
+				$output['data'][$key] = $value;
 			}
 		}
 
