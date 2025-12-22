@@ -708,7 +708,7 @@ appJS.showModal = function(parms) {
 		// Remove all events handlers
 		$(modalSelector).find('button').off('click');
 		$(modalSelector).find('.btn-yes, .btn-ok, .btn-affirmative').off('click.JsHelperModal');
-		if ($firstInput.length > 0) {
+		if ($firstInput && $firstInput.length > 0) {
 			$firstInput.off('keyup.JsHelperModal');
 		}
 	};
