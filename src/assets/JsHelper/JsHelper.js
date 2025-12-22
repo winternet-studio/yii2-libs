@@ -664,6 +664,7 @@ appJS.showModal = function(parms) {
 		setTimeout(function() {
 			$('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
 		}, 0);
+		$('body').addClass('modal-open');
 
 		if (typeof parms.successCallback == 'function') {
 			var thisModal = this;
@@ -740,6 +741,9 @@ appJS.showModal = function(parms) {
 		if ($backDrop.length > 0) {
 			var currModalZindex = $('.modal:visible:last').css('z-index');
 			$backDrop.css('z-index', currModalZindex - 1);
+		}
+		if ($('.modal:visible').length > 0) {
+			$('body').addClass('modal-open');
 		}
 	};
 	$(modalSelector).one('hidden.bs.modal', closedCb);
