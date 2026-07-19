@@ -44,6 +44,12 @@ class MultiLanguageInput extends InputWidget {
 	public $inputOptions = [];
 	public $disabled = false;
 
+	/**
+	 * Name of a global JS function to call (as `functionName(containerId)`) right after the widget has initialized on the client
+	 * Useful for hooking up something extra on top of the plain/language inputs, eg. a rich text editor
+	 */
+	public $jsEnhanceCallback = null;
+
 
 	public $containerOptions = [];
 	public $plainInputOptions = [];
@@ -153,6 +159,9 @@ class MultiLanguageInput extends InputWidget {
 		}
 
 		Html::addCssClass($this->containerOptions, 'multi-lang-input-widget');
+		if ($this->jsEnhanceCallback) {
+			Html::addCssClass($this->containerOptions, 'multi-lang-input-has-enhancer');
+		}
 		Html::addCssClass($this->inputOptions, 'form-control');
 		Html::addCssClass($this->inputOptions, $this->containerOptions['id'] .'-lang-input');
 
@@ -257,7 +266,11 @@ class MultiLanguageInput extends InputWidget {
 		$view = $this->getView();
 		MultiLanguageInputAsset::register($view);
 
-		$view->registerJs("multiLangInputWidget.init(". json_encode($this->containerOptions['id']) .", ". json_encode($this->inputType) .", {txtOnlyOneTransl: ". json_encode($this->textOnlyOneTranslation) .", txtModalTitle: ". json_encode($this->textModalTitle) .", txtOkButton: ". json_encode($this->textModalOKButton) ."});");
+		$js = 'multiLangInputWidget.init('. json_encode($this->containerOptions['id']) .', '. json_encode($this->inputType) .', {txtOnlyOneTransl: '. json_encode($this->textOnlyOneTranslation) .', txtModalTitle: '. json_encode($this->textModalTitle) .', txtOkButton: '. json_encode($this->textModalOKButton) .'});';
+		if ($this->jsEnhanceCallback) {
+			$js .= $this->jsEnhanceCallback .'('. json_encode($this->containerOptions['id']) .');';
+		}
+		$view->registerJs($js);
 	}
 
 	protected function getLanguageList() {
